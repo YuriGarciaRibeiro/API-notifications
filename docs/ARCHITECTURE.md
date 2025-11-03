@@ -4,6 +4,8 @@
 
 Sistema de notificações **production-ready** em Go com arquitetura de filas distribuída, projetado para alta disponibilidade, escalabilidade e observabilidade.
 
+**Este é um projeto com dual purpose**: desenvolvido tanto para **uso real em produção** quanto para **aprendizado profundo** de arquitetura distribuída, message brokers, e boas práticas de desenvolvimento backend moderno em Go. Cada decisão arquitetural é documentada e explicada para fins educacionais, sem comprometer a qualidade necessária para produção.
+
 ### Componentes Principais
 
 - **API REST** para receber requisições de notificações
@@ -98,9 +100,9 @@ Este sistema foi arquitetado considerando:
 - **Push**: `firebase/firebase-admin-go` ou `sideshow/apns2`
 
 #### Infraestrutura
-- **Configuração**: `spf13/viper` ou `joho/godotenv`
-- **Logging**: `sirupsen/logrus` ou `uber-go/zap`
-- **Métricas**: `prometheus/client_golang`
+- **Configuração**: `spf13/viper` - Gerenciamento de configuração YAML
+- **Logging**: `uber-go/zap` - Logging estruturado de alta performance
+- **Métricas**: `prometheus/client_golang` - Métricas para Prometheus
 
 ---
 
@@ -140,7 +142,7 @@ api-notifications/
 │   ├── queue/                  # Lógica de filas
 │   │   ├── producer.go         # Publicar mensagens
 │   │   ├── consumer.go         # Consumir mensagens
-│   │   └── redis.go / rabbitmq.go
+│   │   └── rabbitmq.go         # Cliente RabbitMQ
 │   │
 │   ├── workers/                # Lógica dos workers
 │   │   ├── email_worker.go
@@ -187,7 +189,7 @@ api-notifications/
 │   ├── Dockerfile.api
 │   └── Dockerfile.worker
 │
-├── docker-compose.yml          # Setup local (Redis/RabbitMQ)
+├── docker-compose.yml          # Setup local (RabbitMQ, PostgreSQL)
 ├── .env.example
 ├── go.mod
 ├── go.sum
@@ -383,8 +385,10 @@ Exchange: notifications.dlx.exchange (Dead Letter Exchange)
 - **Durabilidade**: `durable: true` - Sobrevive a restart do RabbitMQ
 - **Auto-delete**: `false` - Não deleta automaticamente
 - **TTL**: Configurável por mensagem (ex: 1 hora)
-- **Max Priority**: 10 (suporte a priorização)
+- **Max Priority**: 5 (valores 1-5, onde 5 é mais urgente)
 - **Dead Letter Exchange**: Configurado para retry automático
+
+**Nota sobre prioridades**: A API aceita valores de 1-5, onde 1 é prioridade mais baixa e 5 é mais alta. Internamente, o RabbitMQ suporta 0-255, mas limitamos a 1-5 para simplicidade.
 
 **Dead Letter Queue (DLQ):**
 - Recebe mensagens que falharam após X tentativas
@@ -465,11 +469,11 @@ No Management UI você pode:
 ### Core Features (MVP)
 
 - ✅ API REST para receber notificações
-- ✅ Sistema de filas (Redis ou RabbitMQ)
-- ✅ Workers para Email, SMS, Push
+- ✅ Sistema de filas com RabbitMQ
+- ✅ Workers para Email, SMS, Push, Webhook
 - ✅ Validação de payloads
 - ✅ Health checks
-- ✅ Logging estruturado
+- ✅ Logging estruturado com Zap
 
 ### Features Avançadas
 
@@ -527,7 +531,11 @@ POST /api/v1/notifications/template
 #### 7. **Priorização**
 ```go
 // Fila prioritária para notificações urgentes
-Priority: 1 (lowest) - 5 (highest)
+// API aceita: 1 (lowest) - 5 (highest)
+// Mensagens com prioridade 5 são processadas primeiro
+type NotificationRequest struct {
+    Priority int `json:"priority" binding:"min=1,max=5"` // 1-5
+}
 ```
 
 #### 8. **Dashboard de Monitoramento**
@@ -654,7 +662,7 @@ go mod download
 cp .env.example .env
 cp configs/config.example.yaml configs/config.yaml
 
-# Subir Redis/RabbitMQ localmente
+# Subir RabbitMQ e PostgreSQL localmente
 docker-compose up -d
 
 # Verificar se está rodando
@@ -757,8 +765,8 @@ spec:
         ports:
         - containerPort: 8080
         env:
-        - name: REDIS_HOST
-          value: "redis-service"
+        - name: RABBITMQ_URL
+          value: "amqp://rabbitmq-service:5672"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -909,8 +917,8 @@ notification_duration_seconds_bucket{type="email",le="0.5"} 1200
 
 ### Documentação
 - [Gin Framework](https://gin-gonic.com/docs/)
-- [Go Redis](https://redis.uptrace.dev/)
 - [RabbitMQ Go](https://www.rabbitmq.com/tutorials/tutorial-one-go.html)
+- [RabbitMQ amqp091-go](https://pkg.go.dev/github.com/rabbitmq/amqp091-go)
 - [Twilio Go](https://www.twilio.com/docs/libraries/go)
 - [Firebase Admin Go](https://firebase.google.com/docs/admin/setup)
 

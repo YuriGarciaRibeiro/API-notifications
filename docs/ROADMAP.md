@@ -158,9 +158,9 @@ Contexto do mundo real. Como isso é usado em produção.
 
 **✅ Checkpoint de Entendimento**:
 Antes de codar, responda mentalmente:
-- O que `go mod init` faz?
-- Por que preciso de um `go.mod`?
-- O que acontece quando rodo `go get`?
+- O que `go mod init` faz? Inicia um projeto, para entender e instalar dependências.
+- Por que preciso de um `go.mod`? Para gerenciar dependências e versões.
+- O que acontece quando rodo `go get`? Baixa e adiciona dependências ao projeto.
 
 **💻 AGORA IMPLEMENTE**:
 ```bash
@@ -188,7 +188,7 @@ Go Modules revolucionaram o ecossistema Go em 2019. Todo projeto profissional us
 
 1. **Structs em Go** (fundamental!)
    - 📺 YouTube: "Golang Structs Tutorial"
-   - 📖 Leia: https://gobyexample.com/structs
+   - 📖 Leia: https://gobyexample.com/s tructs
    - 📖 Leia: https://go.dev/tour/moretypes/2
    - 🎯 Entenda: Como declarar, inicializar, acessar campos
    - 🎯 Pratique: Crie uma struct `Person` com nome e idade no Go Playground
@@ -209,9 +209,9 @@ Go Modules revolucionaram o ecossistema Go em 2019. Todo projeto profissional us
    - 🎯 Entenda: Por que não commitar secrets no git
 
 **✅ Checkpoint de Entendimento**:
-- Consegue criar uma struct com 3 campos?
-- Sabe o que são struct tags?
-- Entende a diferença entre YAML, JSON, ENV vars?
+- Consegue criar uma struct com 3 campos? sim
+- Sabe o que são struct tags? sim
+- Entende a diferença entre YAML, JSON, ENV vars? sim
 - Por que Viper é melhor que `os.ReadFile()`?
 
 **💻 AGORA IMPLEMENTE**:

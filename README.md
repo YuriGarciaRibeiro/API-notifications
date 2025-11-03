@@ -191,7 +191,7 @@ Cada passo tem:
 - **Gin** (`github.com/gin-gonic/gin`) - Web framework HTTP
 - **Viper** (`github.com/spf13/viper`) - Gerenciamento de configuração
 - **Zap** (`go.uber.org/zap`) - Logging estruturado de alta performance
-- **amqp091-go** - Cliente RabbitMQ oficial
+- **RabbitMQ** (`github.com/rabbitmq/amqp091-go`) - Cliente oficial RabbitMQ
 
 **Segurança**
 - **bcrypt** (`golang.org/x/crypto/bcrypt`) - Hash de senhas

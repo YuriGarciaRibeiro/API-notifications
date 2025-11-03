@@ -1,1 +1,75 @@
-# Main configuration file
+app:
+  name: "Notification Service"
+  env: "development"
+  port: 8080
+
+queue:
+  type: "rabbitmq"
+
+  rabbitmq:
+    url: "amqp://admin:admin123@localhost:5672/"
+    exchange: "notifications.exchange"
+    exchange_type: "topic"
+    dlx_exchange: "notifications.dlx.exchange"
+    max_retries: 3
+    retry_delay: 5000  # ms - delay entre retries
+
+workers:
+  email:
+    enabled: true
+    concurrency: 5
+    rate_limit: 100 # por minuto
+
+  sms:
+    enabled: true
+    concurrency: 3
+    rate_limit: 50
+
+  push:
+    enabled: true
+    concurrency: 10
+    rate_limit: 200
+
+  webhook:
+    enabled: true
+    concurrency: 5
+
+services:
+  email:
+    provider: "smtp" # ou "mailgun", "sendgrid"
+    smtp:
+      host: "smtp.gmail.com"
+      port: 587
+      username: "user@gmail.com"
+      password: "secret"
+      from: "noreply@app.com"
+
+  sms:
+    provider: "twilio"
+    twilio:
+      account_sid: "ACxxxxx"
+      auth_token: "xxxxx"
+      from_number: "+1234567890"
+
+  push:
+    provider: "firebase"
+    firebase:
+      credentials_file: "./firebase-credentials.json"
+
+database:
+  enabled: true
+  driver: "postgres"
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "secret"
+  dbname: "notifications"
+
+logging:
+  level: "info" # debug, info, warn, error
+  format: "json" # json ou text
+
+security:
+  api_key_enabled: true
+  jwt_enabled: false
+  allowed_origins: ["*"]
