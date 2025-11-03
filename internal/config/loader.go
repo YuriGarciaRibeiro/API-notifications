@@ -19,24 +19,14 @@ func LoadConfig(configPath string) (*Config, error) {
 		return nil, fmt.Errorf("erro ao fazer unmarshal: %w", err)
 	}
 
-	if err := validateConfig(&cfg); err != nil {
+	if err := cfg.Validate(); err != nil {
 		return nil, fmt.Errorf("config inválida: %w", err)
 	}
 
 	return &cfg, nil
 }
 
-func validateConfig(cfg *Config) error {
-	if cfg.App.Port == 0 {
-		return fmt.Errorf("porta da aplicação não configurada")
-	}
 
-	if cfg.Queue.Rabbit.URL == "" {
-		return fmt.Errorf("URL do RabbitMQ não configurada")
-	}
-
-	return nil
-}
 
 func LoadConfigWithEnv(configPath string) (*Config, error) {
 	viper.AutomaticEnv()
