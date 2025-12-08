@@ -1,311 +1,317 @@
-# Sistema de Notificações - Projeto de Estudo Completo
+# Sistema de Notificações - .NET
 
-## 📚 Contexto do Projeto
+## 📚 Sobre o Projeto
 
-Este é um **sistema de notificações production-ready** desenvolvido como projeto de aprendizado, mas com foco em qualidade, segurança e escalabilidade necessárias para uso em produção.
+Sistema de notificações assíncrono desenvolvido em **.NET** com **ASP.NET Core** e **RabbitMQ**. Este projeto implementa um sistema production-ready de envio de notificações por múltiplos canais utilizando arquitetura de mensageria.
 
-O projeto combina **aprendizado prático** com **desenvolvimento profissional** - cada decisão arquitetural considera requisitos reais de produção, incluindo alta disponibilidade, observabilidade, segurança e performance.
+### 🎯 Objetivo
 
-### 🎯 Objetivos do Projeto
-
-**Dual Purpose: Aprender + Produção**
-
-Este projeto tem dois objetivos simultâneos:
-
-1. **Aprendizado profundo** de desenvolvimento backend moderno
-2. **Sistema pronto para produção** com todas as garantias necessárias
-
-Este projeto abrange múltiplas áreas do desenvolvimento backend moderno:
-
-**🔤 Linguagem Go**
-- Sintaxe, tipos, structs e interfaces
-- Goroutines, channels e concorrência
-- Gerenciamento de dependências com Go Modules
-- Testing e error handling idiomático
-
-**🏗️ Arquitetura de Sistemas**
-- Producer-Consumer Pattern
-- Event-Driven Architecture
-- Clean Architecture / Separation of Concerns
-- Conceitos de microserviços (workers independentes)
-
-**📨 Message Brokers & Filas**
-- RabbitMQ: Exchanges, Queues, Routing Keys
-- Publish/Subscribe patterns
-- Dead Letter Queues (DLQ)
-- ACK/NACK e garantias de entrega
-- Retry logic e exponential backoff
-
-**🔔 Sistemas de Notificação**
-- Push Notifications (Firebase Cloud Messaging)
-- SMTP e envio de emails
-- SMS via Twilio
-- Webhooks e callbacks HTTP
-
-**🔧 Integrações & APIs Externas**
-- REST API design
-- Autenticação com API keys
-- Rate limiting
-- HTTP clients e error handling
-
-**🐳 DevOps & Containerização**
-- Docker e Docker Compose
-- Configuração de ambientes (dev/prod)
-- Variáveis de ambiente
-- Health checks e observabilidade
-
-**💾 Persistência & Dados**
-- PostgreSQL
-- Migrations
-- Repository pattern
-
-**🔒 Segurança & Produção**
-- Autenticação e autorização (API Keys, JWT)
-- Validação de inputs e sanitização
-- Rate limiting e proteção contra abuso
-- Secrets management (variáveis de ambiente)
-- HTTPS/TLS
-- Auditoria e logs de segurança
-
-**📊 Observabilidade & Monitoramento**
-- Logging estruturado (Zap)
-- Métricas (Prometheus)
-- Health checks
-- Tracing distribuído
-- Alertas e SLOs
-
-**🧪 Qualidade & Testes**
-- Unit tests
-- Integration tests
-- E2E tests
-- Code coverage
-- Linting e formatação (golangci-lint)
-
-### 🧠 Metodologia de Aprendizado: Deep Dive
-
-Este projeto segue a metodologia **Deep Dive**:
-
-1. **📚 Pesquisar PRIMEIRO** - Estudar conceitos e ler documentação
-2. **✅ Checkpoint** - Validar entendimento antes de codificar
-3. **💻 Implementar com Qualidade** - Aplicar o conhecimento seguindo padrões de produção
-4. **🧪 Testar** - Garantir qualidade com testes automatizados
-5. **🔄 Revisar & Refatorar** - Melhorar código mantendo qualidade
-
-> **Importante**: Este projeto é desenvolvido com padrões de produção desde o início. Cada feature implementada considera segurança, performance, observabilidade e manutenibilidade.
-
-## 📖 Documentação do Projeto
-
-### Arquivos Principais
-
-- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Arquitetura completa do sistema com decisões técnicas e design RabbitMQ
-- **[ROADMAP.md](ROADMAP.md)** - Guia passo-a-passo de implementação (formato Deep Dive nos Passos 1-5)
-- **[GO-REFERENCE.md](GO-REFERENCE.md)** - Referência rápida de sintaxe Go e boas práticas
-
-### Como Usar Esta Documentação
-
-1. Comece pelo **ROADMAP.md** no Passo 1
-2. Use **GO-REFERENCE.md** quando tiver dúvidas de sintaxe
-3. Consulte **ARCHITECTURE.md** para entender decisões de design
-4. Pesquise os links fornecidos em cada passo do ROADMAP
-5. Só implemente após entender os conceitos
-
-## 🏗️ O Que Este Sistema Faz?
-
-### Visão Geral
-
-Sistema de notificações assíncrono que:
-1. Recebe requisições via API REST
-2. Enfileira mensagens no RabbitMQ
-3. Workers processam as notificações
-4. Envia notificações por diferentes canais
-
-### Tipos de Notificação
-
+Criar um sistema escalável e resiliente para envio de notificações através de:
 - 📧 **Email** - Via SMTP
 - 📱 **SMS** - Via Twilio
-- 🔔 **Push** - Via Firebase
-- 🔗 **Webhook** - HTTP POST para URLs externas
+- 🔔 **Push Notifications** - Via Firebase Cloud Messaging
+- 🔗 **Webhooks** - HTTP callbacks
 
-### Arquitetura Simplificada
+## 🏗️ Arquitetura
 
 ```
-Cliente → API (Gin) → RabbitMQ → Workers → Serviços Externos
-                          ↓
-                     PostgreSQL (opcional)
+Cliente → API (ASP.NET Core) → RabbitMQ → Consumers → Serviços Externos
+                                   ↓
+                              PostgreSQL
+```
+
+### Componentes
+
+- **API (ASP.NET Core)**: Recebe requisições REST e publica mensagens no RabbitMQ
+- **Consumers (Workers)**: Processos independentes que consomem mensagens e enviam notificações
+- **RabbitMQ**: Message broker para garantir processamento assíncrono e confiável
+- **PostgreSQL**: Persistência do histórico de notificações (opcional)
+
+## 📁 Estrutura do Projeto
+
+```
+API-notifications/
+├── src/
+│   ├── NotificationSystem.Api/              # API REST (ASP.NET Core)
+│   │   ├── Controllers/                     # Endpoints da API
+│   │   ├── Middleware/                      # Auth, RateLimit, Logging
+│   │   ├── Services/                        # RabbitMQ Producer
+│   │   └── appsettings.json                 # Configurações da API
+│   │
+│   ├── NotificationSystem.Shared/           # Biblioteca compartilhada
+│   │   ├── Models/                          # DTOs e modelos
+│   │   ├── Configuration/                   # Classes de configuração
+│   │   ├── RabbitMQ/                        # Cliente RabbitMQ base
+│   │   └── Interfaces/                      # Contratos
+│   │
+│   └── Consumers/                           # Workers (Consumers)
+│       ├── NotificationSystem.Consumer.Email/
+│       ├── NotificationSystem.Consumer.Sms/
+│       ├── NotificationSystem.Consumer.Push/
+│       └── NotificationSystem.Consumer.Webhook/
+│
+├── NotificationSystem.sln                   # Solution file
+├── appsettings.Example.json                 # Template de configuração
+├── docker-compose.yml                       # Orquestração local
+└── README.md
 ```
 
 ## 🚀 Começando
 
 ### Pré-requisitos
 
-- Go 1.21+
-- Docker e Docker Compose
-- Editor de código (VS Code recomendado)
+- **.NET SDK 8.0+** ([Download](https://dotnet.microsoft.com/download))
+- **Docker** e **Docker Compose** (para RabbitMQ e PostgreSQL)
+- **Visual Studio 2022**, **VS Code** ou **Rider**
 
-### Primeiro Passo
+### Instalação
 
-Abra o [ROADMAP.md](ROADMAP.md) e comece pelo **Passo 1: Go Modules**.
+1. **Clone o repositório**
+```bash
+git clone https://github.com/YuriGarciaRibeiro/API-notifications.git
+cd API-notifications
+```
 
-Cada passo tem:
-- 📚 Materiais para pesquisar
-- ✅ Perguntas para validar entendimento
-- 💻 Tarefas de implementação
+2. **Restaurar dependências**
+```bash
+dotnet restore
+```
 
-## 📊 Progresso Atual
+3. **Configure as variáveis de ambiente**
+```bash
+cp appsettings.Example.json src/NotificationSystem.Api/appsettings.Development.json
+# Edite appsettings.Development.json com suas credenciais
+```
 
-### Fase 1: Fundação (MVP)
-- [x] Planejamento e arquitetura
-- [x] Estrutura de pastas criada
-- [x] Documentação completa
-- [ ] Passo 1: Go Modules
-- [ ] Passo 2: Configuração (Viper)
-- [ ] Passo 3: Logging (Zap)
-- [ ] Passo 4: Health Check
-- [ ] Passo 5: RabbitMQ Setup (CRUCIAL)
-- [ ] Passo 6-12: API + Workers básicos
+4. **Iniciar RabbitMQ com Docker**
+```bash
+docker run -d --name rabbitmq \\
+  -p 5672:5672 \\
+  -p 15672:15672 \\
+  -e RABBITMQ_DEFAULT_USER=guest \\
+  -e RABBITMQ_DEFAULT_PASS=guest \\
+  rabbitmq:3-management
+```
 
-### Fase 2: Features (Expandir)
-- [ ] Passo 13-18: Mais tipos de notificação + features
+5. **Iniciar PostgreSQL com Docker** (opcional)
+```bash
+docker run -d --name postgres \\
+  -p 5432:5432 \\
+  -e POSTGRES_PASSWORD=postgres \\
+  -e POSTGRES_DB=notifications \\
+  postgres:15
+```
 
-### Fase 3: Production-Ready (Hardening)
-- [ ] Segurança (autenticação, rate limiting, input validation)
-- [ ] Testes (unit, integration, e2e)
-- [ ] Observabilidade (métricas, traces, dashboards)
-- [ ] CI/CD pipeline
-- [ ] Documentação de deploy
-- [ ] Performance tuning
-- [ ] Disaster recovery & backups
+6. **Executar a API**
+```bash
+dotnet run --project src/NotificationSystem.Api
+```
 
-## 🎓 Tecnologias e Ferramentas
+7. **Executar os Consumers** (em terminais separados)
+```bash
+dotnet run --project src/Consumers/NotificationSystem.Consumer.Email
+dotnet run --project src/Consumers/NotificationSystem.Consumer.Sms
+dotnet run --project src/Consumers/NotificationSystem.Consumer.Push
+dotnet run --project src/Consumers/NotificationSystem.Consumer.Webhook
+```
+
+## 📖 Uso da API
+
+### Endpoints
+
+#### Health Check
+```bash
+GET /health
+```
+
+#### Enviar Notificação por Email
+```bash
+POST /api/notifications/email
+Content-Type: application/json
+X-API-Key: your-api-key
+
+{
+  "to": "user@example.com",
+  "subject": "Teste",
+  "body": "Mensagem de teste",
+  "priority": "normal"
+}
+```
+
+#### Enviar SMS
+```bash
+POST /api/notifications/sms
+Content-Type: application/json
+X-API-Key: your-api-key
+
+{
+  "to": "+5511999999999",
+  "message": "Sua mensagem aqui",
+  "priority": "high"
+}
+```
+
+#### Enviar Push Notification
+```bash
+POST /api/notifications/push
+Content-Type: application/json
+X-API-Key: your-api-key
+
+{
+  "deviceToken": "fcm-device-token",
+  "title": "Título",
+  "body": "Corpo da notificação",
+  "data": {
+    "action": "open_app"
+  }
+}
+```
+
+#### Webhook
+```bash
+POST /api/notifications/webhook
+Content-Type: application/json
+X-API-Key: your-api-key
+
+{
+  "url": "https://seu-webhook.com/endpoint",
+  "method": "POST",
+  "payload": {
+    "event": "user.created",
+    "data": { ... }
+  }
+}
+```
+
+## 🔧 Configuração
+
+Edite o arquivo `appsettings.json` ou `appsettings.Development.json`:
+
+```json
+{
+  "RabbitMQ": {
+    "HostName": "localhost",
+    "UserName": "guest",
+    "Password": "guest"
+  },
+  "Services": {
+    "Email": {
+      "Smtp": {
+        "Host": "smtp.gmail.com",
+        "Port": 587,
+        "UserName": "your-email@gmail.com",
+        "Password": "your-app-password"
+      }
+    }
+  }
+}
+```
+
+## 🎓 Tecnologias Utilizadas
 
 ### Stack Principal
-
-- **Go 1.21+** - Linguagem de programação
-- **RabbitMQ** - Message broker (AMQP)
+- **.NET 8** - Framework principal
+- **ASP.NET Core** - Web API
+- **RabbitMQ** - Message broker
 - **PostgreSQL** - Banco de dados (opcional)
 - **Docker** - Containerização
 
-### Bibliotecas Go
+### Bibliotecas NuGet Principais
+- **RabbitMQ.Client** - Cliente oficial RabbitMQ
+- **MailKit** - Envio de emails via SMTP
+- **Twilio** - SDK para envio de SMS
+- **FirebaseAdmin** - Firebase Cloud Messaging
+- **Entity Framework Core** - ORM (se usar banco de dados)
+- **Serilog** - Logging estruturado
+- **FluentValidation** - Validação de dados
+- **Swashbuckle** - Documentação Swagger/OpenAPI
 
-**Core**
-- **Gin** (`github.com/gin-gonic/gin`) - Web framework HTTP
-- **Viper** (`github.com/spf13/viper`) - Gerenciamento de configuração
-- **Zap** (`go.uber.org/zap`) - Logging estruturado de alta performance
-- **RabbitMQ** (`github.com/rabbitmq/amqp091-go`) - Cliente oficial RabbitMQ
+## 🧪 Testes
 
-**Segurança**
-- **bcrypt** (`golang.org/x/crypto/bcrypt`) - Hash de senhas
-- **JWT** (`golang-jwt/jwt`) - Tokens de autenticação
-- **validator** (`go-playground/validator`) - Validação de dados
+```bash
+# Executar todos os testes
+dotnet test
 
-**Testes & Qualidade**
-- **testify** (`stretchr/testify`) - Assertions e mocks
-- **golangci-lint** - Linter agregador
-- **mockery** - Geração de mocks
+# Com cobertura
+dotnet test /p:CollectCoverage=true
+```
 
-**Observabilidade**
-- **Prometheus** (`prometheus/client_golang`) - Métricas
-- **OpenTelemetry** - Tracing distribuído
+## 🐳 Docker
 
-### Serviços Externos (APIs)
+### Build das imagens
+```bash
+docker build -t notification-api -f src/NotificationSystem.Api/Dockerfile .
+docker build -t notification-consumer-email -f src/Consumers/NotificationSystem.Consumer.Email/Dockerfile .
+```
 
-- **Firebase Cloud Messaging (FCM)** - Push notifications mobile/web
-- **Twilio API** - Envio de SMS
-- **SMTP** - Servidores de email (Gmail, SendGrid, etc.)
-- **Webhooks** - Callbacks HTTP customizados
+### Docker Compose (ambiente completo)
+```bash
+docker-compose up -d
+```
 
-### DevOps
+## 📊 Monitoramento
 
-- **Docker Compose** - Orquestração local
-- **Make** - Automação de comandos
-- **Bash scripts** - Setup e deploy
+- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
+- **API Health Check**: http://localhost:5000/health
+- **Swagger UI**: http://localhost:5000/swagger
 
-## 💡 Princípios de Desenvolvimento
+## 🔒 Segurança
 
-### Aprendizado
-1. **Não pule as pesquisas** - O aprendizado está na exploração profunda dos conceitos
-2. **Faça os checkpoints** - Validar entendimento evita código confuso e bugs
-3. **Entenda o "porquê"** - Não copie código sem entender as decisões arquiteturais
-4. **Leia código de outros** - Veja projetos reais com Go + RabbitMQ no GitHub
-5. **Estude os erros** - Quando algo quebrar, investigue a fundo antes de corrigir
+- **API Key Authentication**: Protege endpoints da API
+- **Rate Limiting**: Previne abuso
+- **Input Validation**: Valida todos os inputs com FluentValidation
+- **CORS**: Configurável por ambiente
+- **Secrets**: Usar User Secrets ou Azure Key Vault em produção
 
-### Qualidade (Production-Ready)
-6. **Segurança desde o início** - Nunca deixe segurança para depois
-7. **Teste conforme desenvolve** - Escreva testes junto com o código
-8. **Logs estruturados sempre** - Todo evento importante deve ser logado
-9. **Valide todos os inputs** - Nunca confie em dados externos
-10. **Pense em falhas** - O que acontece se o RabbitMQ cair? E o banco?
-11. **Monitore tudo** - Métricas são essenciais para produção
-12. **Documente decisões** - README, ADRs, comentários no código
+```bash
+# Configurar User Secrets localmente
+dotnet user-secrets init --project src/NotificationSystem.Api
+dotnet user-secrets set "Services:Email:Smtp:Password" "your-password"
+```
 
-## ✅ Production Readiness Checklist
+## 📝 TODO / Roadmap
 
-Requisitos para considerar o sistema pronto para produção:
+### Fase 1: MVP ✅
+- [x] Estrutura da solução .NET
+- [x] Projetos criados (API + Consumers)
+- [ ] Implementar models no Shared
+- [ ] Implementar RabbitMQ Producer na API
+- [ ] Implementar RabbitMQ Consumers
+- [ ] Health checks básicos
 
-### Funcionalidades Core
-- [ ] API REST funcionando com todos os endpoints
-- [ ] Workers processando Email, SMS, Push, Webhook
-- [ ] RabbitMQ configurado com DLQ e retry logic
-- [ ] Persistência de histórico de notificações (PostgreSQL)
+### Fase 2: Integrações
+- [ ] Integração SMTP (Email)
+- [ ] Integração Twilio (SMS)
+- [ ] Integração Firebase (Push)
+- [ ] Cliente HTTP para Webhooks
+- [ ] Retry logic e DLQ
 
-### Segurança
-- [ ] Autenticação de API (API Keys ou JWT)
-- [ ] Rate limiting implementado
-- [ ] Validação de todos os inputs
-- [ ] Secrets em variáveis de ambiente (nunca no código)
-- [ ] HTTPS configurado (TLS)
-- [ ] CORS configurado corretamente
-- [ ] Logs de auditoria para ações críticas
-
-### Qualidade & Testes
-- [ ] Cobertura de testes > 80%
-- [ ] Testes unitários para toda lógica de negócio
-- [ ] Testes de integração com RabbitMQ
-- [ ] Testes E2E dos fluxos principais
-- [ ] CI pipeline rodando testes automaticamente
-- [ ] Linting passando (golangci-lint)
-
-### Observabilidade
-- [ ] Logging estruturado (JSON) com níveis corretos
-- [ ] Métricas expostas (Prometheus format)
-- [ ] Health checks (/health, /ready)
-- [ ] Tracing distribuído configurado
-- [ ] Dashboard de monitoramento (Grafana)
-- [ ] Alertas configurados para erros críticos
-
-### Operações & Deploy
+### Fase 3: Production-Ready
+- [ ] Logging estruturado (Serilog)
+- [ ] Métricas e observabilidade
+- [ ] Testes unitários e de integração
+- [ ] CI/CD pipeline
 - [ ] Docker images otimizadas
-- [ ] Docker Compose para ambiente completo
-- [ ] Variáveis de ambiente documentadas (.env.example)
-- [ ] Scripts de migração de banco
-- [ ] Documentação de deploy
-- [ ] Graceful shutdown implementado
-- [ ] Backup e restore documentados
+- [ ] Documentação completa
 
-### Performance & Escalabilidade
-- [ ] Conexões com pool (banco, RabbitMQ)
-- [ ] Timeouts configurados
-- [ ] Workers podem escalar horizontalmente
-- [ ] Testes de carga realizados
-- [ ] Limites de recursos documentados (CPU, RAM)
+## 🤝 Contribuindo
 
-### Documentação
-- [ ] README completo
-- [ ] API documentada (Swagger/OpenAPI)
-- [ ] Guia de troubleshooting
-- [ ] Runbook para operações
-- [ ] Decisões arquiteturais documentadas (ADRs)
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
+4. Push para a branch (`git push origin feature/MinhaFeature`)
+5. Abra um Pull Request
 
----
+## 📄 Licença
 
-## 🔄 Status Atual
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
-**Fase Atual**: Planejamento completo ✅
+## 📧 Contato
 
-**Próximo Passo**: Passo 1 - Inicialização do projeto com Go Modules
+Yuri Garcia Ribeiro - [@YuriGarciaRibeiro](https://github.com/YuriGarciaRibeiro)
 
-**Meta**: Construir MVP funcional → Expandir features → Hardening para produção
+Link do Projeto: [https://github.com/YuriGarciaRibeiro/API-notifications](https://github.com/YuriGarciaRibeiro/API-notifications)
 
 ---
 
-**Nota**: Este checklist será preenchido conforme o projeto avança. O objetivo é ter todos os itens ✅ antes de considerar production-ready.
+**Nota**: Este é um projeto de estudo focado em boas práticas de desenvolvimento .NET e arquitetura de microserviços.
