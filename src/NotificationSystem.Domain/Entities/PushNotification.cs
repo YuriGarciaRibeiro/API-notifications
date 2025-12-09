@@ -14,6 +14,11 @@ public class PushNotification : Notification
     public bool? MutableContent { get; set; }
     public bool? ContentAvailable { get; set; }
     public bool IsRead { get; set; } = false;
+
+    public PushNotification()
+    {
+        Type = NotificationType.Push;
+    }
 }
 
 public class NotificationContent

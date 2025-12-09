@@ -1,0 +1,1 @@
+global using NotificationSystem.Domain.Entities;

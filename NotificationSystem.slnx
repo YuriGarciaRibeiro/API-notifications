@@ -9,6 +9,5 @@
     <Project Path="src/Consumers/NotificationSystem.Consumer.Email/NotificationSystem.Consumer.Email.csproj" />
     <Project Path="src/Consumers/NotificationSystem.Consumer.Push/NotificationSystem.Consumer.Push.csproj" />
     <Project Path="src/Consumers/NotificationSystem.Consumer.Sms/NotificationSystem.Consumer.Sms.csproj" />
-    <Project Path="src/Consumers/NotificationSystem.Consumer.Webhook/NotificationSystem.Consumer.Webhook.csproj" />
   </Folder>
 </Solution>
