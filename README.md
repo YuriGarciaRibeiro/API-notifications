@@ -14,46 +14,133 @@ Criar um sistema escalável e resiliente para envio de notificações através d
 
 ## 🏗️ Arquitetura
 
+Este projeto segue os princípios de **Clean Architecture** (Arquitetura Limpa) e **Domain-Driven Design (DDD)**, organizando o código em camadas bem definidas:
+
 ```
-Cliente → API (ASP.NET Core) → RabbitMQ → Consumers → Serviços Externos
-                                   ↓
-                              PostgreSQL
+┌─────────────────────────────────────────────────────────┐
+│                    Presentation Layer                    │
+│              (API + Consumers/Workers)                   │
+├─────────────────────────────────────────────────────────┤
+│                  Infrastructure Layer                    │
+│     (RabbitMQ, SMTP, Twilio, Firebase, PostgreSQL)     │
+├─────────────────────────────────────────────────────────┤
+│                   Application Layer                      │
+│         (Use Cases, DTOs, Services, Validators)         │
+├─────────────────────────────────────────────────────────┤
+│                     Domain Layer                         │
+│        (Entities, Value Objects, Interfaces)            │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### Componentes
+### Camadas
 
-- **API (ASP.NET Core)**: Recebe requisições REST e publica mensagens no RabbitMQ
-- **Consumers (Workers)**: Processos independentes que consomem mensagens e enviam notificações
-- **RabbitMQ**: Message broker para garantir processamento assíncrono e confiável
-- **PostgreSQL**: Persistência do histórico de notificações (opcional)
+#### 🎯 Domain (Core)
+- **Responsabilidade**: Lógica de negócio central, independente de frameworks
+- **Contém**: Entities, Value Objects, Domain Events, Interfaces
+- **Dependências**: Nenhuma (núcleo da aplicação)
+
+#### 💼 Application
+- **Responsabilidade**: Casos de uso e orquestração da lógica de negócio
+- **Contém**: Use Cases, DTOs, Validators, Interfaces de serviços
+- **Dependências**: Domain
+
+#### 🔧 Infrastructure
+- **Responsabilidade**: Implementações técnicas e integrações externas
+- **Contém**: RabbitMQ, SMTP, Twilio, Firebase, Repositórios, EF Core
+- **Dependências**: Application, Domain
+
+#### 🌐 Presentation (API + Consumers)
+- **Responsabilidade**: Entrada/saída da aplicação
+- **Contém**: Controllers, Middleware, Workers/Consumers
+- **Dependências**: Application, Infrastructure
+
+### Fluxo de Dados
+
+```
+Cliente → API → Application (Use Case) → Domain → Infrastructure
+                     ↓
+                 RabbitMQ
+                     ↓
+              Consumers → Application → Infrastructure → Serviços Externos
+```
+
+### Vantagens desta Arquitetura
+
+✅ **Testabilidade**: Domain e Application podem ser testados sem dependências externas
+✅ **Manutenibilidade**: Mudanças em frameworks não afetam a lógica de negócio
+✅ **Escalabilidade**: Componentes desacoplados facilitam escalonamento
+✅ **Flexibilidade**: Fácil substituir implementações (ex: trocar RabbitMQ por Kafka)
+✅ **Clareza**: Estrutura organizada facilita onboarding de novos desenvolvedores
 
 ## 📁 Estrutura do Projeto
 
 ```
 API-notifications/
 ├── src/
-│   ├── NotificationSystem.Api/              # API REST (ASP.NET Core)
-│   │   ├── Controllers/                     # Endpoints da API
+│   ├── NotificationSystem.Domain/           # 🎯 Camada de Domínio
+│   │   ├── Entities/                        # Entidades do domínio
+│   │   ├── ValueObjects/                    # Objetos de valor
+│   │   ├── Enums/                           # Enumerações
+│   │   ├── Events/                          # Domain Events
+│   │   └── Interfaces/                      # Contratos do domínio
+│   │
+│   ├── NotificationSystem.Application/      # 💼 Camada de Aplicação
+│   │   ├── UseCases/                        # Casos de uso
+│   │   ├── DTOs/                            # Data Transfer Objects
+│   │   ├── Interfaces/                      # Contratos de serviços
+│   │   ├── Services/                        # Serviços de aplicação
+│   │   ├── Validators/                      # Validações (FluentValidation)
+│   │   └── Mappings/                        # AutoMapper profiles
+│   │
+│   ├── NotificationSystem.Infrastructure/   # 🔧 Camada de Infraestrutura
+│   │   ├── Messaging/
+│   │   │   ├── RabbitMQ/                    # Configuração RabbitMQ
+│   │   │   ├── Producers/                   # Message Publishers
+│   │   │   └── Consumers/                   # Message Consumers (base)
+│   │   ├── Services/
+│   │   │   ├── Email/                       # Implementação SMTP
+│   │   │   ├── Sms/                         # Implementação Twilio
+│   │   │   ├── Push/                        # Implementação Firebase
+│   │   │   └── Webhook/                     # Cliente HTTP
+│   │   ├── Persistence/
+│   │   │   ├── Repositories/                # Implementação de repositórios
+│   │   │   └── Configurations/              # EF Core configurations
+│   │   └── ExternalServices/                # Integrações externas
+│   │
+│   ├── NotificationSystem.Api/              # 🌐 API REST (Presentation)
+│   │   ├── Controllers/                     # Endpoints REST
 │   │   ├── Middleware/                      # Auth, RateLimit, Logging
-│   │   ├── Services/                        # RabbitMQ Producer
-│   │   └── appsettings.json                 # Configurações da API
+│   │   ├── Filters/                         # Action/Exception filters
+│   │   ├── Extensions/                      # Service extensions
+│   │   └── appsettings.json
 │   │
-│   ├── NotificationSystem.Shared/           # Biblioteca compartilhada
-│   │   ├── Models/                          # DTOs e modelos
-│   │   ├── Configuration/                   # Classes de configuração
-│   │   ├── RabbitMQ/                        # Cliente RabbitMQ base
-│   │   └── Interfaces/                      # Contratos
-│   │
-│   └── Consumers/                           # Workers (Consumers)
+│   └── Consumers/                           # 🌐 Workers (Presentation)
 │       ├── NotificationSystem.Consumer.Email/
 │       ├── NotificationSystem.Consumer.Sms/
 │       ├── NotificationSystem.Consumer.Push/
 │       └── NotificationSystem.Consumer.Webhook/
 │
+├── tests/                                   # 🧪 Testes
+│   ├── NotificationSystem.Domain.Tests/
+│   ├── NotificationSystem.Application.Tests/
+│   ├── NotificationSystem.Infrastructure.Tests/
+│   └── NotificationSystem.Api.Tests/
+│
 ├── NotificationSystem.sln                   # Solution file
-├── appsettings.Example.json                 # Template de configuração
-├── docker-compose.yml                       # Orquestração local
+├── appsettings.Example.json
+├── .env.example
 └── README.md
+```
+
+### Dependências entre Projetos
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  API + Consumers  →  Infrastructure + Application       │
+│  Infrastructure   →  Application + Domain               │
+│  Application      →  Domain                             │
+│  Domain           →  (sem dependências)                 │
+└─────────────────────────────────────────────────────────┘
 ```
 
 ## 🚀 Começando
@@ -271,12 +358,15 @@ dotnet user-secrets set "Services:Email:Smtp:Password" "your-password"
 
 ## 📝 TODO / Roadmap
 
-### Fase 1: MVP ✅
-- [x] Estrutura da solução .NET
-- [x] Projetos criados (API + Consumers)
-- [ ] Implementar models no Shared
-- [ ] Implementar RabbitMQ Producer na API
-- [ ] Implementar RabbitMQ Consumers
+### Fase 1: Arquitetura e Setup ✅
+- [x] Estrutura da solução .NET com Clean Architecture
+- [x] Projetos criados (Domain, Application, Infrastructure, API, Consumers)
+- [x] Dependências entre camadas configuradas
+- [x] Estrutura de pastas definida
+- [ ] Implementar Entities no Domain
+- [ ] Implementar DTOs na Application
+- [ ] Implementar RabbitMQ Producer na Infrastructure
+- [ ] Implementar RabbitMQ Consumers na Infrastructure
 - [ ] Health checks básicos
 
 ### Fase 2: Integrações

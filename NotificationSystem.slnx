@@ -1,7 +1,9 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/NotificationSystem.Api/NotificationSystem.Api.csproj" />
-    <Project Path="src/NotificationSystem.Shared/NotificationSystem.Shared.csproj" />
+    <Project Path="src/NotificationSystem.Application/NotificationSystem.Application.csproj" />
+    <Project Path="src/NotificationSystem.Domain/NotificationSystem.Domain.csproj" />
+    <Project Path="src/NotificationSystem.Infrastructure/NotificationSystem.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Consumers/">
     <Project Path="src/Consumers/NotificationSystem.Consumer.Email/NotificationSystem.Consumer.Email.csproj" />

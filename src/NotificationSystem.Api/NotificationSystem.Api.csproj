@@ -10,4 +10,9 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NotificationSystem.Application\NotificationSystem.Application.csproj" />
+    <ProjectReference Include="..\NotificationSystem.Infrastructure\NotificationSystem.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
