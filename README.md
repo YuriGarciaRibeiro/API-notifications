@@ -10,7 +10,6 @@ Criar um sistema escalável e resiliente para envio de notificações através d
 - 📧 **Email** - Via SMTP
 - 📱 **SMS** - Via Twilio
 - 🔔 **Push Notifications** - Via Firebase Cloud Messaging
-- 🔗 **Webhooks** - HTTP callbacks
 
 ## 🏗️ Arquitetura
 
@@ -100,8 +99,7 @@ API-notifications/
 │   │   ├── Services/
 │   │   │   ├── Email/                       # Implementação SMTP
 │   │   │   ├── Sms/                         # Implementação Twilio
-│   │   │   ├── Push/                        # Implementação Firebase
-│   │   │   └── Webhook/                     # Cliente HTTP
+│   │   │   └── Push/                        # Implementação Firebase
 │   │   ├── Persistence/
 │   │   │   ├── Repositories/                # Implementação de repositórios
 │   │   │   └── Configurations/              # EF Core configurations
@@ -117,8 +115,7 @@ API-notifications/
 │   └── Consumers/                           # 🌐 Workers (Presentation)
 │       ├── NotificationSystem.Consumer.Email/
 │       ├── NotificationSystem.Consumer.Sms/
-│       ├── NotificationSystem.Consumer.Push/
-│       └── NotificationSystem.Consumer.Webhook/
+│       └── NotificationSystem.Consumer.Push/
 │
 ├── tests/                                   # 🧪 Testes
 │   ├── NotificationSystem.Domain.Tests/
@@ -199,7 +196,6 @@ dotnet run --project src/NotificationSystem.Api
 dotnet run --project src/Consumers/NotificationSystem.Consumer.Email
 dotnet run --project src/Consumers/NotificationSystem.Consumer.Sms
 dotnet run --project src/Consumers/NotificationSystem.Consumer.Push
-dotnet run --project src/Consumers/NotificationSystem.Consumer.Webhook
 ```
 
 ## 📖 Uso da API
@@ -254,21 +250,6 @@ X-API-Key: your-api-key
 }
 ```
 
-#### Webhook
-```bash
-POST /api/notifications/webhook
-Content-Type: application/json
-X-API-Key: your-api-key
-
-{
-  "url": "https://seu-webhook.com/endpoint",
-  "method": "POST",
-  "payload": {
-    "event": "user.created",
-    "data": { ... }
-  }
-}
-```
 
 ## 🔧 Configuração
 
@@ -373,7 +354,6 @@ dotnet user-secrets set "Services:Email:Smtp:Password" "your-password"
 - [ ] Integração SMTP (Email)
 - [ ] Integração Twilio (SMS)
 - [ ] Integração Firebase (Push)
-- [ ] Cliente HTTP para Webhooks
 - [ ] Retry logic e DLQ
 
 ### Fase 3: Production-Ready
