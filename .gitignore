@@ -405,10 +405,6 @@ FodyWeavers.xsd
 .env
 .env.local
 .env.*.local
-appsettings.Development.json
-appsettings.*.json
-!appsettings.json
-!appsettings.Example.json
 
 # Docker
 docker-compose.override.yml

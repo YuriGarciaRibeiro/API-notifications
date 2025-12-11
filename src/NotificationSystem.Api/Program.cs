@@ -2,29 +2,53 @@ using NotificationSystem.Api.Endpoints;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Api.Middlewares;
 using NotificationSystem.Application;
+using NotificationSystem.Infrastructure;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddApplication();
-builder.Services.AddCustomProblemDetails();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddSwaggerConfiguration();
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
 
-var app = builder.Build();
+builder.Host.UseSerilog();
 
-// Configure ResultExtensions
-ResultExtensions.Configure(app.Services.GetRequiredService<IHttpContextAccessor>());
+try
+{
+    Log.Information("Starting NotificationSystem API");
 
-// Add global exception handler middleware
-app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+    // Add services to the container.
+    builder.Services.AddApplication();
+    builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddCustomProblemDetails();
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddSwaggerConfiguration();
 
-// Configure the HTTP request pipeline.
-app.UseSwaggerConfiguration(app.Environment);
+    var app = builder.Build();
 
-app.UseHttpsRedirection();
+    // Configure ResultExtensions
+    ResultExtensions.Configure(app.Services.GetRequiredService<IHttpContextAccessor>());
 
-// Map endpoints
-app.MapNotificationEndpoints();
+    // Add global exception handler middleware
+    app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
 
-app.Run();
+    // Configure the HTTP request pipeline.
+    app.UseSwaggerConfiguration(app.Environment);
+
+    app.UseHttpsRedirection();
+
+    // Map endpoints
+    app.MapNotificationEndpoints();
+
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}

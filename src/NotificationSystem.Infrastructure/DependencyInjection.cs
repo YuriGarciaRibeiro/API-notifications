@@ -1,7 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using NotificationSystem.Apllication.Interfaces;
+using NotificationSystem.Domain.Interfaces;
+using NotificationSystem.Infrastructure.Messaging;
 using NotificationSystem.Infrastructure.Persistence;
+using NotificationSystem.Infrastructure.Persistence.Repositories;
+using NotificationSystem.Infrastructure.Settings;
 
 namespace NotificationSystem.Infrastructure;
 
@@ -11,16 +17,31 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddDbContext<NotificationDbContext>(options =>
+        // Configure Settings
+        services.Configure<DatabaseSettings>(configuration.GetSection(DatabaseSettings.SectionName));
+        services.Configure<RabbitMQSettings>(configuration.GetSection(RabbitMQSettings.SectionName));
+
+        // Database
+        services.AddDbContext<NotificationDbContext>((serviceProvider, options) =>
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection")
-                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            var databaseSettings = serviceProvider.GetRequiredService<IOptions<DatabaseSettings>>().Value;
+
+            if (string.IsNullOrEmpty(databaseSettings.ConnectionString))
+            {
+                throw new InvalidOperationException("Database connection string not found.");
+            }
 
             options.UseNpgsql(
-                connectionString,
+                databaseSettings.ConnectionString,
                 b => b.MigrationsAssembly(typeof(NotificationDbContext).Assembly.FullName)
             );
         });
+
+        // Repositories
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+
+        // Message Publisher (RabbitMQ)
+        services.AddSingleton<IMessagePublisher, RabbitMQPublisher>();
 
         return services;
     }

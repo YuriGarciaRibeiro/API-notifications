@@ -11,7 +11,7 @@ public class SmsChannelConfiguration : IEntityTypeConfiguration<SmsChannel>
         builder.Property(s => s.To)
             .HasColumnName("to")
             .IsRequired()
-            .HasMaxLength(20);
+            .HasMaxLength(500);
 
         builder.Property(s => s.Message)
             .HasColumnName("message")

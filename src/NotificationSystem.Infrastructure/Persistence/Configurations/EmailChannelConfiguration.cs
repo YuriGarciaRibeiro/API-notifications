@@ -11,7 +11,7 @@ public class EmailChannelConfiguration : IEntityTypeConfiguration<EmailChannel>
         builder.Property(e => e.To)
             .HasColumnName("to")
             .IsRequired()
-            .HasMaxLength(255);
+            .HasMaxLength(500);
 
         builder.Property(e => e.Subject)
             .HasColumnName("subject")
