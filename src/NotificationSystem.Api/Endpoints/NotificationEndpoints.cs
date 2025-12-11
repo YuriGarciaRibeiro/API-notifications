@@ -25,16 +25,28 @@ public static class NotificationEndpoints
             .WithDescription(@"
 Retorna uma lista paginada de todas as notificações do sistema.
 
-As notificações são retornadas de forma polimórfica, onde cada tipo (Email, SMS, Push)
-possui seus campos específicos além dos campos comuns.
+**Arquitetura Multi-Canal:**
+Cada notificação pode ter um ou mais canais de entrega (Email, SMS, Push).
+Os canais são retornados de forma polimórfica, onde cada tipo possui seus campos específicos.
 
-**Tipos de Notificação:**
-- **Email**: Contém subject, body, to, isBodyHtml
-- **SMS**: Contém message, to, senderId
-- **Push**: Contém content (title, body), to, data, priority, isRead
+**Estrutura da Notificação:**
+- **id**: ID único da notificação
+- **userId**: ID do usuário que receberá a notificação
+- **createdAt**: Data/hora de criação
+- **channels**: Lista de canais de entrega (pode conter múltiplos canais)
 
-**Campos Comuns:**
-- id, userId, createdAt, status, errorMessage, sentAt
+**Tipos de Canal:**
+- **Email**: subject, body, to, isBodyHtml
+- **SMS**: message, to, senderId
+- **Push**: content (title, body, clickAction), to, data, priority, isRead
+
+**Campos Comuns dos Canais:**
+- id, status, errorMessage, sentAt
+
+**Exemplos de Uso:**
+- Notificação apenas por Email: 1 canal Email
+- Lembrete de consulta: 2 canais (Email + SMS)
+- Alerta de segurança: 3 canais (Email + SMS + Push)
 ")
             .Produces<GetAllNotificationsResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)

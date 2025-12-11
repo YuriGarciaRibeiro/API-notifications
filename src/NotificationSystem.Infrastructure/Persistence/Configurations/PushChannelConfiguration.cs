@@ -5,9 +5,9 @@ using System.Text.Json;
 
 namespace NotificationSystem.Infrastructure.Persistence.Configurations;
 
-public class PushNotificationConfiguration : IEntityTypeConfiguration<PushNotification>
+public class PushChannelConfiguration : IEntityTypeConfiguration<PushChannel>
 {
-    public void Configure(EntityTypeBuilder<PushNotification> builder)
+    public void Configure(EntityTypeBuilder<PushChannel> builder)
     {
         builder.Property(p => p.To)
             .HasColumnName("to")

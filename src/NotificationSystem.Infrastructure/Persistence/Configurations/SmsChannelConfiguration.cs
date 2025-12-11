@@ -4,9 +4,9 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Persistence.Configurations;
 
-public class SmsNotificationConfiguration : IEntityTypeConfiguration<SmsNotification>
+public class SmsChannelConfiguration : IEntityTypeConfiguration<SmsChannel>
 {
-    public void Configure(EntityTypeBuilder<SmsNotification> builder)
+    public void Configure(EntityTypeBuilder<SmsChannel> builder)
     {
         builder.Property(s => s.To)
             .HasColumnName("to")

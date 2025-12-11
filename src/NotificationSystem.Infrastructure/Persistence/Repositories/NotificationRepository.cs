@@ -21,13 +21,16 @@ public class NotificationRepository : INotificationRepository
 
     public async Task<Notification?> GetByIdAsync(Guid id)
     {
-        return await _context.Notifications.FindAsync(id);
+        return await _context.Notifications
+            .Include(n => n.Channels)
+            .FirstOrDefaultAsync(n => n.Id == id);
     }
 
     public async Task<IEnumerable<Notification>> GetPendingNotificationsAsync(int maxCount)
     {
         return await _context.Notifications
-            .Where(n => n.Status == NotificationStatus.Pending)
+            .Include(n => n.Channels)
+            .Where(n => n.Channels.Any(c => c.Status == NotificationStatus.Pending))
             .Take(maxCount)
             .ToListAsync();
     }

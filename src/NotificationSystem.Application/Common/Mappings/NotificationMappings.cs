@@ -6,17 +6,29 @@ namespace NotificationSystem.Application.Common.Mappings;
 public static class NotificationMappings
 {
     /// <summary>
-    /// Mapeia uma Notification do domínio para o DTO polimórfico apropriado
+    /// Mapeia uma Notification do domínio para o DTO
     /// </summary>
     public static NotificationDto ToDto(this Notification notification)
     {
-        return notification switch
+        return new NotificationDto
         {
-            EmailNotification email => new EmailNotificationDto
+            Id = notification.Id,
+            UserId = notification.UserId,
+            CreatedAt = notification.CreatedAt,
+            Channels = notification.Channels.Select(c => c.ToDto()).ToList()
+        };
+    }
+
+    /// <summary>
+    /// Mapeia um NotificationChannel do domínio para o DTO polimórfico apropriado
+    /// </summary>
+    public static ChannelDto ToDto(this NotificationChannel channel)
+    {
+        return channel switch
+        {
+            EmailChannel email => new EmailChannelDto
             {
                 Id = email.Id,
-                UserId = email.UserId,
-                CreatedAt = email.CreatedAt,
                 Status = email.Status,
                 ErrorMessage = email.ErrorMessage,
                 SentAt = email.SentAt,
@@ -26,11 +38,9 @@ public static class NotificationMappings
                 IsBodyHtml = email.IsBodyHtml
             },
 
-            SmsNotification sms => new SmsNotificationDto
+            SmsChannel sms => new SmsChannelDto
             {
                 Id = sms.Id,
-                UserId = sms.UserId,
-                CreatedAt = sms.CreatedAt,
                 Status = sms.Status,
                 ErrorMessage = sms.ErrorMessage,
                 SentAt = sms.SentAt,
@@ -39,11 +49,9 @@ public static class NotificationMappings
                 SenderId = sms.SenderId
             },
 
-            PushNotification push => new PushNotificationDto
+            PushChannel push => new PushChannelDto
             {
                 Id = push.Id,
-                UserId = push.UserId,
-                CreatedAt = push.CreatedAt,
                 Status = push.Status,
                 ErrorMessage = push.ErrorMessage,
                 SentAt = push.SentAt,
@@ -60,7 +68,7 @@ public static class NotificationMappings
                 IsRead = push.IsRead
             },
 
-            _ => throw new InvalidOperationException($"Unknown notification type: {notification.GetType().Name}")
+            _ => throw new InvalidOperationException($"Unknown channel type: {channel.GetType().Name}")
         };
     }
 }

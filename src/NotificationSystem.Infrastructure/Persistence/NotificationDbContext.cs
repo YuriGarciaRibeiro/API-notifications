@@ -11,9 +11,10 @@ public class NotificationDbContext : DbContext
     }
 
     public DbSet<Notification> Notifications => Set<Notification>();
-    public DbSet<EmailNotification> EmailNotifications => Set<EmailNotification>();
-    public DbSet<SmsNotification> SmsNotifications => Set<SmsNotification>();
-    public DbSet<PushNotification> PushNotifications => Set<PushNotification>();
+    public DbSet<NotificationChannel> NotificationChannels => Set<NotificationChannel>();
+    public DbSet<EmailChannel> EmailChannels => Set<EmailChannel>();
+    public DbSet<SmsChannel> SmsChannels => Set<SmsChannel>();
+    public DbSet<PushChannel> PushChannels => Set<PushChannel>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

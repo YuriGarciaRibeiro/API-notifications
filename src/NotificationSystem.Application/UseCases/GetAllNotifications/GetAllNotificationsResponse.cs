@@ -10,21 +10,27 @@ public record GetAllNotificationsResponse(
     int PageSize
 );
 
-[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
-[JsonDerivedType(typeof(EmailNotificationDto), "Email")]
-[JsonDerivedType(typeof(SmsNotificationDto), "Sms")]
-[JsonDerivedType(typeof(PushNotificationDto), "Push")]
-public abstract record NotificationDto
+public record NotificationDto
 {
     public Guid Id { get; init; }
     public Guid UserId { get; init; }
     public DateTime CreatedAt { get; init; }
+    public List<ChannelDto> Channels { get; init; } = new();
+}
+
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
+[JsonDerivedType(typeof(EmailChannelDto), "Email")]
+[JsonDerivedType(typeof(SmsChannelDto), "Sms")]
+[JsonDerivedType(typeof(PushChannelDto), "Push")]
+public abstract record ChannelDto
+{
+    public Guid Id { get; init; }
     public NotificationStatus Status { get; init; }
     public string? ErrorMessage { get; init; }
     public DateTime? SentAt { get; init; }
 }
 
-public record EmailNotificationDto : NotificationDto
+public record EmailChannelDto : ChannelDto
 {
     public string To { get; init; } = string.Empty;
     public string Subject { get; init; } = string.Empty;
@@ -32,14 +38,14 @@ public record EmailNotificationDto : NotificationDto
     public bool IsBodyHtml { get; init; }
 }
 
-public record SmsNotificationDto : NotificationDto
+public record SmsChannelDto : ChannelDto
 {
     public string To { get; init; } = string.Empty;
     public string Message { get; init; } = string.Empty;
     public string? SenderId { get; init; }
 }
 
-public record PushNotificationDto : NotificationDto
+public record PushChannelDto : ChannelDto
 {
     public string To { get; init; } = string.Empty;
     public NotificationContentDto Content { get; init; } = new();

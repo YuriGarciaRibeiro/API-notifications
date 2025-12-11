@@ -25,40 +25,15 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .IsRequired()
             .HasDefaultValueSql("NOW()");
 
-        builder.Property(n => n.Status)
-            .HasColumnName("status")
-            .IsRequired()
-            .HasConversion<string>()
-            .HasMaxLength(20);
-
-        builder.Property(n => n.Type)
-            .HasColumnName("type")
-            .IsRequired()
-            .HasConversion<string>()
-            .HasMaxLength(20);
-
-        builder.HasDiscriminator(n => n.Type)
-            .HasValue<EmailNotification>(NotificationType.Email)
-            .HasValue<SmsNotification>(NotificationType.Sms)
-            .HasValue<PushNotification>(NotificationType.Push);
-
-        builder.Property(n => n.ErrorMessage)
-            .HasColumnName("error_message")
-            .HasMaxLength(1000);
-
-        builder.Property(n => n.SentAt)
-            .HasColumnName("sent_at");
+        builder.HasMany(n => n.Channels)
+            .WithOne(c => c.Notification)
+            .HasForeignKey(c => c.NotificationId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(n => n.UserId)
             .HasDatabaseName("ix_notifications_user_id");
 
-        builder.HasIndex(n => n.Status)
-            .HasDatabaseName("ix_notifications_status");
-
         builder.HasIndex(n => n.CreatedAt)
             .HasDatabaseName("ix_notifications_created_at");
-
-        builder.HasIndex(n => new { n.UserId, n.Type })
-            .HasDatabaseName("ix_notifications_user_id_type");
     }
 }

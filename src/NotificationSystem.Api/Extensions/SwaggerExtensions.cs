@@ -39,14 +39,14 @@ public static class SwaggerExtensions
             // Suporte a enums como strings
             options.UseAllOfToExtendReferenceSchemas();
 
-            // Configurar polimorfismo para DTOs
+            // Configurar polimorfismo para Channel DTOs
             options.UseOneOfForPolymorphism();
             options.SelectDiscriminatorNameUsing(_ => "type");
             options.SelectDiscriminatorValueUsing(subType => subType.Name switch
             {
-                "EmailNotificationDto" => "Email",
-                "SmsNotificationDto" => "Sms",
-                "PushNotificationDto" => "Push",
+                "EmailChannelDto" => "Email",
+                "SmsChannelDto" => "Sms",
+                "PushChannelDto" => "Push",
                 _ => subType.Name
             });
 
