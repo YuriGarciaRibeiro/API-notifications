@@ -195,23 +195,20 @@ cp appsettings.Example.json src/NotificationSystem.Api/appsettings.Development.j
 
 4. **Iniciar dependências com Docker**
 ```bash
-# RabbitMQ
-docker run -d --name rabbitmq \
-  -p 5672:5672 \
-  -p 15672:15672 \
-  -e RABBITMQ_DEFAULT_USER=guest \
-  -e RABBITMQ_DEFAULT_PASS=guest \
-  rabbitmq:3-management
-
-# PostgreSQL (opcional)
-docker run -d --name postgres \
-  -p 5432:5432 \
-  -e POSTGRES_PASSWORD=postgres \
-  -e POSTGRES_DB=notifications \
-  postgres:15
+# Subir PostgreSQL e RabbitMQ
+docker-compose up -d
 ```
 
-5. **Executar a API**
+5. **Aplicar Migrations no Banco de Dados**
+```bash
+# Usar o script pronto
+./scripts/database/migrate.sh
+
+# OU manualmente
+dotnet ef database update --project src/NotificationSystem.Infrastructure --startup-project src/NotificationSystem.Api
+```
+
+6. **Executar a API**
 ```bash
 dotnet run --project src/NotificationSystem.Api
 ```
@@ -390,6 +387,48 @@ Edite o arquivo `appsettings.json` ou `appsettings.Development.json`:
 
 #### Cross-cutting
 - **Serilog** - Logging estruturado (planejado)
+
+## 🗄️ Gerenciamento de Migrations
+
+O projeto inclui scripts prontos para gerenciar migrations do Entity Framework Core.
+
+### Scripts Disponíveis
+
+```bash
+# Aplicar todas as migrations pendentes
+./scripts/database/migrate.sh
+
+# Criar uma nova migration
+./scripts/database/add-migration.sh NomeDaMigration
+
+# Listar migrations (aplicadas e pendentes)
+./scripts/database/list-migrations.sh
+
+# Reverter última migration
+./scripts/database/rollback-migration.sh
+
+# Resetar banco de dados completamente (⚠️ apaga todos os dados!)
+./scripts/database/reset-database.sh
+```
+
+### Exemplos Práticos
+
+```bash
+# Após modificar uma entidade
+./scripts/database/add-migration.sh AddUserEmailColumn
+./scripts/database/migrate.sh
+
+# Ver status das migrations
+./scripts/database/list-migrations.sh
+
+# Corrigir uma migration com erro
+./scripts/database/rollback-migration.sh
+# (corrigir o código)
+./scripts/database/add-migration.sh FixedMigration
+./scripts/database/migrate.sh
+```
+
+📖 **Documentação completa:** [scripts/README.md](scripts/README.md)
 
 ## 🧪 Testes
 

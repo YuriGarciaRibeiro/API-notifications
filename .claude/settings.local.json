@@ -7,7 +7,16 @@
       "Bash(find:*)",
       "Bash(ls:*)",
       "Bash(cat:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(docker --version:*)",
+      "Bash(docker ps:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker exec:*)",
+      "Bash(timeout 10 dotnet run:*)",
+      "Bash(gtimeout 10 dotnet run:*)",
+      "Bash(./scripts/list-migrations.sh:*)",
+      "Bash(./scripts/add-migration.sh:*)",
+      "Bash(./scripts/database/list-migrations.sh:*)"
     ],
     "deny": [],
     "ask": []
