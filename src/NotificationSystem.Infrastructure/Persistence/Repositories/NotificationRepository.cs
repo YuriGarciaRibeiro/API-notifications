@@ -40,4 +40,13 @@ public class NotificationRepository : INotificationRepository
         _context.Notifications.Update(notification);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<Notification>> GetAllAsync(int pageNumber, int pageSize, CancellationToken cancellationToken)
+    {
+        return await _context.Notifications
+            .Include(n => n.Channels)
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
 }

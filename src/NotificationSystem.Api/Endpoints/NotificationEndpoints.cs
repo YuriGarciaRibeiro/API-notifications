@@ -14,13 +14,13 @@ public static class NotificationEndpoints
             .WithTags("Notifications");
 
         group.MapGet("/",
-        async ([AsParameters] PaginationRequest request, IMediator mediator, CancellationToken cancellationToken) =>
-        {
-            var query = new GetAllNotificationsQuery(request.PageNumber, request.PageSize);
-            var result = await mediator.Send(query, cancellationToken);
+            async ([AsParameters] PaginationRequest request, IMediator mediator, CancellationToken cancellationToken) =>
+            {
+                var query = new GetAllNotificationsQuery(request.PageNumber, request.PageSize);
+                var result = await mediator.Send(query, cancellationToken);
 
-            return result.ToIResult();
-        })
+                return result.ToIResult();
+             })
             .WithName("GetAllNotifications")
             .WithSummary("Lista todas as notificações")
             .WithDescription(NotificationEndpointsDocumentation.GetAllNotificationsDescription)

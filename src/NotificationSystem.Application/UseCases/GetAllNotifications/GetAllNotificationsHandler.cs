@@ -1,148 +1,81 @@
 using FluentResults;
 using MediatR;
-using NotificationSystem.Application.Common.Mappings;
-using NotificationSystem.Domain.Entities;
+using NotificationSystem.Apllication.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetAllNotifications;
 
-public class GetAllNotificationsHandler : IRequestHandler<GetAllNotificationsQuery, Result<GetAllNotificationsResponse>>
+public class GetAllNotificationsHandler(INotificationRepository notificationRepository) : IRequestHandler<GetAllNotificationsQuery, Result<GetAllNotificationsResponse>>
 {
+
+    private readonly INotificationRepository _notificationRepository = notificationRepository;
+
     public async Task<Result<GetAllNotificationsResponse>> Handle(
         GetAllNotificationsQuery request,
         CancellationToken cancellationToken)
     {
-        var userId1 = Guid.NewGuid();
-        var userId2 = Guid.NewGuid();
-        var userId3 = Guid.NewGuid();
 
-        var domainNotifications = new List<Notification>
+        var (pageNumber, pageSize) = request;
+
+        var notifications = await _notificationRepository.GetAllAsync(pageNumber, pageSize, cancellationToken);
+        
+        var notificationsList = notifications.Select(n => new NotificationDto
         {
-            // Notificação com apenas 1 canal (Email)
-            new Notification
+            Id = n.Id,
+            UserId = n.UserId,
+            CreatedAt = n.CreatedAt,
+            Channels = n.Channels.Select<NotificationChannel, ChannelDto>(c =>
             {
-                Id = Guid.NewGuid(),
-                UserId = userId1,
-                CreatedAt = DateTime.UtcNow.AddHours(-2),
-                Channels = new List<NotificationChannel>
+                return c switch
                 {
-                    new EmailChannel
+                    EmailChannel emailChannel => new EmailChannelDto
                     {
-                        Id = Guid.NewGuid(),
-                        Status = NotificationStatus.Sent,
-                        SentAt = DateTime.UtcNow.AddHours(-2),
-                        To = "user@example.com",
-                        Subject = "Welcome!",
-                        Body = "Welcome to our notification system",
-                        IsBodyHtml = false
-                    }
-                }
-            },
-
-            // Notificação multi-canal: Email + SMS
-            new Notification
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId2,
-                CreatedAt = DateTime.UtcNow.AddHours(-1),
-                Channels = new List<NotificationChannel>
-                {
-                    new EmailChannel
-                    {
-                        Id = Guid.NewGuid(),
-                        Status = NotificationStatus.Sent,
-                        SentAt = DateTime.UtcNow.AddHours(-1),
-                        To = "customer@example.com",
-                        Subject = "Appointment Reminder",
-                        Body = "You have an appointment tomorrow at 2 PM",
-                        IsBodyHtml = true
+                        Id = emailChannel.Id,
+                        Status = emailChannel.Status,
+                        ErrorMessage = emailChannel.ErrorMessage,
+                        SentAt = emailChannel.SentAt,
+                        To = emailChannel.To,
+                        Subject = emailChannel.Subject,
+                        Body = emailChannel.Body,
+                        IsBodyHtml = emailChannel.IsBodyHtml
                     },
-                    new SmsChannel
+                    SmsChannel smsChannel => new SmsChannelDto
                     {
-                        Id = Guid.NewGuid(),
-                        Status = NotificationStatus.Sent,
-                        SentAt = DateTime.UtcNow.AddHours(-1),
-                        To = "+5511999999999",
-                        Message = "Reminder: Appointment tomorrow at 2 PM",
-                        SenderId = "MyApp"
-                    }
-                }
-            },
-
-            // Notificação multi-canal: Email + SMS + Push
-            new Notification
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId3,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-30),
-                Channels = new List<NotificationChannel>
-                {
-                    new EmailChannel
-                    {
-                        Id = Guid.NewGuid(),
-                        Status = NotificationStatus.Sent,
-                        SentAt = DateTime.UtcNow.AddMinutes(-30),
-                        To = "vip@example.com",
-                        Subject = "Security Alert",
-                        Body = "New login detected from unknown device",
-                        IsBodyHtml = true
+                        Id = smsChannel.Id,
+                        Status = smsChannel.Status,
+                        ErrorMessage = smsChannel.ErrorMessage,
+                        SentAt = smsChannel.SentAt,
+                        To = smsChannel.To,
+                        Message = smsChannel.Message,
+                        SenderId = smsChannel.SenderId
                     },
-                    new SmsChannel
+                    PushChannel pushChannel => new PushChannelDto
                     {
-                        Id = Guid.NewGuid(),
-                        Status = NotificationStatus.Sent,
-                        SentAt = DateTime.UtcNow.AddMinutes(-30),
-                        To = "+5511988888888",
-                        Message = "Security Alert: New login detected",
-                        SenderId = "Security"
-                    },
-                    new PushChannel
-                    {
-                        Id = Guid.NewGuid(),
-                        Status = NotificationStatus.Sent,
-                        SentAt = DateTime.UtcNow.AddMinutes(-30),
-                        To = "device-token-456",
-                        Content = new NotificationContent
+                        Id = pushChannel.Id,
+                        Status = pushChannel.Status,
+                        ErrorMessage = pushChannel.ErrorMessage,
+                        SentAt = pushChannel.SentAt,
+                        To = pushChannel.To,
+                        Content = new NotificationContentDto
                         {
-                            Title = "Security Alert",
-                            Body = "New login detected from unknown device",
-                            ClickAction = "/security"
+                            Title = pushChannel.Content.Title,
+                            Body = pushChannel.Content.Body
                         },
-                        IsRead = false,
-                        Priority = "high"
-                    }
-                }
-            },
-
-            // Notificação com canal que falhou
-            new Notification
-            {
-                Id = Guid.NewGuid(),
-                UserId = userId1,
-                CreatedAt = DateTime.UtcNow.AddMinutes(-10),
-                Channels = new List<NotificationChannel>
-                {
-                    new SmsChannel
-                    {
-                        Id = Guid.NewGuid(),
-                        Status = NotificationStatus.Failed,
-                        ErrorMessage = "Invalid phone number",
-                        To = "+invalid",
-                        Message = "Your verification code is 123456",
-                        SenderId = "MyApp"
-                    }
-                }
-            }
-        };
-
-        var notificationDtos = domainNotifications.Select(n => n.ToDto()).ToList();
+                        Data = pushChannel.Data,
+                        Priority = pushChannel.Priority,
+                        TimeToLive = pushChannel.TimeToLive,
+                        IsRead = pushChannel.IsRead
+                    },
+                    _ => throw new NotSupportedException("Canal de notificação desconhecido")
+                };
+            }).ToList()
+        }).ToList();
 
         var response = new GetAllNotificationsResponse(
-            notificationDtos,
-            TotalCount: notificationDtos.Count,
-            request.PageNumber,
-            request.PageSize
-        );
+            notificationsList,
+            TotalCount: notificationsList.Count,
+            PageNumber: pageNumber,
+            PageSize: pageSize);
 
-        return await Task.FromResult(Result.Ok(response));
+        return Result.Ok(response);
     }
 }

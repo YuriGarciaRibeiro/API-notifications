@@ -6,4 +6,5 @@ public interface INotificationRepository
     Task<Notification?> GetByIdAsync(Guid id);
     Task<IEnumerable<Notification>> GetPendingNotificationsAsync(int maxCount);
     Task UpdateAsync(Notification notification);
+    Task<IEnumerable<Notification>> GetAllAsync(int pageNumber, int pageSize, CancellationToken cancellationToken);
 }
