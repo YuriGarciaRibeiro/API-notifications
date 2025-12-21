@@ -3,7 +3,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Apllication.Interfaces;
-using NotificationSystem.Domain.Interfaces;
 using NotificationSystem.Infrastructure.Messaging;
 using NotificationSystem.Infrastructure.Persistence;
 using NotificationSystem.Infrastructure.Persistence.Repositories;

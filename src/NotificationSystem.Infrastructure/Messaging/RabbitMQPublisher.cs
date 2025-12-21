@@ -1,7 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using NotificationSystem.Domain.Interfaces;
+using NotificationSystem.Apllication.Interfaces;
 using NotificationSystem.Infrastructure.Settings;
 using RabbitMQ.Client;
 

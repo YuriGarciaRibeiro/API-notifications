@@ -5,7 +5,6 @@ using NotificationSystem.Application.Common;
 using NotificationSystem.Application.Messages;
 using NotificationSystem.Domain.Entities;
 using NotificationSystem.Domain.Events;
-using NotificationSystem.Domain.Interfaces;
 
 namespace NotificationSystem.Application.EventHandlers;
 
