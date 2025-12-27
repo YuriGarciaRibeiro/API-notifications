@@ -2,6 +2,8 @@ using NotificationSystem.Api.Endpoints;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Api.Middlewares;
 using NotificationSystem.Application;
+using NotificationSystem.Application.Interfaces;
+using NotificationSystem.Application.Options;
 using NotificationSystem.Infrastructure;
 using Serilog;
 
@@ -25,6 +27,10 @@ try
     builder.Services.AddCustomProblemDetails();
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddSwaggerConfiguration();
+
+    // Configure SMTP
+    builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
+    builder.Services.AddScoped<ISmtpService, SmtpService>();
 
     var app = builder.Build();
 
