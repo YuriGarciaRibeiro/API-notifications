@@ -1,22 +1,22 @@
 # Sistema de Canais - Arquitetura Multi-Canal
 
-## Vis„o Geral
+## Vis√£o Geral
 
-O sistema de notificaÁıes utiliza uma arquitetura baseada em **canais**, permitindo que uma ˙nica notificaÁ„o seja enviada atravÈs de m˙ltiplos meios de comunicaÁ„o simultaneamente (Email, SMS, Push Notification).
+O sistema de notifica√ß√µes utiliza uma arquitetura baseada em **canais**, permitindo que uma √∫nica notifica√ß√£o seja enviada atrav√©s de m√∫ltiplos meios de comunica√ß√£o simultaneamente (Email, SMS, Push Notification).
 
 ### Conceitos Principais
 
-- **Notification**: Representa a intenÁ„o de enviar uma notificaÁ„o. … o "container" que agrupa um ou mais canais.
-- **NotificationChannel**: Representa um meio especÌfico de entrega (Email, SMS ou Push). Cada canal tem seu prÛprio status, data de envio e tratamento de erro independente.
+- **Notification**: Representa a inten√ß√£o de enviar uma notifica√ß√£o. √â o "container" que agrupa um ou mais canais.
+- **NotificationChannel**: Representa um meio espec√≠fico de entrega (Email, SMS ou Push). Cada canal tem seu pr√≥prio status, data de envio e tratamento de erro independente.
 
-## Arquitetura de DomÌnio
+## Arquitetura de Dom√≠nio
 
 ### Entidades
 
 #### Notification
-Entidade principal que representa uma notificaÁ„o.
+Entidade principal que representa uma notifica√ß√£o.
 
-**LocalizaÁ„o**: [src/NotificationSystem.Domain/Entities/Notification.cs](../src/NotificationSystem.Domain/Entities/Notification.cs)
+**Localiza√ß√£o**: [src/NotificationSystem.Domain/Entities/Notification.cs](../src/NotificationSystem.Domain/Entities/Notification.cs)
 
 ```csharp
 public class Notification
@@ -29,15 +29,15 @@ public class Notification
 ```
 
 **Campos:**
-- `Id`: Identificador ˙nico da notificaÁ„o
-- `UserId`: ID do usu·rio que receber· a notificaÁ„o
-- `CreatedAt`: Data/hora de criaÁ„o da notificaÁ„o
+- `Id`: Identificador √∫nico da notifica√ß√£o
+- `UserId`: ID do usu√°rio que receber√° a notifica√ß√£o
+- `CreatedAt`: Data/hora de cria√ß√£o da notifica√ß√£o
 - `Channels`: Lista de canais de entrega associados
 
 #### NotificationChannel (Abstrata)
 Classe base abstrata para todos os tipos de canal.
 
-**LocalizaÁ„o**: [src/NotificationSystem.Domain/Entities/NotificationChannel.cs](../src/NotificationSystem.Domain/Entities/NotificationChannel.cs)
+**Localiza√ß√£o**: [src/NotificationSystem.Domain/Entities/NotificationChannel.cs](../src/NotificationSystem.Domain/Entities/NotificationChannel.cs)
 
 ```csharp
 public abstract class NotificationChannel
@@ -53,9 +53,9 @@ public abstract class NotificationChannel
 ```
 
 **Campos Comuns:**
-- `Id`: Identificador ˙nico do canal
-- `NotificationId`: Foreign key para a notificaÁ„o pai
-- `Notification`: NavegaÁ„o para a notificaÁ„o pai
+- `Id`: Identificador √∫nico do canal
+- `NotificationId`: Foreign key para a notifica√ß√£o pai
+- `Notification`: Navega√ß√£o para a notifica√ß√£o pai
 - `Type`: Tipo do canal (Email, SMS, Push)
 - `Status`: Status de entrega (Pending, Sent, Failed)
 - `ErrorMessage`: Mensagem de erro em caso de falha
@@ -74,11 +74,11 @@ public class EmailChannel : NotificationChannel
 }
 ```
 
-**Campos EspecÌficos:**
-- `To`: EndereÁo de email do destinat·rio
+**Campos Espec√≠ficos:**
+- `To`: Endere√ßo de email do destinat√°rio
 - `Subject`: Assunto do email
 - `Body`: Corpo do email (texto ou HTML)
-- `IsBodyHtml`: Indica se o corpo È HTML
+- `IsBodyHtml`: Indica se o corpo √© HTML
 
 #### SmsChannel
 Canal de entrega via SMS.
@@ -92,9 +92,9 @@ public class SmsChannel : NotificationChannel
 }
 ```
 
-**Campos EspecÌficos:**
-- `To`: N˙mero de telefone do destinat·rio (formato internacional)
-- `Message`: Texto da mensagem SMS (m·x. 1600 caracteres)
+**Campos Espec√≠ficos:**
+- `To`: N√∫mero de telefone do destinat√°rio (formato internacional)
+- `Message`: Texto da mensagem SMS (m√°x. 1600 caracteres)
 - `SenderId`: ID do remetente (opcional)
 
 #### PushChannel
@@ -118,19 +118,19 @@ public class PushChannel : NotificationChannel
 }
 ```
 
-**Campos EspecÌficos:**
+**Campos Espec√≠ficos:**
 - `To`: Token do dispositivo
-- `Content`: Conte˙do da notificaÁ„o (tÌtulo, corpo, aÁ„o de clique)
+- `Content`: Conte√∫do da notifica√ß√£o (t√≠tulo, corpo, a√ß√£o de clique)
 - `Data`: Dados customizados (chave-valor)
-- `Android`: ConfiguraÁıes especÌficas do Android
-- `Apns`: ConfiguraÁıes especÌficas do iOS (Apple Push Notification Service)
-- `Webpush`: ConfiguraÁıes especÌficas do Web Push
-- `Condition`: CondiÁ„o para envio (ex: "TopicA && TopicB")
+- `Android`: Configura√ß√µes espec√≠ficas do Android
+- `Apns`: Configura√ß√µes espec√≠ficas do iOS (Apple Push Notification Service)
+- `Webpush`: Configura√ß√µes espec√≠ficas do Web Push
+- `Condition`: Condi√ß√£o para envio (ex: "TopicA && TopicB")
 - `TimeToLive`: Tempo de vida da mensagem em segundos
 - `Priority`: Prioridade de entrega (high, normal)
-- `MutableContent`: Permite modificaÁ„o do conte˙do (iOS)
-- `ContentAvailable`: NotificaÁ„o silenciosa (iOS)
-- `IsRead`: Indica se a notificaÁ„o foi lida
+- `MutableContent`: Permite modifica√ß√£o do conte√∫do (iOS)
+- `ContentAvailable`: Notifica√ß√£o silenciosa (iOS)
+- `IsRead`: Indica se a notifica√ß√£o foi lida
 
 ### Enums
 
@@ -156,11 +156,11 @@ public enum NotificationStatus
 
 ## Estrutura do Banco de Dados
 
-O sistema utiliza a estratÈgia **Table Per Hierarchy (TPH)** do Entity Framework Core, criando 2 tabelas principais:
+O sistema utiliza a estrat√©gia **Table Per Hierarchy (TPH)** do Entity Framework Core, criando 2 tabelas principais:
 
 ### Tabela: `notifications`
 
-Armazena as notificaÁıes (containers).
+Armazena as notifica√ß√µes (containers).
 
 ```sql
 CREATE TABLE notifications (
@@ -175,7 +175,7 @@ CREATE INDEX ix_notifications_created_at ON notifications(created_at);
 
 ### Tabela: `notification_channels`
 
-Armazena todos os canais usando heranÁa polimÛrfica com discriminador no campo `type`.
+Armazena todos os canais usando heran√ßa polim√≥rfica com discriminador no campo `type`.
 
 ```sql
 CREATE TABLE notification_channels (
@@ -187,17 +187,17 @@ CREATE TABLE notification_channels (
     error_message VARCHAR(1000),
     sent_at TIMESTAMP,
 
-    -- Campos especÌficos do EmailChannel
+    -- Campos espec√≠ficos do EmailChannel
     to VARCHAR(500),
     subject VARCHAR(500),
     body TEXT,
     is_body_html BOOLEAN,
 
-    -- Campos especÌficos do SmsChannel
+    -- Campos espec√≠ficos do SmsChannel
     message VARCHAR(1600),
     sender_id VARCHAR(50),
 
-    -- Campos especÌficos do PushChannel
+    -- Campos espec√≠ficos do PushChannel
     content_title VARCHAR(100),
     content_body VARCHAR(500),
     content_click_action VARCHAR(200),
@@ -223,14 +223,14 @@ CREATE INDEX ix_channels_notification_id_type ON notification_channels(notificat
 - **1 Notification** pode ter **N Channels**
 - Cada **Channel** pertence a **1 Notification**
 - Foreign Key: `notification_id` em `notification_channels`
-- **Cascade Delete**: Ao deletar uma Notification, todos os seus Channels s„o deletados automaticamente
+- **Cascade Delete**: Ao deletar uma Notification, todos os seus Channels s√£o deletados automaticamente
 
 ### Como funciona o Table Per Hierarchy (TPH)?
 
-1. **Uma ˙nica tabela**: Todos os tipos de canal (Email, SMS, Push) ficam na mesma tabela `notification_channels`
-2. **Discriminador**: O campo `type` indica qual tipo de canal È (`Email`, `Sms`, `Push`)
-3. **Campos nullable**: Campos especÌficos de cada tipo ficam NULL quando n„o aplic·veis
-4. **Filtragem autom·tica**: O EF Core adiciona automaticamente `WHERE type = 'Email'` quando vocÍ consulta `_context.EmailChannels`
+1. **Uma √∫nica tabela**: Todos os tipos de canal (Email, SMS, Push) ficam na mesma tabela `notification_channels`
+2. **Discriminador**: O campo `type` indica qual tipo de canal √© (`Email`, `Sms`, `Push`)
+3. **Campos nullable**: Campos espec√≠ficos de cada tipo ficam NULL quando n√£o aplic√°veis
+4. **Filtragem autom√°tica**: O EF Core adiciona automaticamente `WHERE type = 'Email'` quando voc√™ consulta `_context.EmailChannels`
 
 **Exemplo de dados:**
 
@@ -240,11 +240,11 @@ CREATE INDEX ix_channels_notification_id_type ON notification_channels(notificat
 | ch-2 | notif-1 | Sms | Sent | +5511999... | NULL | NULL | "Alert: You..." | "MyApp" |
 | ch-3 | notif-1 | Push | Sent | device-token | NULL | NULL | NULL | NULL |
 
-## ConfiguraÁ„o do Entity Framework Core
+## Configura√ß√£o do Entity Framework Core
 
 ### NotificationConfiguration
 
-**LocalizaÁ„o**: [src/NotificationSystem.Infrastructure/Persistence/Configurations/NotificationConfiguration.cs](../src/NotificationSystem.Infrastructure/Persistence/Configurations/NotificationConfiguration.cs)
+**Localiza√ß√£o**: [src/NotificationSystem.Infrastructure/Persistence/Configurations/NotificationConfiguration.cs](../src/NotificationSystem.Infrastructure/Persistence/Configurations/NotificationConfiguration.cs)
 
 ```csharp
 public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
@@ -267,7 +267,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .HasForeignKey(c => c.NotificationId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Õndices para performance
+        // √çndices para performance
         builder.HasIndex(n => n.UserId).HasDatabaseName("ix_notifications_user_id");
         builder.HasIndex(n => n.CreatedAt).HasDatabaseName("ix_notifications_created_at");
     }
@@ -276,7 +276,7 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
 
 ### NotificationChannelConfiguration
 
-**LocalizaÁ„o**: [src/NotificationSystem.Infrastructure/Persistence/Configurations/NotificationChannelConfiguration.cs](../src/NotificationSystem.Infrastructure/Persistence/Configurations/NotificationChannelConfiguration.cs)
+**Localiza√ß√£o**: [src/NotificationSystem.Infrastructure/Persistence/Configurations/NotificationChannelConfiguration.cs](../src/NotificationSystem.Infrastructure/Persistence/Configurations/NotificationChannelConfiguration.cs)
 
 ```csharp
 public class NotificationChannelConfiguration : IEntityTypeConfiguration<NotificationChannel>
@@ -299,13 +299,13 @@ public class NotificationChannelConfiguration : IEntityTypeConfiguration<Notific
             .HasConversion<string>()
             .HasMaxLength(20);
 
-        // ConfiguraÁ„o do discriminador (TPH)
+        // Configura√ß√£o do discriminador (TPH)
         builder.HasDiscriminator(c => c.Type)
             .HasValue<EmailChannel>(ChannelType.Email)
             .HasValue<SmsChannel>(ChannelType.Sms)
             .HasValue<PushChannel>(ChannelType.Push);
 
-        // Õndices
+        // √çndices
         builder.HasIndex(c => c.NotificationId).HasDatabaseName("ix_channels_notification_id");
         builder.HasIndex(c => c.Status).HasDatabaseName("ix_channels_status");
         builder.HasIndex(c => new { c.NotificationId, c.Type })
@@ -314,17 +314,17 @@ public class NotificationChannelConfiguration : IEntityTypeConfiguration<Notific
 }
 ```
 
-### ConfiguraÁıes EspecÌficas de Canais
+### Configura√ß√µes Espec√≠ficas de Canais
 
 - **EmailChannelConfiguration**: [src/NotificationSystem.Infrastructure/Persistence/Configurations/EmailChannelConfiguration.cs](../src/NotificationSystem.Infrastructure/Persistence/Configurations/EmailChannelConfiguration.cs)
 - **SmsChannelConfiguration**: [src/NotificationSystem.Infrastructure/Persistence/Configurations/SmsChannelConfiguration.cs](../src/NotificationSystem.Infrastructure/Persistence/Configurations/SmsChannelConfiguration.cs)
 - **PushChannelConfiguration**: [src/NotificationSystem.Infrastructure/Persistence/Configurations/PushChannelConfiguration.cs](../src/NotificationSystem.Infrastructure/Persistence/Configurations/PushChannelConfiguration.cs)
 
-## Camada de AplicaÁ„o
+## Camada de Aplica√ß√£o
 
 ### DTOs
 
-**LocalizaÁ„o**: [src/NotificationSystem.Application/UseCases/GetAllNotifications/GetAllNotificationsResponse.cs](../src/NotificationSystem.Application/UseCases/GetAllNotifications/GetAllNotificationsResponse.cs)
+**Localiza√ß√£o**: [src/NotificationSystem.Application/UseCases/GetAllNotifications/GetAllNotificationsResponse.cs](../src/NotificationSystem.Application/UseCases/GetAllNotifications/GetAllNotificationsResponse.cs)
 
 #### NotificationDto
 ```csharp
@@ -337,7 +337,7 @@ public record NotificationDto
 }
 ```
 
-#### ChannelDto (PolimÛrfico)
+#### ChannelDto (Polim√≥rfico)
 ```csharp
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(EmailChannelDto), "Email")]
@@ -352,7 +352,7 @@ public abstract record ChannelDto
 }
 ```
 
-**SerializaÁ„ JSON com discriminador:**
+**Serializa√ß√£o JSON com discriminador:**
 ```json
 {
   "id": "abc-123",
@@ -380,7 +380,7 @@ public abstract record ChannelDto
 
 ### Mappings
 
-**LocalizaÁ„o**: [src/NotificationSystem.Application/Common/Mappings/NotificationMappings.cs](../src/NotificationSystem.Application/Common/Mappings/NotificationMappings.cs)
+**Localiza√ß√£o**: [src/NotificationSystem.Application/Common/Mappings/NotificationMappings.cs](../src/NotificationSystem.Application/Common/Mappings/NotificationMappings.cs)
 
 ```csharp
 public static class NotificationMappings
@@ -409,13 +409,13 @@ public static class NotificationMappings
 }
 ```
 
-## RepositÛrio
+## Reposit√≥rio
 
-**LocalizaÁ„o**: [src/NotificationSystem.Infrastructure/Persistence/Repositories/NotificationRepository.cs](../src/NotificationSystem.Infrastructure/Persistence/Repositories/NotificationRepository.cs)
+**Localiza√ß√£o**: [src/NotificationSystem.Infrastructure/Persistence/Repositories/NotificationRepository.cs](../src/NotificationSystem.Infrastructure/Persistence/Repositories/NotificationRepository.cs)
 
 ### Queries Comuns
 
-#### Buscar notificaÁ„o com todos os canais
+#### Buscar notifica√ß√£o com todos os canais
 ```csharp
 public async Task<Notification?> GetByIdAsync(Guid id)
 {
@@ -425,7 +425,7 @@ public async Task<Notification?> GetByIdAsync(Guid id)
 }
 ```
 
-#### Buscar notificaÁıes com canais pendentes
+#### Buscar notifica√ß√µes com canais pendentes
 ```csharp
 public async Task<IEnumerable<Notification>> GetPendingNotificationsAsync(int maxCount)
 {
@@ -441,11 +441,11 @@ public async Task<IEnumerable<Notification>> GetPendingNotificationsAsync(int ma
 ```csharp
 var emailChannels = await _context.EmailChannels
     .Where(e => e.Status == NotificationStatus.Pending)
-    .Include(e => e.Notification)  // Se precisar dos dados da notificaÁ„o
+    .Include(e => e.Notification)  // Se precisar dos dados da notifica√ß√£o
     .ToListAsync();
 ```
 
-#### Criar notificaÁ„o multi-canal
+#### Criar notifica√ß√£o multi-canal
 ```csharp
 var notification = new Notification
 {
@@ -475,7 +475,7 @@ await _context.SaveChangesAsync();
 
 ## Exemplos de Uso
 
-### 1. NotificaÁ„o com 1 canal (Email)
+### 1. Notifica√ß√£o com 1 canal (Email)
 ```csharp
 var notification = new Notification
 {
@@ -492,7 +492,7 @@ var notification = new Notification
 };
 ```
 
-### 2. NotificaÁ„o multi-canal (Email + SMS)
+### 2. Notifica√ß√£o multi-canal (Email + SMS)
 ```csharp
 var notification = new Notification
 {
@@ -514,7 +514,7 @@ var notification = new Notification
 };
 ```
 
-### 3. NotificaÁ„o completa (Email + SMS + Push)
+### 3. Notifica√ß√£o completa (Email + SMS + Push)
 ```csharp
 var notification = new Notification
 {
@@ -549,7 +549,7 @@ var notification = new Notification
 };
 ```
 
-### 4. Atualizar status de um canal especÌfico
+### 4. Atualizar status de um canal espec√≠fico
 ```csharp
 var notification = await _context.Notifications
     .Include(n => n.Channels)
@@ -592,26 +592,26 @@ dotnet ef database update PreviousMigrationName -s ../NotificationSystem.Api
 ## Vantagens da Arquitetura
 
 ### Flexibilidade
-- Uma notificaÁ„o pode ter 1 ou mais canais
-- F·cil adicionar novos tipos de canal (ex: WhatsApp, Telegram)
+- Uma notifica√ß√£o pode ter 1 ou mais canais
+- F√°cil adicionar novos tipos de canal (ex: WhatsApp, Telegram)
 - Canais independentes: Email pode ter sucesso enquanto SMS falha
 
 ### Status Independente
-- Cada canal tem seu prÛprio status de entrega
+- Cada canal tem seu pr√≥prio status de entrega
 - Permite rastreamento granular de falhas
-- Facilita retry de canais especÌficos
+- Facilita retry de canais espec√≠ficos
 
 ### Escalabilidade
 - Canais podem ser processados em paralelo
 - Cada consumer (Email, SMS, Push) pode escalar independentemente
-- F·cil implementar priorizaÁ„o por tipo de canal
+- F√°cil implementar prioriza√ß√£o por tipo de canal
 
 ### Manutenibilidade
-- CÛdigo bem estruturado e organizado
-- ValidaÁ„o independente por tipo de canal
-- Testes unit·rios focados em cada canal
+- C√≥digo bem estruturado e organizado
+- Valida√ß√£o independente por tipo de canal
+- Testes unit√°rios focados em cada canal
 
-## Boas Pr·ticas
+## Boas Pr√°ticas
 
 ### 1. Sempre use Include para carregar canais
 ```csharp
@@ -620,9 +620,9 @@ var notification = await _context.Notifications
     .Include(n => n.Channels)
     .FirstOrDefaultAsync(n => n.Id == id);
 
-// L Errado - Lazy loading n„o est· habilitado
+// ‚ùå Errado - Lazy loading n√£o est√° habilitado
 var notification = await _context.Notifications.FindAsync(id);
-// notification.Channels ser· vazio!
+// notification.Channels ser√° vazio!
 ```
 
 ### 2. Valide os canais antes de salvar
@@ -639,7 +639,7 @@ public class EmailChannelValidator : AbstractValidator<EmailChannel>
 }
 ```
 
-### 3. Use transaÁıes para operaÁıes complexas
+### 3. Use transa√ß√µes para opera√ß√µes complexas
 ```csharp
 using var transaction = await _context.Database.BeginTransactionAsync();
 try
@@ -647,7 +647,7 @@ try
     await _context.Notifications.AddAsync(notification);
     await _context.SaveChangesAsync();
 
-    // Outras operaÁıes...
+    // Outras opera√ß√µes...
 
     await transaction.CommitAsync();
 }
@@ -658,23 +658,23 @@ catch
 }
 ```
 
-### 4. N„o exponha entidades de domÌnio na API
+### 4. N√£o exponha entidades de dom√≠nio na API
 ```csharp
 //  Correto - Use DTOs
 return notification.ToDto();
 
-// L Errado - Expıe entidade de domÌnio
+// ‚ùå Errado - Exp√µe entidade de dom√≠nio
 return notification;
 ```
 
-### 5. Use queries especÌficas quando possÌvel
+### 5. Use queries espec√≠ficas quando poss√≠vel
 ```csharp
 //  Mais eficiente - Filtra no banco
 var emailChannels = await _context.EmailChannels
     .Where(e => e.Status == NotificationStatus.Pending)
     .ToListAsync();
 
-// L Menos eficiente - Carrega tudo e filtra em memÛria
+// ‚ùå Menos eficiente - Carrega tudo e filtra em mem√≥ria
 var channels = await _context.NotificationChannels.ToListAsync();
 var emailChannels = channels.OfType<EmailChannel>()
     .Where(e => e.Status == NotificationStatus.Pending);
@@ -682,34 +682,34 @@ var emailChannels = channels.OfType<EmailChannel>()
 
 ## Troubleshooting
 
-### Canal n„o est· sendo incluÌdo
-**Problema**: `notification.Channels` est· vazio apÛs buscar do banco.
+### Canal n√£o est√° sendo inclu√≠do
+**Problema**: `notification.Channels` est√° vazio ap√≥s buscar do banco.
 
-**SoluÁ„o**: Use `.Include(n => n.Channels)` na query.
+**Solu√ß√£o**: Use `.Include(n => n.Channels)` na query.
 
-### Discriminador n„o funciona
-**Problema**: EF Core n„o est· filtrando por tipo corretamente.
+### Discriminador n√£o funciona
+**Problema**: EF Core n√£o est√° filtrando por tipo corretamente.
 
-**SoluÁ„o**: Verifique se a configuraÁ„o do discriminador est· correta em `NotificationChannelConfiguration`.
+**Solu√ß√£o**: Verifique se a configura√ß√£o do discriminador est√° correta em `NotificationChannelConfiguration`.
 
-### Campos especÌficos sempre NULL
-**Problema**: Campos de `EmailChannel` est„o NULL mesmo apÛs salvar.
+### Campos espec√≠ficos sempre NULL
+**Problema**: Campos de `EmailChannel` est√£o NULL mesmo ap√≥s salvar.
 
-**SoluÁ„o**: Verifique se a configuraÁ„o especÌfica (`EmailChannelConfiguration`) est· sendo aplicada.
+**Solu√ß√£o**: Verifique se a configura√ß√£o espec√≠fica (`EmailChannelConfiguration`) est√° sendo aplicada.
 
 ### Migration falha
 **Problema**: Erro ao executar migration.
 
-**SoluÁ„o**:
-1. Verifique se todas as configuraÁıes est„o corretas
-2. Use `dotnet ef migrations remove` para remover a ˙ltima migration
+**Solu√ß√£o**:
+1. Verifique se todas as configura√ß√µes est√£o corretas
+2. Use `dotnet ef migrations remove` para remover a √∫ltima migration
 3. Recrie a migration
 
-## PrÛximos Passos
+## Pr√≥ximos Passos
 
 - [ ] Implementar consumers para processar cada tipo de canal
-- [ ] Adicionar validaÁ„o com FluentValidation para cada canal
+- [ ] Adicionar valida√ß√£o com FluentValidation para cada canal
 - [ ] Implementar retry logic para canais falhados
 - [ ] Adicionar logging e telemetria
-- [ ] Criar testes de integraÁ„o para o sistema de canais
+- [ ] Criar testes de integra√ß√£o para o sistema de canais
 - [ ] Implementar rate limiting por tipo de canal
