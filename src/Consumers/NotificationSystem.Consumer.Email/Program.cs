@@ -12,7 +12,7 @@ builder.Services.Configure<RabbitMqOptions>(
     builder.Configuration.GetSection(RabbitMqOptions.SectionName));
 
 // Register services
-builder.Services.AddScoped<ISmtpService, SmtpService>();
+builder.Services.AddSingleton<ISmtpService, SmtpService>();
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();

@@ -1,0 +1,94 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-api",
+      "program": "${workspaceFolder}/src/NotificationSystem.Api/bin/Debug/net10.0/NotificationSystem.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/NotificationSystem.Api",
+      "stopAtEntry": false,
+      "serverReadyAction": {
+        "action": "openExternally",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+      },
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "sourceFileMap": {
+        "/Views": "${workspaceFolder}/Views"
+      }
+    },
+    {
+      "name": "Consumer - Email",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-consumer-email",
+      "program": "${workspaceFolder}/src/Consumers/NotificationSystem.Consumer.Email/bin/Debug/net10.0/NotificationSystem.Consumer.Email.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Consumers/NotificationSystem.Consumer.Email",
+      "stopAtEntry": false,
+      "env": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Consumer - SMS",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-consumer-sms",
+      "program": "${workspaceFolder}/src/Consumers/NotificationSystem.Consumer.Sms/bin/Debug/net10.0/NotificationSystem.Consumer.Sms.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Consumers/NotificationSystem.Consumer.Sms",
+      "stopAtEntry": false,
+      "env": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    },
+    {
+      "name": "Consumer - Push",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-consumer-push",
+      "program": "${workspaceFolder}/src/Consumers/NotificationSystem.Consumer.Push/bin/Debug/net10.0/NotificationSystem.Consumer.Push.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/Consumers/NotificationSystem.Consumer.Push",
+      "stopAtEntry": false,
+      "env": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full System (API + All Consumers)",
+      "configurations": [
+        "API",
+        "Consumer - Email",
+        "Consumer - SMS",
+        "Consumer - Push"
+      ],
+      "presentation": {
+        "hidden": false,
+        "group": "notification-system",
+        "order": 1
+      },
+      "stopAll": true
+    },
+    {
+      "name": "API + Email Consumer",
+      "configurations": [
+        "API",
+        "Consumer - Email"
+      ],
+      "presentation": {
+        "hidden": false,
+        "group": "notification-system",
+        "order": 2
+      },
+      "stopAll": true
+    }
+  ]
+}

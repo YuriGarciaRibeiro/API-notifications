@@ -41,6 +41,16 @@ services:
       timeout: 5s
       retries: 5
 
+  # Mailpit - Fake SMTP server for development
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: notifications-mailpit
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI
+    networks:
+      - notifications-network
+
 volumes:
   postgres_data:
     driver: local
