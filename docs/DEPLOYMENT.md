@@ -23,10 +23,10 @@ A empresa que for utilizar o sistema precisa fornecer:
    - Credenciais de autenticação
    - Porta e configuração SSL/TLS
 
-4. **Twilio Account** (para SMS) - Opcional
+4. **Twilio Account** (para SMS) - ✅ Production-Ready
    - Account SID
    - Auth Token
-   - Número de telefone
+   - Número de telefone Twilio ativo
 
 5. **Firebase Project** (para Push) - Opcional
    - Arquivo de credenciais JSON
@@ -86,6 +86,11 @@ SMTP_USERNAME=notifications@yourcompany.com
 SMTP_PASSWORD=your-smtp-password
 SMTP_FROM_EMAIL=noreply@yourcompany.com
 SMTP_FROM_NAME=Company Notifications
+
+# Twilio SMS (Production-Ready)
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_FROM_NUMBER=+15551234567
 ```
 
 ### Passo 3: Executar Migrations do Banco de Dados
@@ -323,6 +328,23 @@ docker logs notification-consumer-email
 telnet smtp.yourcompany.com 587
 
 # Verificar credenciais SMTP no .env
+```
+
+### SMS não sendo enviados (Twilio)
+
+```bash
+# Verificar logs do consumer SMS
+docker logs notification-consumer-sms
+
+# Verificar credenciais Twilio
+# Account SID deve começar com "AC"
+# Número deve estar no formato E.164: +[country code][number]
+
+# Verificar saldo da conta Twilio
+# https://console.twilio.com/
+
+# Testar manualmente via Twilio Console
+# https://www.twilio.com/console/sms/getting-started/test-credentials
 ```
 
 ---

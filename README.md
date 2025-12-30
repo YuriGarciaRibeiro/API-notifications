@@ -443,9 +443,9 @@ Edite o arquivo `appsettings.json` ou `appsettings.Development.json`:
 - **FluentValidation.DependencyInjectionExtensions (12.1.1)** - Integração com DI
 
 #### Infrastructure Layer
-- **RabbitMQ.Client** - Cliente oficial RabbitMQ
+- **RabbitMQ.Client (7.2.0)** - Cliente oficial RabbitMQ com DLX/DLQ
 - **MailKit** - Envio de emails via SMTP
-- **Twilio** - SDK para envio de SMS
+- **Twilio (7.14.0)** - SDK oficial para envio de SMS (production-ready)
 - **FirebaseAdmin** - Firebase Cloud Messaging
 - **Entity Framework Core** - ORM para persistência
 - **Npgsql.EntityFrameworkCore.PostgreSQL** - Provider PostgreSQL
@@ -594,10 +594,11 @@ dotnet user-secrets set "Services:Sms:Twilio:AuthToken" "your-token"
 - [x] Repository implementations (NotificationRepository)
 - [x] EF Core DbContext e Configurations
 - [x] Migrations aplicadas (PostgreSQL)
-- [x] RabbitMQ Producer
+- [x] RabbitMQ Producer com Dead Letter Exchange (DLX)
 - [x] Integração SMTP (MailKit) - Email consumer
-- [x] Retry logic e Dead Letter Queue (DLQ)
-- [x] Serilog configurado
+- [x] Integração Twilio (SMS) - SMS consumer production-ready
+- [x] Retry logic e Dead Letter Queue (DLQ) para todos os canais
+- [x] Serilog configurado com logs estruturados
 
 #### Presentation Layer
 - [x] Minimal API configurada
@@ -624,7 +625,7 @@ dotnet user-secrets set "Services:Sms:Twilio:AuthToken" "your-token"
 ### 🔄 Planejado / Melhorias Futuras
 
 #### External Services
-- [ ] Integração Twilio (SMS) - código preparado
+- [x] ~~Integração Twilio (SMS)~~ - ✅ **Implementado e production-ready**
 - [ ] Integração Firebase (Push) - código preparado
 - [ ] Circuit Breaker pattern
 

@@ -166,7 +166,7 @@ Reinicie:
 docker-compose -f docker-compose.production.yml up -d
 ```
 
-### Usar Twilio (SMS)
+### Usar Twilio (SMS) - ✅ Production-Ready
 
 Configure no `.env`:
 ```bash
@@ -174,6 +174,8 @@ TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 TWILIO_AUTH_TOKEN=your-auth-token
 TWILIO_FROM_NUMBER=+15551234567
 ```
+
+**Nota:** A integração SMS com Twilio está completamente implementada e pronta para produção com retry logic e Dead Letter Queue.
 
 ### Usar Firebase (Push)
 
@@ -230,6 +232,20 @@ docker logs notification-consumer-email
 # Solução: verificar SMTP_* no .env
 ```
 
+### SMS não enviam (Twilio)
+
+```bash
+# Ver logs do consumer SMS
+docker logs notification-consumer-sms
+
+# Comum: credenciais Twilio incorretas ou número inválido
+# Solução:
+# - Verificar TWILIO_* no .env
+# - Account SID deve começar com "AC"
+# - Número deve estar no formato E.164: +[código país][número]
+# - Verificar saldo em https://console.twilio.com/
+```
+
 ### Consumer não processa
 
 ```bash
@@ -260,20 +276,20 @@ docker exec notification-consumer-email ping your-rabbitmq-host
      ▼
 ┌──────────┐
 │ RabbitMQ │ ← Distribui para workers
-└──┬───┬───┘
-   │   │
-   ▼   ▼
-┌──────┬──────┐
-│Email │ SMS  │ ← Processam em paralelo
-└──────┴──────┘
+└──┬───┬──┬┘
+   │   │  │
+   ▼   ▼  ▼
+┌──────┬──────┬──────┐
+│Email │ SMS✅│ Push │ ← Processam em paralelo
+└──────┴──────┴──────┘
 ```
 
 **Fluxo:**
 1. Cliente envia POST para `/api/notifications`
 2. API salva no PostgreSQL
 3. API publica mensagens no RabbitMQ
-4. Consumers processam (Email, SMS, Push)
-5. Status atualizado no banco
+4. Consumers processam (Email ✅, SMS ✅, Push 🔄)
+5. Status atualizado no banco independentemente por canal
 
 ---
 
