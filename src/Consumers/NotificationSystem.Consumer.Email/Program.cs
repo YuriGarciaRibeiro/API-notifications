@@ -1,5 +1,6 @@
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Options;
+using NotificationSystem.Infrastructure;
 using NotificationSystem.Worker.Email;
 using Serilog;
 
@@ -17,6 +18,9 @@ builder.Services.Configure<SmtpOptions>(
 
 builder.Services.Configure<RabbitMqOptions>(
     builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+
+// Register Infrastructure (Database, Repositories, etc.)
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Register services
 builder.Services.AddSingleton<ISmtpService, SmtpService>();

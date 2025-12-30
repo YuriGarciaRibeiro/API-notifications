@@ -1,146 +1,58 @@
-using System.Text;
-using System.Text.Json;
 using Microsoft.Extensions.Options;
+using NotificationSystem.Apllication.Interfaces;
+using NotificationSystem.Application.Consumers;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Messages;
 using NotificationSystem.Application.Options;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
+using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Worker.Email;
 
-public class Worker : BackgroundService
+public class Worker : RabbitMqConsumerBase<EmailChannelMessage>
 {
-    private readonly ILogger<Worker> _logger;
     private readonly ISmtpService _smtpService;
-    private readonly RabbitMqOptions _rabbitMqOptions;
-    private IConnection? _connection;
-    private IChannel? _channel;
+    private readonly IServiceProvider _serviceProvider;
+
+    protected override string QueueName => "email-notifications";
 
     public Worker(
         ILogger<Worker> logger,
         ISmtpService smtpService,
-        IOptions<RabbitMqOptions> rabbitMqOptions)
+        IOptions<RabbitMqOptions> rabbitMqOptions,
+        IServiceProvider serviceProvider)
+        : base(logger, rabbitMqOptions, serviceProvider)
     {
-        _logger = logger;
         _smtpService = smtpService;
-        _rabbitMqOptions = rabbitMqOptions.Value;
+        _serviceProvider = serviceProvider;
     }
 
-    public override async Task StartAsync(CancellationToken cancellationToken)
+    protected override async Task ProcessMessageAsync(
+        EmailChannelMessage message,
+        CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Email Consumer starting...");
+        await _smtpService.SendEmailAsync(
+            message.To,
+            message.Subject,
+            message.Body,
+            message.IsBodyHtml);
 
-        var factory = new ConnectionFactory
-        {
-            HostName = _rabbitMqOptions.Host,
-            Port = _rabbitMqOptions.Port,
-            UserName = _rabbitMqOptions.Username,
-            Password = _rabbitMqOptions.Password,
-            VirtualHost = _rabbitMqOptions.VirtualHost
-        };
+        using var scope = _serviceProvider.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
 
-        _connection = await factory.CreateConnectionAsync(cancellationToken);
-        _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
-
-        await _channel.QueueDeclareAsync(
-            queue: "email-notifications",
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            arguments: null,
-            cancellationToken: cancellationToken);
-
-        _logger.LogInformation("Connected to RabbitMQ and queue 'email-notifications' declared");
-
-        await base.StartAsync(cancellationToken);
+        await repository.UpdateNotificationChannelStatusAsync<EmailChannel>(
+            message.NotificationId,
+            message.ChannelId,
+            NotificationStatus.Sent);
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override Task<(Guid NotificationId, Guid ChannelId)> GetNotificationIdsAsync(
+        EmailChannelMessage message)
     {
-        if (_channel == null)
-        {
-            _logger.LogError("Channel is not initialized");
-            return;
-        }
-
-        var consumer = new AsyncEventingBasicConsumer(_channel);
-
-        consumer.ReceivedAsync += async (model, ea) =>
-        {
-            try
-            {
-                var body = ea.Body.ToArray();
-                var message = Encoding.UTF8.GetString(body);
-
-                var options = new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                };
-
-                var emailMessage = JsonSerializer.Deserialize<EmailChannelMessage>(message, options);
-
-                if (emailMessage == null)
-                {
-                    _logger.LogWarning("Failed to deserialize message");
-                    await _channel.BasicNackAsync(ea.DeliveryTag, false, false, stoppingToken);
-                    return;
-                }
-
-                _logger.LogInformation(
-                    "Processing email notification {NotificationId} to {To}",
-                    emailMessage.NotificationId,
-                    emailMessage.To);
-
-                await _smtpService.SendEmailAsync(
-                    emailMessage.To,
-                    emailMessage.Subject,
-                    emailMessage.Body,
-                    emailMessage.IsBodyHtml);
-
-                _logger.LogInformation(
-                    "Email sent successfully for notification {NotificationId}",
-                    emailMessage.NotificationId);
-
-                await _channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing email message");
-                await _channel.BasicNackAsync(ea.DeliveryTag, false, true, stoppingToken);
-            }
-        };
-
-        await _channel.BasicConsumeAsync(
-            queue: "email-notifications",
-            autoAck: false,
-            consumer: consumer,
-            cancellationToken: stoppingToken);
-
-        _logger.LogInformation("Email consumer is listening for messages...");
-
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            await Task.Delay(1000, stoppingToken);
-        }
+        return Task.FromResult((message.NotificationId, message.ChannelId));
     }
 
-    public override async Task StopAsync(CancellationToken cancellationToken)
+    protected override Type GetChannelType()
     {
-        _logger.LogInformation("Email Consumer stopping...");
-
-        if (_channel != null)
-        {
-            await _channel.CloseAsync(cancellationToken);
-            _channel.Dispose();
-        }
-
-        if (_connection != null)
-        {
-            await _connection.CloseAsync(cancellationToken);
-            _connection.Dispose();
-        }
-
-        await base.StopAsync(cancellationToken);
+        return typeof(EmailChannel);
     }
 }

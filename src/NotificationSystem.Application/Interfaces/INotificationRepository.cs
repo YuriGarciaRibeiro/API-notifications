@@ -7,4 +7,5 @@ public interface INotificationRepository
     Task<IEnumerable<Notification>> GetPendingNotificationsAsync(int maxCount);
     Task UpdateAsync(Notification notification);
     Task<IEnumerable<Notification>> GetAllAsync(int pageNumber, int pageSize, CancellationToken cancellationToken);
+    Task UpdateNotificationChannelStatusAsync<TChannel>(Guid notificationId, Guid channelId, NotificationStatus status, string? errorMessage = null) where TChannel : NotificationChannel;
 }

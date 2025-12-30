@@ -49,4 +49,17 @@ public class NotificationRepository : INotificationRepository
             .Take(pageSize)
             .ToListAsync(cancellationToken);
     }
+
+    public Task UpdateNotificationChannelStatusAsync<TChannel>(Guid notificationId, Guid channelId, NotificationStatus status, string? errorMessage = null) where TChannel : NotificationChannel
+    {
+        var channel = _context.Set<TChannel>().FirstOrDefault(c => c.Id == channelId && c.NotificationId == notificationId);
+        if (channel != null)
+        {
+            channel.Status = status;
+            channel.ErrorMessage = errorMessage;
+            _context.Set<TChannel>().Update(channel);
+            return _context.SaveChangesAsync();
+        }
+        return Task.CompletedTask;
+    }
 }
