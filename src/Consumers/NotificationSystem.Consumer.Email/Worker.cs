@@ -72,7 +72,13 @@ public class Worker : BackgroundService
             {
                 var body = ea.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
-                var emailMessage = JsonSerializer.Deserialize<EmailChannelMessage>(message);
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                var emailMessage = JsonSerializer.Deserialize<EmailChannelMessage>(message, options);
 
                 if (emailMessage == null)
                 {
@@ -89,7 +95,8 @@ public class Worker : BackgroundService
                 await _smtpService.SendEmailAsync(
                     emailMessage.To,
                     emailMessage.Subject,
-                    emailMessage.Body);
+                    emailMessage.Body,
+                    emailMessage.IsBodyHtml);
 
                 _logger.LogInformation(
                     "Email sent successfully for notification {NotificationId}",

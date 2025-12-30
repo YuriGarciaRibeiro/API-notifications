@@ -51,15 +51,53 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
 
     private static EmailChannel CreateEmailChannel(Guid notificationId, Dictionary<string, object> data)
     {
+        var to = GetStringValue(data, "to");
+        var subject = GetStringValue(data, "subject");
+        var body = GetStringValue(data, "body");
+        var isBodyHtml = GetBoolValue(data, "isBodyHtml");
+
         return new EmailChannel
         {
             Id = Guid.NewGuid(),
             NotificationId = notificationId,
-            To = data.GetValueOrDefault("to")?.ToString() ?? string.Empty,
-            Subject = data.GetValueOrDefault("subject")?.ToString() ?? string.Empty,
-            Body = data.GetValueOrDefault("body")?.ToString() ?? string.Empty,
-            IsBodyHtml = bool.TryParse(data.GetValueOrDefault("isBodyHtml")?.ToString(), out var isHtml) && isHtml
+            To = to,
+            Subject = subject,
+            Body = body,
+            IsBodyHtml = isBodyHtml
         };
+    }
+
+    private static string GetStringValue(Dictionary<string, object> data, string key)
+    {
+        if (!data.TryGetValue(key, out var value) || value == null)
+            return string.Empty;
+
+        // Handle JsonElement from System.Text.Json
+        if (value is System.Text.Json.JsonElement jsonElement)
+        {
+            return jsonElement.ValueKind == System.Text.Json.JsonValueKind.String
+                ? jsonElement.GetString() ?? string.Empty
+                : jsonElement.ToString();
+        }
+
+        return value.ToString() ?? string.Empty;
+    }
+
+    private static bool GetBoolValue(Dictionary<string, object> data, string key)
+    {
+        if (!data.TryGetValue(key, out var value) || value == null)
+            return false;
+
+        // Handle JsonElement from System.Text.Json
+        if (value is System.Text.Json.JsonElement jsonElement)
+        {
+            if (jsonElement.ValueKind == System.Text.Json.JsonValueKind.True)
+                return true;
+            if (jsonElement.ValueKind == System.Text.Json.JsonValueKind.False)
+                return false;
+        }
+
+        return bool.TryParse(value.ToString(), out var result) && result;
     }
 
     private static SmsChannel CreateSmsChannel(Guid notificationId, Dictionary<string, object> data)
@@ -68,9 +106,11 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
         {
             Id = Guid.NewGuid(),
             NotificationId = notificationId,
-            To = data.GetValueOrDefault("to")?.ToString() ?? string.Empty,
-            Message = data.GetValueOrDefault("message")?.ToString() ?? string.Empty,
-            SenderId = data.GetValueOrDefault("senderId")?.ToString()
+            To = GetStringValue(data, "to"),
+            Message = GetStringValue(data, "message"),
+            SenderId = string.IsNullOrEmpty(GetStringValue(data, "senderId"))
+                ? null
+                : GetStringValue(data, "senderId")
         };
     }
 
@@ -80,14 +120,18 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
         {
             Id = Guid.NewGuid(),
             NotificationId = notificationId,
-            To = data.GetValueOrDefault("to")?.ToString() ?? string.Empty,
+            To = GetStringValue(data, "to"),
             Content = new NotificationContent
             {
-                Title = data.GetValueOrDefault("title")?.ToString() ?? string.Empty,
-                Body = data.GetValueOrDefault("body")?.ToString() ?? string.Empty,
-                ClickAction = data.GetValueOrDefault("clickAction")?.ToString()
+                Title = GetStringValue(data, "title"),
+                Body = GetStringValue(data, "body"),
+                ClickAction = string.IsNullOrEmpty(GetStringValue(data, "clickAction"))
+                    ? null
+                    : GetStringValue(data, "clickAction")
             },
-            Priority = data.GetValueOrDefault("priority")?.ToString()
+            Priority = string.IsNullOrEmpty(GetStringValue(data, "priority"))
+                ? null
+                : GetStringValue(data, "priority")
         };
     }
 }

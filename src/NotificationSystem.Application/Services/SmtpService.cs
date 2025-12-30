@@ -15,14 +15,14 @@ public class SmtpService : ISmtpService
         _smtpOptions = smtpOptions.Value;
     }
 
-    public async Task SendEmailAsync(string to, string subject, string body)
+    public async Task SendEmailAsync(string to, string subject, string body, bool isHtml = false)
     {
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress(_smtpOptions.FromName, _smtpOptions.FromEmail));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;
 
-        message.Body = new TextPart("plain")
+        message.Body = new TextPart(isHtml ? "html" : "plain")
         {
             Text = body
         };
@@ -33,7 +33,13 @@ public class SmtpService : ISmtpService
             : SecureSocketOptions.None;
 
         await client.ConnectAsync(_smtpOptions.Host, _smtpOptions.Port, secureSocketOptions);
-        await client.AuthenticateAsync(_smtpOptions.Username, _smtpOptions.Password);
+
+        // Only authenticate if credentials are provided
+        if (!string.IsNullOrEmpty(_smtpOptions.Username) && !string.IsNullOrEmpty(_smtpOptions.Password))
+        {
+            await client.AuthenticateAsync(_smtpOptions.Username, _smtpOptions.Password);
+        }
+
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
     }

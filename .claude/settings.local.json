@@ -16,7 +16,8 @@
       "Bash(gtimeout 10 dotnet run:*)",
       "Bash(./scripts/list-migrations.sh:*)",
       "Bash(./scripts/add-migration.sh:*)",
-      "Bash(./scripts/database/list-migrations.sh:*)"
+      "Bash(./scripts/database/list-migrations.sh:*)",
+      "Bash(docker-compose ps:*)"
     ],
     "deny": [],
     "ask": []
