@@ -1,6 +1,6 @@
 using FluentResults;
 using MediatR;
-using NotificationSystem.Apllication.Interfaces;
+using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.CreateNotification;

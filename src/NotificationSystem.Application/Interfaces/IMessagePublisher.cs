@@ -1,4 +1,4 @@
-namespace NotificationSystem.Apllication.Interfaces;
+namespace NotificationSystem.Application.Interfaces;
 
 public interface IMessagePublisher
 {

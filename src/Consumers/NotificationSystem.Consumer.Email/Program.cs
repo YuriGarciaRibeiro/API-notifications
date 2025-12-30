@@ -1,5 +1,6 @@
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Options;
+using NotificationSystem.Application.Services;
 using NotificationSystem.Infrastructure;
 using NotificationSystem.Worker.Email;
 using Serilog;

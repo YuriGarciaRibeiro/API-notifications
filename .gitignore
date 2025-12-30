@@ -413,3 +413,6 @@ docker-compose.override.yml
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# Launch settings with secrets
+**/Properties/launchSettings.json

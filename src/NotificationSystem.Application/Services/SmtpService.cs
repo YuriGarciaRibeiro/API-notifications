@@ -2,9 +2,10 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Options;
 
-namespace NotificationSystem.Application.Interfaces;
+namespace NotificationSystem.Application.Services;
 
 public class SmtpService : ISmtpService
 {

@@ -4,6 +4,7 @@ using NotificationSystem.Api.Middlewares;
 using NotificationSystem.Application;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Options;
+using NotificationSystem.Application.Services;
 using NotificationSystem.Infrastructure;
 using Serilog;
 

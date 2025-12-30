@@ -1,9 +1,8 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
-using NotificationSystem.Apllication.Interfaces;
+using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Common;
 using NotificationSystem.Application.Messages;
-using NotificationSystem.Domain.Entities;
 using NotificationSystem.Domain.Events;
 
 namespace NotificationSystem.Application.EventHandlers;

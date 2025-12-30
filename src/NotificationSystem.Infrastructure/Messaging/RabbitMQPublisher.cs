@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Apllication.Interfaces;
+using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Infrastructure.Settings;
 using RabbitMQ.Client;
 
@@ -40,28 +41,56 @@ public class RabbitMQPublisher : IMessagePublisher, IAsyncDisposable
 
     private async Task DeclareQueuesAsync()
     {
+        // Declare queues with the same DLX configuration as consumers
+        await DeclareQueueWithDlxAsync("email-notifications");
+        await DeclareQueueWithDlxAsync("sms-notifications");
+        await DeclareQueueWithDlxAsync("push-notifications");
+    }
+
+    private async Task DeclareQueueWithDlxAsync(string queueName)
+    {
+        var deadLetterExchangeName = $"{queueName}-dlx";
+        var deadLetterQueueName = $"{queueName}-dlq";
+
+        // Declare Dead Letter Exchange
+        await _channel.ExchangeDeclareAsync(
+            exchange: deadLetterExchangeName,
+            type: ExchangeType.Direct,
+            durable: true,
+            autoDelete: false,
+            arguments: null
+        );
+
+        // Declare Dead Letter Queue
         await _channel.QueueDeclareAsync(
-            queue: "email-notifications",
+            queue: deadLetterQueueName,
             durable: true,
             exclusive: false,
             autoDelete: false,
             arguments: null
         );
 
-        await _channel.QueueDeclareAsync(
-            queue: "sms-notifications",
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
+        // Bind DLQ to DLX
+        await _channel.QueueBindAsync(
+            queue: deadLetterQueueName,
+            exchange: deadLetterExchangeName,
+            routingKey: queueName,
             arguments: null
         );
 
+        // Declare main queue with DLX configuration
+        var queueArguments = new Dictionary<string, object?>
+        {
+            { "x-dead-letter-exchange", deadLetterExchangeName },
+            { "x-dead-letter-routing-key", queueName }
+        };
+
         await _channel.QueueDeclareAsync(
-            queue: "push-notifications",
+            queue: queueName,
             durable: true,
             exclusive: false,
             autoDelete: false,
-            arguments: null
+            arguments: queueArguments
         );
     }
 
