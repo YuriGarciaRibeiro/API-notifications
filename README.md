@@ -2,26 +2,29 @@
 
 ## 📚 Sobre o Projeto
 
-**Backend API REST** para sistema de notificações assíncrono desenvolvido em **.NET** com **ASP.NET Core** e **RabbitMQ**. Este projeto implementa um serviço production-ready de gerenciamento e envio de notificações por múltiplos canais, projetado para ser consumido por aplicações front-end (web/mobile) e outros serviços.
+**Sistema centralizador de notificações self-hosted** desenvolvido em **.NET** com **ASP.NET Core** e **RabbitMQ**. Solução production-ready para gerenciamento e envio de notificações por múltiplos canais simultaneamente, projetada para ser hospedada internamente por qualquer empresa via Docker.
 
 ### 🎯 Objetivo
 
-Criar uma **API backend escalável e resiliente** que oferece:
-- 📧 **Email** - Envio via SMTP
+Prover uma **solução self-hosted de notificações** que permite:
+- 📧 **Email** - Envio via SMTP (qualquer provedor)
 - 📱 **SMS** - Integração com Twilio
 - 🔔 **Push Notifications** - Via Firebase Cloud Messaging
-- 📊 **Gerenciamento** - Consulta e rastreamento de notificações enviadas
+- 🎯 **Multi-canal** - Uma notificação com Email + SMS + Push simultaneamente
+- 📊 **Rastreamento** - Status independente por canal de entrega
+- 🏢 **Self-Hosted** - Deploy via Docker com infraestrutura própria da empresa
 
-### 🌟 Características da API
+### 🌟 Características
 
-- **Backend-only**: Serviço REST puro, sem interface gráfica (UI separada)
-- **Contract-first**: API bem definida com OpenAPI/Swagger
-- **Type-safe**: DTOs polimórficos compatíveis com geração automática de tipos TypeScript
-- **Docker-ready**: Containerizado e pronto para deploy em Kubernetes/Cloud
-- **Consumível por**: Web apps, mobile apps, SPAs, outros microserviços
+- **Self-Hosted**: Deploy via Docker, sem dependências externas obrigatórias
+- **Multi-Channel Architecture**: Envie para múltiplos canais em uma única requisição
+- **Independent Status Tracking**: Cada canal tem status próprio (Email ✅ / SMS ❌)
+- **Scalable Consumers**: Escale processadores de Email, SMS e Push independentemente
+- **Event-Driven**: Processamento assíncrono com RabbitMQ + Dead Letter Queue
+- **Production-Ready**: Retry logic, error handling, health checks
+- **Type-safe API**: DTOs polimórficos + OpenAPI/Swagger
 - **CQRS Pattern**: Separação clara entre comandos e queries usando MediatR
-- **Result Pattern**: Respostas padronizadas com FluentResults
-- **Error Handling**: Tratamento global de erros com ProblemDetails (RFC 7807)
+- **Clean Architecture**: Manutenível, testável e extensível
 
 ## 🏗️ Arquitetura
 
@@ -47,8 +50,9 @@ Este projeto segue os princípios de **Clean Architecture** (Arquitetura Limpa) 
 
 #### 🎯 Domain (Core)
 - **Responsabilidade**: Lógica de negócio central, independente de frameworks
-- **Contém**: Entities (Notification, EmailNotification, SmsNotification, PushNotification), Value Objects, Enums
+- **Contém**: Entities (Notification, NotificationChannel, EmailChannel, SmsChannel, PushChannel), Value Objects, Enums, Domain Events
 - **Dependências**: Nenhuma (núcleo da aplicação)
+- **Padrão**: Channel-based architecture (um Notification pode ter múltiplos Channels)
 
 #### 💼 Application
 - **Responsabilidade**: Casos de uso e orquestração da lógica de negócio
@@ -95,11 +99,14 @@ Frontend/Client → API Endpoint → MediatR → Handler → Repository
 API-notifications/
 ├── src/
 │   ├── NotificationSystem.Domain/           # 🎯 Camada de Domínio
-│   │   └── Entities/
-│   │       ├── Notification.cs              # Entidade base
-│   │       ├── EmailNotification.cs         # Herança polimórfica
-│   │       ├── SmsNotification.cs
-│   │       └── PushNotification.cs
+│   │   ├── Entities/
+│   │   │   ├── Notification.cs              # Aggregate root
+│   │   │   ├── NotificationChannel.cs       # Base abstrata
+│   │   │   ├── EmailChannel.cs              # Herança polimórfica
+│   │   │   ├── SmsChannel.cs
+│   │   │   └── PushChannel.cs
+│   │   └── Events/
+│   │       └── NotificationCreatedEvent.cs
 │   │
 │   ├── NotificationSystem.Application/      # 💼 Camada de Aplicação
 │   │   ├── UseCases/
@@ -143,8 +150,9 @@ API-notifications/
 │       └── NotificationSystem.Consumer.Push/
 │
 ├── docs/                                    # 📖 Documentação
-│   ├── EXCEPTION_HANDLING.md
-│   └── POLYMORPHIC_DTOS.md
+│   ├── CHANNEL_SYSTEM.md                   # Documentação do sistema de canais
+│   ├── DEPLOYMENT.md                        # Guia completo de deploy
+│   └── QUICKSTART.md                        # Início rápido para empresas
 │
 ├── tests/                                   # 🧪 Testes
 │   ├── NotificationSystem.Domain.Tests/
@@ -166,11 +174,47 @@ API-notifications/
 └─────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Começando
+## 🚀 Deployment (Para Empresas)
+
+### Self-Hosted via Docker
+
+Este sistema é distribuído como **imagens Docker** prontas para uso. Cada empresa hospeda sua própria instância com infraestrutura independente.
+
+**📘 Guias completos:**
+- [Quick Start Guide](docs/QUICKSTART.md) - Início rápido em 5 minutos
+- [Deployment Guide](docs/DEPLOYMENT.md) - Guia completo de produção
+
+### Infraestrutura Necessária
+
+- **PostgreSQL** (local, AWS RDS, Azure Database, etc.)
+- **RabbitMQ** (local, CloudAMQP, AWS MQ, etc.)
+- **SMTP Server** (Gmail, SendGrid, AWS SES, Office365, etc.)
+- **Docker & Docker Compose**
+
+### Deploy Rápido
+
+```bash
+# 1. Configurar ambiente
+cp .env.production.example .env
+# Editar .env com suas credenciais
+
+# 2. Executar migrations
+docker run --rm \
+  -e ConnectionStrings__DefaultConnection="$DATABASE_CONNECTION_STRING" \
+  your-registry/notification-system-api:latest \
+  dotnet ef database update
+
+# 3. Iniciar serviços
+docker-compose -f docker-compose.production.yml up -d
+```
+
+---
+
+## 🛠️ Desenvolvimento Local
 
 ### Pré-requisitos
 
-- **.NET SDK 10.0+** ([Download](https://dotnet.microsoft.com/download))
+- **.NET SDK 8.0+** ([Download](https://dotnet.microsoft.com/download))
 - **Docker** e **Docker Compose** (para RabbitMQ e PostgreSQL)
 - **Visual Studio 2022**, **VS Code** ou **Rider**
 
@@ -308,17 +352,41 @@ GET /api/notifications?pageNumber=1&pageSize=10
 }
 ```
 
-### DTOs Polimórficos
+### Sistema de Canais Multi-Envio
 
-A API retorna notificações de forma polimórfica, onde cada tipo tem seus próprios campos específicos:
+Uma notificação pode ter **múltiplos canais** simultaneamente:
 
-- **Email**: `to`, `subject`, `body`, `isBodyHtml`
-- **SMS**: `to`, `message`, `senderId`
-- **Push**: `to`, `content`, `data`, `priority`, `timeToLive`, `isRead`
+```json
+{
+  "userId": "550e8400-e29b-41d4-a716-446655440000",
+  "channels": [
+    {
+      "type": "Email",
+      "to": "user@example.com",
+      "subject": "Welcome!",
+      "body": "<h1>Welcome!</h1>",
+      "isBodyHtml": true
+    },
+    {
+      "type": "Sms",
+      "to": "+5511999999999",
+      "message": "Welcome to our platform!"
+    },
+    {
+      "type": "Push",
+      "to": "device-token-fcm",
+      "content": {
+        "title": "Welcome",
+        "body": "Your account is ready!"
+      }
+    }
+  ]
+}
+```
 
-Todos os tipos compartilham campos comuns: `id`, `userId`, `createdAt`, `status`, `errorMessage`, `sentAt`
+**Status Independente:** Se Email enviar com sucesso mas SMS falhar, cada canal terá seu próprio status.
 
-> 📘 Para mais detalhes sobre DTOs polimórficos, veja [docs/POLYMORPHIC_DTOS.md](docs/POLYMORPHIC_DTOS.md)
+> 📘 Para mais detalhes sobre o sistema de canais, veja [docs/CHANNEL_SYSTEM.md](docs/CHANNEL_SYSTEM.md)
 
 ## 🔧 Configuração
 
@@ -445,22 +513,27 @@ dotnet test --filter "FullyQualifiedName~NotificationSystem.Application.Tests"
 
 ## 🐳 Docker
 
-### Build das imagens
+### Build das Imagens (Para Desenvolvedores)
 
 ```bash
-# API
-docker build -t notification-api -f src/NotificationSystem.Api/Dockerfile .
+# Build todas as imagens de uma vez
+./scripts/build-and-push.sh 1.0.0
 
-# Consumers
-docker build -t notification-consumer-email -f src/Consumers/NotificationSystem.Consumer.Email/Dockerfile .
-docker build -t notification-consumer-sms -f src/Consumers/NotificationSystem.Consumer.Sms/Dockerfile .
-docker build -t notification-consumer-push -f src/Consumers/NotificationSystem.Consumer.Push/Dockerfile .
+# Ou manualmente
+docker build -t notification-system-api -f src/NotificationSystem.Api/Dockerfile .
+docker build -t notification-system-consumer-email -f src/Consumers/NotificationSystem.Consumer.Email/Dockerfile .
+docker build -t notification-system-consumer-sms -f src/Consumers/NotificationSystem.Consumer.Sms/Dockerfile .
+docker build -t notification-system-consumer-push -f src/Consumers/NotificationSystem.Consumer.Push/Dockerfile .
 ```
 
-### Docker Compose (ambiente completo)
+### Docker Compose
 
 ```bash
+# Desenvolvimento (com PostgreSQL, RabbitMQ, Mailpit)
 docker-compose up -d
+
+# Produção (apenas aplicação, infra externa)
+docker-compose -f docker-compose.production.yml up -d
 ```
 
 ## 📊 Monitoramento
@@ -490,7 +563,7 @@ dotnet user-secrets set "Services:Sms:Twilio:AuthToken" "your-token"
 
 ## 📝 Status do Projeto
 
-### ✅ Implementado
+### ✅ Implementado e Production-Ready
 
 #### Arquitetura e Padrões
 - [x] Clean Architecture com 4 camadas bem definidas
@@ -498,65 +571,73 @@ dotnet user-secrets set "Services:Sms:Twilio:AuthToken" "your-token"
 - [x] CQRS com MediatR
 - [x] Result Pattern com FluentResults
 - [x] Repository Pattern
+- [x] Domain Events
+- [x] Event-Driven Architecture
+
+#### Domain Layer
+- [x] Entidades: Notification (Aggregate Root)
+- [x] NotificationChannel (base abstrata) + EmailChannel, SmsChannel, PushChannel
+- [x] Table Per Hierarchy (TPH) para polimorfismo
+- [x] Enums: NotificationType, NotificationStatus
+- [x] Domain Events: NotificationCreatedEvent
+- [x] Channel-based architecture (multi-canal)
 
 #### Application Layer
 - [x] MediatR configurado com pipeline behaviors
 - [x] FluentValidation integrado ao pipeline
-- [x] DTOs polimórficos (EmailNotificationDto, SmsNotificationDto, PushNotificationDto)
+- [x] DTOs polimórficos para todos os canais
 - [x] Mappings de entidades para DTOs
-- [x] Use Case: GetAllNotifications com paginação
+- [x] Use Cases: CreateNotification, GetAllNotifications
+- [x] Domain Event Handlers
+
+#### Infrastructure Layer
+- [x] Repository implementations (NotificationRepository)
+- [x] EF Core DbContext e Configurations
+- [x] Migrations aplicadas (PostgreSQL)
+- [x] RabbitMQ Producer
+- [x] Integração SMTP (MailKit) - Email consumer
+- [x] Retry logic e Dead Letter Queue (DLQ)
+- [x] Serilog configurado
 
 #### Presentation Layer
 - [x] Minimal API configurada
 - [x] Global Exception Handler com ProblemDetails
 - [x] ResultExtensions para conversão automática
-- [x] Endpoint: GET /api/notifications
+- [x] Endpoint: GET /api/notifications (com paginação)
+- [x] Endpoint: POST /api/notifications (multi-canal)
+- [x] RabbitMQ Consumers (Email, SMS, Push) como BackgroundServices
 
-#### Domain Layer
-- [x] Entidades: Notification, EmailNotification, SmsNotification, PushNotification
-- [x] Enums: NotificationType, NotificationStatus
-- [x] Herança polimórfica
+#### DevOps & Deploy
+- [x] Dockerfiles para API e todos os Consumers
+- [x] docker-compose.yml (desenvolvimento)
+- [x] docker-compose.production.yml (produção)
+- [x] Scripts de build e push
+- [x] Scripts de database migrations
+- [x] .env.production.example
 
 #### Documentação
 - [x] README completo
-- [x] Documentação de DTOs polimórficos
-- [x] Documentação de tratamento de exceções
+- [x] Documentação do sistema de canais (CHANNEL_SYSTEM.md)
+- [x] Guia de deployment (DEPLOYMENT.md)
+- [x] Quick start guide (QUICKSTART.md)
 
-### 🔄 Em Desenvolvimento / Planejado
-
-#### Persistence
-- [ ] Repository implementations
-- [ ] EF Core DbContext e Configurations
-- [ ] Migrations
-- [ ] Seed data
-
-#### Messaging
-- [ ] RabbitMQ Producer na Infrastructure
-- [ ] RabbitMQ Consumers (Email, SMS, Push)
-- [ ] Retry logic e Dead Letter Queue (DLQ)
-- [ ] Message contracts e serialização
+### 🔄 Planejado / Melhorias Futuras
 
 #### External Services
-- [ ] Integração SMTP (MailKit)
-- [ ] Integração Twilio (SMS)
-- [ ] Integração Firebase (Push Notifications)
+- [ ] Integração Twilio (SMS) - código preparado
+- [ ] Integração Firebase (Push) - código preparado
 - [ ] Circuit Breaker pattern
 
-#### API Endpoints
-- [ ] POST /api/notifications/email
-- [ ] POST /api/notifications/sms
-- [ ] POST /api/notifications/push
-- [ ] GET /api/notifications/{id}
-- [ ] DELETE /api/notifications/{id}
-
-#### Security & Observability
-- [ ] API Key Authentication
+#### Security
+- [ ] API Key Authentication (parcialmente implementado)
 - [ ] Rate Limiting
-- [ ] CORS configuration
-- [ ] Health checks
-- [ ] Logging estruturado (Serilog)
+- [ ] HTTPS enforcement em produção
+
+#### Observability
+- [ ] Health checks endpoint
 - [ ] Métricas (Prometheus/OpenTelemetry)
 - [ ] Distributed tracing
+- [ ] Dashboards (Grafana)
 
 #### Testing
 - [ ] Unit tests (Domain, Application)
@@ -566,9 +647,15 @@ dotnet user-secrets set "Services:Sms:Twilio:AuthToken" "your-token"
 
 #### DevOps
 - [ ] CI/CD pipeline (GitHub Actions)
-- [ ] Docker Compose para ambiente completo
 - [ ] Kubernetes manifests
 - [ ] Helm charts
+
+#### Features Avançados
+- [ ] MongoDB para dados não estruturados e filtros customizados
+- [ ] Templates de notificação
+- [ ] Scheduling de notificações
+- [ ] Webhook callbacks
+- [ ] Admin UI (frontend)
 
 ## 🎯 Integrações Front-end
 
@@ -649,4 +736,15 @@ Link do Projeto: [https://github.com/YuriGarciaRibeiro/API-notifications](https:
 
 ---
 
-**Nota**: Este é um projeto de estudo focado em boas práticas de desenvolvimento .NET, Clean Architecture, e design de APIs RESTful modernas. O projeto serve como backend para um sistema de notificações completo, com front-end sendo desenvolvido separadamente.
+## 🎯 Sobre o Projeto
+
+Sistema de notificações **self-hosted production-ready** desenvolvido seguindo as melhores práticas de arquitetura .NET:
+
+- ✅ **Clean Architecture** - Separação clara de responsabilidades
+- ✅ **Domain-Driven Design** - Modelo de domínio rico e expressivo
+- ✅ **Event-Driven** - Processamento assíncrono escalável
+- ✅ **Multi-Channel** - Email + SMS + Push em uma única notificação
+- ✅ **Docker-Ready** - Imagens otimizadas para produção
+- ✅ **Self-Hosted** - Deploy independente por empresa
+
+**Status:** Production-ready para deploy via Docker com infraestrutura própria.

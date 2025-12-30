@@ -1,0 +1,101 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+LICENSE
+docs/
+
+# IDE
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build output
+**/bin/
+**/obj/
+**/out/
+dist/
+build/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# Test results
+TestResults/
+*.trx
+coverage/
+*.coverage
+*.coveragexml
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Environment files
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Docker
+docker-compose.yml
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.production.yml
+Dockerfile.dev
+
+# Secrets
+*.pfx
+*.p12
+*.key
+*.pem
+firebase-credentials.json
+secrets/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Scripts (keep only database scripts, exclude build scripts)
+scripts/build-and-push.sh
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+azure-pipelines.yml
+Jenkinsfile
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+migrations/
+
+# Node (for future frontend)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini

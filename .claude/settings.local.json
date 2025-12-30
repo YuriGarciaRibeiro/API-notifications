@@ -17,7 +17,8 @@
       "Bash(./scripts/list-migrations.sh:*)",
       "Bash(./scripts/add-migration.sh:*)",
       "Bash(./scripts/database/list-migrations.sh:*)",
-      "Bash(docker-compose ps:*)"
+      "Bash(docker-compose ps:*)",
+      "Bash(wc:*)"
     ],
     "deny": [],
     "ask": []

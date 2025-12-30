@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  # API Service
+  api:
+    image: ${DOCKER_REGISTRY:-localhost}/notification-system-api:${VERSION:-latest}
+    container_name: notification-api
+    restart: unless-stopped
+    ports:
+      - "${API_PORT:-5000}:8080"
+    environment:
+      # Database Configuration
+      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
+
+      # RabbitMQ Configuration
+      - RabbitMQ__Host=${RABBITMQ_HOST}
+      - RabbitMQ__Port=${RABBITMQ_PORT:-5672}
+      - RabbitMQ__Username=${RABBITMQ_USERNAME}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
+
+      # Logging
+      - Serilog__MinimumLevel__Default=${LOG_LEVEL:-Information}
+
+      # ASP.NET Core
+      - ASPNETCORE_ENVIRONMENT=${ENVIRONMENT:-Production}
+      - ASPNETCORE_URLS=http://+:8080
+
+      # API Key (Optional)
+      - ApiKey=${API_KEY}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - notification-network
+
+  # Email Consumer
+  consumer-email:
+    image: ${DOCKER_REGISTRY:-localhost}/notification-system-consumer-email:${VERSION:-latest}
+    container_name: notification-consumer-email
+    restart: unless-stopped
+    deploy:
+      replicas: ${EMAIL_CONSUMER_REPLICAS:-2}
+    environment:
+      # Database Configuration
+      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
+
+      # RabbitMQ Configuration
+      - RabbitMQ__Host=${RABBITMQ_HOST}
+      - RabbitMQ__Port=${RABBITMQ_PORT:-5672}
+      - RabbitMQ__Username=${RABBITMQ_USERNAME}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMQ__QueueName=email-notifications
+      - RabbitMQ__MaxRetryAttempts=${MAX_RETRY_ATTEMPTS:-3}
+
+      # SMTP Configuration
+      - Smtp__Host=${SMTP_HOST}
+      - Smtp__Port=${SMTP_PORT:-587}
+      - Smtp__Username=${SMTP_USERNAME}
+      - Smtp__Password=${SMTP_PASSWORD}
+      - Smtp__EnableSsl=${SMTP_ENABLE_SSL:-true}
+      - Smtp__FromEmail=${SMTP_FROM_EMAIL}
+      - Smtp__FromName=${SMTP_FROM_NAME}
+
+      # Logging
+      - Serilog__MinimumLevel__Default=${LOG_LEVEL:-Information}
+
+      # ASP.NET Core
+      - ASPNETCORE_ENVIRONMENT=${ENVIRONMENT:-Production}
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep NotificationSystem.Consumer.Email || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - notification-network
+
+  # SMS Consumer
+  consumer-sms:
+    image: ${DOCKER_REGISTRY:-localhost}/notification-system-consumer-sms:${VERSION:-latest}
+    container_name: notification-consumer-sms
+    restart: unless-stopped
+    deploy:
+      replicas: ${SMS_CONSUMER_REPLICAS:-1}
+    environment:
+      # Database Configuration
+      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
+
+      # RabbitMQ Configuration
+      - RabbitMQ__Host=${RABBITMQ_HOST}
+      - RabbitMQ__Port=${RABBITMQ_PORT:-5672}
+      - RabbitMQ__Username=${RABBITMQ_USERNAME}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMQ__QueueName=sms-notifications
+      - RabbitMQ__MaxRetryAttempts=${MAX_RETRY_ATTEMPTS:-3}
+
+      # Twilio Configuration
+      - Twilio__AccountSid=${TWILIO_ACCOUNT_SID}
+      - Twilio__AuthToken=${TWILIO_AUTH_TOKEN}
+      - Twilio__FromNumber=${TWILIO_FROM_NUMBER}
+
+      # Logging
+      - Serilog__MinimumLevel__Default=${LOG_LEVEL:-Information}
+
+      # ASP.NET Core
+      - ASPNETCORE_ENVIRONMENT=${ENVIRONMENT:-Production}
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep NotificationSystem.Consumer.Sms || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - notification-network
+
+  # Push Consumer
+  consumer-push:
+    image: ${DOCKER_REGISTRY:-localhost}/notification-system-consumer-push:${VERSION:-latest}
+    container_name: notification-consumer-push
+    restart: unless-stopped
+    deploy:
+      replicas: ${PUSH_CONSUMER_REPLICAS:-2}
+    environment:
+      # Database Configuration
+      - ConnectionStrings__DefaultConnection=${DATABASE_CONNECTION_STRING}
+
+      # RabbitMQ Configuration
+      - RabbitMQ__Host=${RABBITMQ_HOST}
+      - RabbitMQ__Port=${RABBITMQ_PORT:-5672}
+      - RabbitMQ__Username=${RABBITMQ_USERNAME}
+      - RabbitMQ__Password=${RABBITMQ_PASSWORD}
+      - RabbitMQ__VirtualHost=${RABBITMQ_VHOST:-/}
+      - RabbitMQ__QueueName=push-notifications
+      - RabbitMQ__MaxRetryAttempts=${MAX_RETRY_ATTEMPTS:-3}
+
+      # Firebase Configuration
+      - Firebase__CredentialsPath=${FIREBASE_CREDENTIALS_PATH:-/app/config/firebase-credentials.json}
+
+      # Logging
+      - Serilog__MinimumLevel__Default=${LOG_LEVEL:-Information}
+
+      # ASP.NET Core
+      - ASPNETCORE_ENVIRONMENT=${ENVIRONMENT:-Production}
+    volumes:
+      - ${FIREBASE_CREDENTIALS_HOST_PATH}:/app/config/firebase-credentials.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep NotificationSystem.Consumer.Push || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - notification-network
+
+networks:
+  notification-network:
+    driver: bridge
