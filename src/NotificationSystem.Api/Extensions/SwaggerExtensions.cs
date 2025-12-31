@@ -50,8 +50,24 @@ public static class SwaggerExtensions
                 _ => subType.Name
             });
 
-            // Customizar schemas
-            options.CustomSchemaIds(type => type.Name.Replace("Dto", "").Replace("Response", ""));
+            // Customizar schemas - usar namespace para evitar conflitos entre UseCases
+            options.CustomSchemaIds(type =>
+            {
+                var name = type.Name.Replace("Dto", "").Replace("Response", "");
+
+                // Para tipos dentro de UseCases, incluir o nome do UseCase para evitar conflitos
+                if (type.Namespace?.Contains("UseCases") == true)
+                {
+                    var parts = type.Namespace.Split('.');
+                    var useCaseName = parts.LastOrDefault();
+                    if (!string.IsNullOrEmpty(useCaseName) && useCaseName != name)
+                    {
+                        return $"{useCaseName}_{name}";
+                    }
+                }
+
+                return name;
+            });
         });
 
         return services;

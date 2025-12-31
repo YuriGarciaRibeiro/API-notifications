@@ -33,6 +33,17 @@ try
     builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
     builder.Services.AddScoped<ISmtpService, SmtpService>();
 
+    // Configure CORS - allow all origins
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+    });
+
     var app = builder.Build();
 
     // Configure ResultExtensions
@@ -43,6 +54,8 @@ try
 
     // Configure the HTTP request pipeline.
     app.UseSwaggerConfiguration(app.Environment);
+
+    app.UseCors();
 
     app.UseHttpsRedirection();
 

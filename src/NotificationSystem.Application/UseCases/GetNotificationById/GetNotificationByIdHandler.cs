@@ -1,30 +1,34 @@
 using FluentResults;
 using MediatR;
 using NotificationSystem.Application.Interfaces;
+using NotificationSystem.Domain.Entities;
 
-namespace NotificationSystem.Application.UseCases.GetAllNotifications;
+namespace NotificationSystem.Application.UseCases.GetNotificationById;
 
-public class GetAllNotificationsHandler(INotificationRepository notificationRepository) : IRequestHandler<GetAllNotificationsQuery, Result<GetAllNotificationsResponse>>
+public class GetNotificationByIdHandler(INotificationRepository notificationRepository)
+    : IRequestHandler<GetNotificationByIdQuery, Result<GetNotificationByIdResponse>>
 {
-
     private readonly INotificationRepository _notificationRepository = notificationRepository;
 
-    public async Task<Result<GetAllNotificationsResponse>> Handle(
-        GetAllNotificationsQuery request,
+    public async Task<Result<GetNotificationByIdResponse>> Handle(
+        GetNotificationByIdQuery request,
         CancellationToken cancellationToken)
     {
+        var notification = await _notificationRepository.GetByIdAsync(request.Id);
 
-        var (pageNumber, pageSize) = request;
-
-        var notifications = await _notificationRepository.GetAllAsync(pageNumber, pageSize, cancellationToken);
-        var totalCount = await _notificationRepository.GetTotalCountAsync(cancellationToken);
-
-        var notificationsList = notifications.Select(n => new NotificationDto
+        if (notification is null)
         {
-            Id = n.Id,
-            UserId = n.UserId,
-            CreatedAt = n.CreatedAt,
-            Channels = n.Channels.Select<NotificationChannel, ChannelDto>(c =>
+            var error = new Error($"Notification with id '{request.Id}' was not found.")
+                .WithMetadata("StatusCode", 404);
+            return Result.Fail(error);
+        }
+
+        var response = new GetNotificationByIdResponse
+        {
+            Id = notification.Id,
+            UserId = notification.UserId,
+            CreatedAt = notification.CreatedAt,
+            Channels = notification.Channels.Select<NotificationChannel, ChannelDto>(c =>
             {
                 return c switch
                 {
@@ -59,23 +63,18 @@ public class GetAllNotificationsHandler(INotificationRepository notificationRepo
                         Content = new NotificationContentDto
                         {
                             Title = pushChannel.Content.Title,
-                            Body = pushChannel.Content.Body
+                            Body = pushChannel.Content.Body,
+                            ClickAction = pushChannel.Content.ClickAction
                         },
                         Data = pushChannel.Data,
                         Priority = pushChannel.Priority,
                         TimeToLive = pushChannel.TimeToLive,
                         IsRead = pushChannel.IsRead
                     },
-                    _ => throw new NotSupportedException("Canal de notificação desconhecido")
+                    _ => throw new NotSupportedException("Unknown notification channel type")
                 };
             }).ToList()
-        }).ToList();
-
-        var response = new GetAllNotificationsResponse(
-            notificationsList,
-            TotalCount: totalCount,
-            PageNumber: pageNumber,
-            PageSize: pageSize);
+        };
 
         return Result.Ok(response);
     }

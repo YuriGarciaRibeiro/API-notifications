@@ -45,9 +45,15 @@ public class NotificationRepository : INotificationRepository
     {
         return await _context.Notifications
             .Include(n => n.Channels)
+            .OrderByDescending(n => n.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> GetTotalCountAsync(CancellationToken cancellationToken)
+    {
+        return await _context.Notifications.CountAsync(cancellationToken);
     }
 
     public Task UpdateNotificationChannelStatusAsync<TChannel>(Guid notificationId, Guid channelId, NotificationStatus status, string? errorMessage = null) where TChannel : NotificationChannel
@@ -61,5 +67,33 @@ public class NotificationRepository : INotificationRepository
             return _context.SaveChangesAsync();
         }
         return Task.CompletedTask;
+    }
+
+    public async Task<NotificationStats> GetStatsAsync(CancellationToken cancellationToken)
+    {
+        var notifications = await _context.Notifications
+            .Include(n => n.Channels)
+            .ToListAsync(cancellationToken);
+
+        var allChannels = notifications.SelectMany(n => n.Channels).ToList();
+
+        var total = allChannels.Count;
+        var sent = allChannels.Count(c => c.Status == NotificationStatus.Sent);
+        var pending = allChannels.Count(c => c.Status == NotificationStatus.Pending);
+        var failed = allChannels.Count(c => c.Status == NotificationStatus.Failed);
+
+        var emailCount = allChannels.Count(c => c.Type == ChannelType.Email);
+        var smsCount = allChannels.Count(c => c.Type == ChannelType.Sms);
+        var pushCount = allChannels.Count(c => c.Type == ChannelType.Push);
+
+        return new NotificationStats(
+            total,
+            sent,
+            pending,
+            failed,
+            emailCount,
+            smsCount,
+            pushCount
+        );
     }
 }
