@@ -16,9 +16,9 @@ Os canais são retornados de forma polimórfica, onde cada tipo possui seus camp
 - **channels**: Lista de canais de entrega (pode conter múltiplos canais)
 
 **Tipos de Canal:**
-- **Email**: subject, body, to, isBodyHtml
-- **SMS**: message, to, senderId
-- **Push**: content (title, body, clickAction), to, data, priority, isRead
+- **Email**: to, subject, body, isBodyHtml
+- **SMS**: to, message, senderId
+- **Push**: to, content (title, body, clickAction), data, platform, priority, timeToLive, condition, mutableContent, contentAvailable, android, apns, webpush, isRead
 
 **Campos Comuns dos Canais:**
 - id, status, errorMessage, sentAt
@@ -54,24 +54,24 @@ Cada canal é processado de forma independente e assíncrona através de consume
 - **senderId**: Identificador do remetente (opcional, max 50 chars)
 
 **3. Push** (type: ""Push"")
-- **to**: Token do dispositivo (obrigatório, max 500 chars)
-- **content**: Objeto com title, body e clickAction (obrigatório)
-  - **title**: Título da notificação (max 100 chars)
-  - **body**: Texto da notificação (max 500 chars)
-  - **clickAction**: Ação ao clicar (opcional, max 200 chars)
+- **to**: Token do dispositivo FCM (obrigatório, max 500 chars)
+- **title**: Título da notificação (obrigatório, max 100 chars)
+- **body**: Texto da notificação (obrigatório, max 500 chars)
+- **clickAction**: Ação ao clicar (opcional, max 200 chars)
 - **data**: Dados customizados key-value (opcional, armazenado como JSONB)
-- **android**: Configurações específicas do Android (opcional)
-  - **priority**: Prioridade da notificação (max 20 chars)
-  - **ttl**: Time to live em segundos (max 20 chars)
-- **apns**: Configurações específicas do iOS (opcional)
-  - **headers**: Headers customizados do APNs
-- **webpush**: Configurações para Web Push (opcional)
-  - **headers**: Headers customizados
-- **priority**: Prioridade geral (opcional, max 20 chars: ""high"", ""normal"")
+- **platform**: Plataforma alvo (""android"", ""ios"", ""web"") (opcional)
+- **priority**: Prioridade geral (opcional: ""high"", ""normal"")
 - **timeToLive**: Tempo de vida em segundos (opcional)
-- **mutableContent**: Permite modificação de conteúdo (opcional)
-- **contentAvailable**: Indica conteúdo disponível (opcional)
-- **isRead**: Status de leitura (opcional, default: false)
+- **condition**: Condição para envio (opcional, ex: ""TopicA && TopicB"")
+- **mutableContent**: Permite modificação de conteúdo no iOS (opcional)
+- **contentAvailable**: Notificação silenciosa no iOS (opcional)
+- **android**: Configurações específicas do Android/FCM (opcional)
+  - **priority**: Prioridade da mensagem (""high"", ""normal"")
+  - **ttl**: Time to live (ex: ""3600s"")
+- **apns**: Configurações específicas do iOS/APNs (opcional)
+  - **headers**: Headers customizados do APNs (ex: apns-priority, apns-expiration)
+- **webpush**: Configurações para Web Push (opcional)
+  - **headers**: Headers customizados do Web Push
 
 **Exemplos de Uso:**
 
@@ -117,10 +117,9 @@ Cada canal é processado de forma independente e assíncrona através de consume
       ""type"": ""Push"",
       ""data"": {
         ""to"": ""device-token-xyz"",
-        ""content"": {
-          ""title"": ""Alerta de Segurança"",
-          ""body"": ""Login detectado""
-        },
+        ""title"": ""Alerta de Segurança"",
+        ""body"": ""Login detectado"",
+        ""platform"": ""android"",
         ""priority"": ""high""
       }
     }
@@ -136,27 +135,48 @@ Cada canal é processado de forma independente e assíncrona através de consume
     {
       ""type"": ""Push"",
       ""data"": {
-        ""to"": ""device-token"",
-        ""content"": {
-          ""title"": ""Nova mensagem"",
-          ""body"": ""Você tem uma nova mensagem!"",
-          ""clickAction"": ""OPEN_CHAT""
-        },
+        ""to"": ""device-token-fcm"",
+        ""title"": ""Nova mensagem"",
+        ""body"": ""Você tem uma nova mensagem!"",
+        ""clickAction"": ""OPEN_CHAT"",
+        ""platform"": ""android"",
         ""data"": {
           ""chatId"": ""12345"",
           ""senderId"": ""67890""
         },
         ""android"": {
           ""priority"": ""high"",
-          ""ttl"": ""3600""
-        },
-        ""apns"": {
-          ""headers"": {
-            ""apns-priority"": ""10""
-          }
+          ""ttl"": ""3600s""
         },
         ""priority"": ""high"",
         ""timeToLive"": 3600
+      }
+    }
+  ]
+}
+```
+
+**Push para iOS com APNs:**
+```json
+{
+  ""userId"": ""123e4567-e89b-12d3-a456-426614174000"",
+  ""channels"": [
+    {
+      ""type"": ""Push"",
+      ""data"": {
+        ""to"": ""device-token-fcm"",
+        ""title"": ""Atualização disponível"",
+        ""body"": ""Uma nova versão está disponível!"",
+        ""platform"": ""ios"",
+        ""mutableContent"": true,
+        ""contentAvailable"": false,
+        ""apns"": {
+          ""headers"": {
+            ""apns-priority"": ""10"",
+            ""apns-push-type"": ""alert""
+          }
+        },
+        ""priority"": ""high""
       }
     }
   ]

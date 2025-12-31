@@ -50,6 +50,7 @@ public class PushChannel : NotificationChannel
     public bool? MutableContent { get; set; }
     public bool? ContentAvailable { get; set; }
     public bool IsRead { get; set; } = false;
+    public string Platform { get; set; } = string.Empty;
 
     public PushChannel()
     {

@@ -97,11 +97,52 @@ public class NotificationCreatedEventHandler : INotificationHandler<DomainEventN
                 ClickAction: channel.Content.ClickAction
             ),
             Data: channel.Data,
+            Platform: channel.Platform,
             Priority: channel.Priority,
-            TimeToLive: channel.TimeToLive
+            TimeToLive: channel.TimeToLive,
+            Android: MapAndroidConfig(channel.Android),
+            Apns: MapApnsConfig(channel.Apns),
+            Webpush: MapWebpushConfig(channel.Webpush),
+            Condition: channel.Condition,
+            MutableContent: channel.MutableContent,
+            ContentAvailable: channel.ContentAvailable
         );
 
         await _messagePublisher.PublishAsync("push-notifications", message, cancellationToken);
         _logger.LogInformation("Published push channel {ChannelId} to queue", channel.Id);
+    }
+
+    private static AndroidConfigMessage? MapAndroidConfig(AndroidConfig? config)
+    {
+        if (config == null) return null;
+
+        return new AndroidConfigMessage(
+            Priority: config.Priority,
+            Ttl: config.Ttl,
+            CollapseKey: null,
+            RestrictedPackageName: null,
+            Notification: null
+        );
+    }
+
+    private static ApnsConfigMessage? MapApnsConfig(ApnsConfig? config)
+    {
+        if (config == null) return null;
+
+        return new ApnsConfigMessage(
+            Headers: config.Headers,
+            Payload: null
+        );
+    }
+
+    private static WebpushConfigMessage? MapWebpushConfig(WebpushConfig? config)
+    {
+        if (config == null) return null;
+
+        return new WebpushConfigMessage(
+            Headers: config.Headers,
+            Notification: null,
+            FcmOptions: null
+        );
     }
 }
