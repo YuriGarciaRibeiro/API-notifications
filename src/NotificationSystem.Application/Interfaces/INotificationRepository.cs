@@ -10,6 +10,7 @@ public interface INotificationRepository
     Task<int> GetTotalCountAsync(CancellationToken cancellationToken);
     Task UpdateNotificationChannelStatusAsync<TChannel>(Guid notificationId, Guid channelId, NotificationStatus status, string? errorMessage = null) where TChannel : NotificationChannel;
     Task<NotificationStats> GetStatsAsync(CancellationToken cancellationToken);
+    Task<NotificationStats> GetStatsForPeriodAsync(DateTime start, DateTime end, CancellationToken cancellationToken);
 }
 
 public record NotificationStats(

@@ -96,4 +96,33 @@ public class NotificationRepository : INotificationRepository
             pushCount
         );
     }
+
+    public async Task<NotificationStats> GetStatsForPeriodAsync(DateTime start, DateTime end, CancellationToken cancellationToken)
+    {
+        var notifications = await _context.Notifications
+            .Include(n => n.Channels)
+            .Where(n => n.CreatedAt >= start && n.CreatedAt < end)
+            .ToListAsync(cancellationToken);
+
+        var allChannels = notifications.SelectMany(n => n.Channels).ToList();
+
+        var total = allChannels.Count;
+        var sent = allChannels.Count(c => c.Status == NotificationStatus.Sent);
+        var pending = allChannels.Count(c => c.Status == NotificationStatus.Pending);
+        var failed = allChannels.Count(c => c.Status == NotificationStatus.Failed);
+
+        var emailCount = allChannels.Count(c => c.Type == ChannelType.Email);
+        var smsCount = allChannels.Count(c => c.Type == ChannelType.Sms);
+        var pushCount = allChannels.Count(c => c.Type == ChannelType.Push);
+
+        return new NotificationStats(
+            total,
+            sent,
+            pending,
+            failed,
+            emailCount,
+            smsCount,
+            pushCount
+        );
+    }
 }

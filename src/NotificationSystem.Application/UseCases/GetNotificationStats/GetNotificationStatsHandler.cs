@@ -13,22 +13,59 @@ public class GetNotificationStatsHandler(INotificationRepository notificationRep
         GetNotificationStatsQuery request,
         CancellationToken cancellationToken)
     {
-        var stats = await _notificationRepository.GetStatsAsync(cancellationToken);
+        var now = DateTime.UtcNow;
+        var weekAgo = now.AddDays(-7);
+
+        // Get current stats (all time)
+        var currentStats = await _notificationRepository.GetStatsAsync(cancellationToken);
+
+        // Get stats from current week
+        var currentWeekStats = await _notificationRepository.GetStatsForPeriodAsync(weekAgo, now, cancellationToken);
+
+        // Get stats from previous week (for comparison)
+        var previousWeekStats = await _notificationRepository.GetStatsForPeriodAsync(weekAgo.AddDays(-7), weekAgo, cancellationToken);
 
         var response = new GetNotificationStatsResponse
         {
-            Total = stats.Total,
-            Sent = stats.Sent,
-            Pending = stats.Pending,
-            Failed = stats.Failed,
+            Total = currentStats.Total,
+            Sent = currentStats.Sent,
+            Pending = currentStats.Pending,
+            Failed = currentStats.Failed,
             ByChannel = new ChannelStats
             {
-                Email = stats.EmailCount,
-                Sms = stats.SmsCount,
-                Push = stats.PushCount
+                Email = currentStats.EmailCount,
+                Sms = currentStats.SmsCount,
+                Push = currentStats.PushCount
+            },
+            Trends = new TrendStats
+            {
+                Total = CalculateTrend(currentWeekStats.Total, previousWeekStats.Total),
+                Sent = CalculateTrend(currentWeekStats.Sent, previousWeekStats.Sent),
+                Pending = CalculateTrend(currentWeekStats.Pending, previousWeekStats.Pending),
+                Failed = CalculateTrend(currentWeekStats.Failed, previousWeekStats.Failed)
             }
         };
 
         return Result.Ok(response);
+    }
+
+    private static TrendValue CalculateTrend(int current, int previous)
+    {
+        if (previous == 0)
+        {
+            return new TrendValue
+            {
+                Value = current > 0 ? 100 : 0,
+                IsPositive = current > 0
+            };
+        }
+
+        var percentChange = ((current - previous) * 100) / previous;
+
+        return new TrendValue
+        {
+            Value = Math.Abs(percentChange),
+            IsPositive = percentChange > 0
+        };
     }
 }
