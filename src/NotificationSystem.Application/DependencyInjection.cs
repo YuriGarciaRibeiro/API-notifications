@@ -3,6 +3,8 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using NotificationSystem.Application.Common.Behaviors;
+using NotificationSystem.Application.Interfaces;
+using NotificationSystem.Application.Services;
 
 namespace NotificationSystem.Application;
 
@@ -20,6 +22,11 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(assembly);
+
+        // Auth Services
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IUserManagementService, UserManagementService>();
+        services.AddScoped<IRoleManagementService, RoleManagementService>();
 
         return services;
     }

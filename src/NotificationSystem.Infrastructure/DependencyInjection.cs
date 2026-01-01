@@ -7,6 +7,7 @@ using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Infrastructure.Messaging;
 using NotificationSystem.Infrastructure.Persistence;
 using NotificationSystem.Infrastructure.Persistence.Repositories;
+using NotificationSystem.Infrastructure.Services;
 using NotificationSystem.Infrastructure.Settings;
 
 namespace NotificationSystem.Infrastructure;
@@ -20,6 +21,7 @@ public static class DependencyInjection
         // Configure Settings
         services.Configure<DatabaseSettings>(configuration.GetSection(DatabaseSettings.SectionName));
         services.Configure<RabbitMQSettings>(configuration.GetSection(RabbitMQSettings.SectionName));
+        services.Configure<Application.Options.JwtOptions>(configuration.GetSection(Application.Options.JwtOptions.SectionName));
 
         // Database
         services.AddDbContext<NotificationDbContext>((serviceProvider, options) =>
@@ -39,6 +41,15 @@ public static class DependencyInjection
 
         // Repositories
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRoleRepository, RoleRepository>();
+        services.AddScoped<IPermissionRepository, PermissionRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+
+        // Auth Services
+        services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         // Message Publisher (RabbitMQ)
         services.AddSingleton<IMessagePublisher, RabbitMQPublisher>();
