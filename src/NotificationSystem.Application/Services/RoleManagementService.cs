@@ -1,4 +1,5 @@
 using FluentResults;
+using NotificationSystem.Application.DTOs.Common;
 using NotificationSystem.Application.DTOs.Roles;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Domain.Entities;

@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using NotificationSystem.Application.DTOs.Common;
 using NotificationSystem.Application.DTOs.Users;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Validators;
