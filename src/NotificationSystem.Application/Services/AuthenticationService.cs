@@ -16,19 +16,23 @@ public class AuthenticationService : IAuthenticationService
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
     private readonly IPasswordHasher _passwordHasher;
     private readonly JwtOptions _jwtOptions;
+    private readonly INotificationRepository _repository;
+    
 
     public AuthenticationService(
         IUserRepository userRepository,
         IRefreshTokenRepository refreshTokenRepository,
         IJwtTokenGenerator jwtTokenGenerator,
         IPasswordHasher passwordHasher,
-        IOptions<JwtOptions> jwtOptions)
+        IOptions<JwtOptions> jwtOptions,
+        INotificationRepository repository)
     {
         _userRepository = userRepository;
         _refreshTokenRepository = refreshTokenRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
         _passwordHasher = passwordHasher;
         _jwtOptions = jwtOptions.Value;
+        _repository = repository;
     }
 
     public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default)

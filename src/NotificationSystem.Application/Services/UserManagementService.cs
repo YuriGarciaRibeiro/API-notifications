@@ -13,15 +13,18 @@ public class UserManagementService : IUserManagementService
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationRepository _notificationRepository;
 
     public UserManagementService(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        INotificationRepository notificationRepository)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _currentUserService = currentUserService;
+        _notificationRepository = notificationRepository;
     }
 
     public async Task<Result<UserDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -72,6 +75,30 @@ public class UserManagementService : IUserManagementService
         user = await _userRepository.GetByIdWithRolesAsync(user.Id, cancellationToken);
         var userDto = MapToDto(user!);
 
+        var welcomeNotification = new Notification  
+        {
+            Id = Guid.NewGuid(),
+            UserId = _currentUserService.UserId ?? Guid.Empty, // TODO: mudar para id de quem está criando o usuário
+            CreatedAt = DateTime.UtcNow,
+            Channels = new List<NotificationChannel>
+            {
+                new EmailChannel
+                {
+                    Id = Guid.NewGuid(),
+                    NotificationId = Guid.NewGuid(),
+                    To = user.Email,
+                    Subject = "Welcome to NotificationSystem!",
+                    Body = $"Hello {user.FullName}, welcome to WUPHF",
+                    IsBodyHtml = false
+                }
+            }
+        };
+
+       await _notificationRepository.AddAsync(welcomeNotification);
+
+        welcomeNotification.PublishToAllChannels();
+
+        await _notificationRepository.UpdateAsync(welcomeNotification);
         return Result.Ok(userDto);
     }
 

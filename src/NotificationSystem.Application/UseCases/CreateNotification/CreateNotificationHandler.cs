@@ -7,7 +7,7 @@ namespace NotificationSystem.Application.UseCases.CreateNotification;
 
 public class CreateNotificationHandler : IRequestHandler<CreateNotificationCommand, Result<Guid>>
 {
-    private readonly INotificationRepository _repository;
+        private readonly INotificationRepository _repository;
 
     public CreateNotificationHandler(INotificationRepository repository)
     {
