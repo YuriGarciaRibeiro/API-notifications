@@ -39,6 +39,13 @@ try
     builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
     builder.Services.AddScoped<ISmtpService, SmtpService>();
 
+    // Configure RabbitMQ Options for DLQ Service
+    builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+
+    // Configure Dead Letter Queue Management
+    builder.Services.AddSingleton<IDeadLetterQueueService, DeadLetterQueueService>();
+    builder.Services.AddHostedService<DeadLetterQueueMonitorService>();
+
     // Configure JWT Authentication
     var jwtSettings = builder.Configuration.GetSection("Jwt");
     var secretKey = jwtSettings["Secret"];
@@ -119,6 +126,7 @@ try
     app.MapAuthEndpoints();
     app.MapUserEndpoints();
     app.MapRoleEndpoints();
+    app.MapDeadLetterQueueEndpoints();
 
     app.Run();
 }

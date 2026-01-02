@@ -19,8 +19,9 @@ public class Worker : RabbitMqConsumerBase<EmailChannelMessage>
         ILogger<Worker> logger,
         ISmtpService smtpService,
         IOptions<RabbitMqOptions> rabbitMqOptions,
-        IServiceProvider serviceProvider)
-        : base(logger, rabbitMqOptions, serviceProvider)
+        IServiceProvider serviceProvider,
+        MessageProcessingMiddleware<EmailChannelMessage> middleware)
+        : base(logger, rabbitMqOptions, serviceProvider, middleware)
     {
         _smtpService = smtpService;
         _serviceProvider = serviceProvider;

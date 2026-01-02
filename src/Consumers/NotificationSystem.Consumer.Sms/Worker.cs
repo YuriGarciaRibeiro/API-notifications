@@ -19,8 +19,9 @@ public class Worker : RabbitMqConsumerBase<SmsChannelMessage>
         ISmsService smsService,
         ILogger<Worker> logger,
         IOptions<RabbitMqOptions> rabbitMqOptions,
-        IServiceProvider serviceProvider)
-        : base(logger, rabbitMqOptions, serviceProvider)
+        IServiceProvider serviceProvider,
+        MessageProcessingMiddleware<SmsChannelMessage> middleware)
+        : base(logger, rabbitMqOptions, serviceProvider, middleware)
     {
         _smsService = smsService;
         _logger = logger;

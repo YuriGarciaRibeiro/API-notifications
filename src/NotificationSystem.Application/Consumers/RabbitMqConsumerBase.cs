@@ -19,6 +19,7 @@ public abstract class RabbitMqConsumerBase<TMessage> : BackgroundService
     private readonly ILogger _logger;
     private readonly RabbitMqOptions _rabbitMqOptions;
     private readonly IServiceProvider _serviceProvider;
+    private readonly MessageProcessingMiddleware<TMessage> _middleware;
     private IConnection? _connection;
     private IChannel? _channel;
 
@@ -29,11 +30,13 @@ public abstract class RabbitMqConsumerBase<TMessage> : BackgroundService
     protected RabbitMqConsumerBase(
         ILogger logger,
         IOptions<RabbitMqOptions> rabbitMqOptions,
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        MessageProcessingMiddleware<TMessage> middleware)
     {
         _logger = logger;
         _rabbitMqOptions = rabbitMqOptions.Value;
         _serviceProvider = serviceProvider;
+        _middleware = middleware;
     }
 
     public override async Task StartAsync(CancellationToken cancellationToken)
@@ -114,7 +117,6 @@ public abstract class RabbitMqConsumerBase<TMessage> : BackgroundService
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
-            TMessage? typedMessage = null;
 
             try
             {
@@ -123,33 +125,39 @@ public abstract class RabbitMqConsumerBase<TMessage> : BackgroundService
                     PropertyNameCaseInsensitive = true
                 };
 
-                typedMessage = JsonSerializer.Deserialize<TMessage>(message, options);
+                var typedMessage = JsonSerializer.Deserialize<TMessage>(message, options);
 
                 if (typedMessage == null)
                 {
-                    _logger.LogWarning("Failed to deserialize message");
+                    _logger.LogWarning("Failed to deserialize message. Moving to DLQ.");
                     await _channel.BasicNackAsync(ea.DeliveryTag, false, false, stoppingToken);
                     return;
                 }
 
-                var retryCount = GetRetryCount(ea.BasicProperties);
+                // Usar middleware para processar com retry e error handling
+                var result = await _middleware.ProcessWithErrorHandlingAsync(
+                    typedMessage,
+                    ProcessMessageAsync,
+                    GetNotificationIdsAsync,
+                    GetChannelType(),
+                    stoppingToken);
 
-                _logger.LogInformation(
-                    "Processing message in {QueueName} (Attempt {Attempt}/{MaxAttempts})",
-                    QueueName,
-                    retryCount + 1,
-                    _rabbitMqOptions.MaxRetryAttempts);
-
-                // Process the message (implemented by derived class)
-                await ProcessMessageAsync(typedMessage, stoppingToken);
-
-                _logger.LogInformation("Message processed successfully in {QueueName}", QueueName);
-
-                await _channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
+                if (result.IsSuccess)
+                {
+                    await _channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
+                }
+                else
+                {
+                    // Falhou após todas as tentativas - enviar para DLQ
+                    _logger.LogError(
+                        "Message processing failed permanently. Moving to DLQ.");
+                    await _channel.BasicNackAsync(ea.DeliveryTag, false, false, stoppingToken);
+                }
             }
             catch (Exception ex)
             {
-                await HandleFailureAsync(ea, typedMessage, ex, stoppingToken);
+                _logger.LogError(ex, "Unexpected error in message handler");
+                await _channel.BasicNackAsync(ea.DeliveryTag, false, false, stoppingToken);
             }
         };
 
@@ -193,114 +201,4 @@ public abstract class RabbitMqConsumerBase<TMessage> : BackgroundService
     protected abstract Task<(Guid NotificationId, Guid ChannelId)> GetNotificationIdsAsync(TMessage message);
 
     protected abstract Type GetChannelType();
-
-    private static int GetRetryCount(IReadOnlyBasicProperties properties)
-    {
-        if (properties.Headers == null)
-            return 0;
-
-        if (properties.Headers.TryGetValue("x-retry-count", out var value))
-        {
-            return value switch
-            {
-                int intValue => intValue,
-                byte[] byteValue => BitConverter.ToInt32(byteValue, 0),
-                _ => 0
-            };
-        }
-
-        return 0;
-    }
-
-    private async Task HandleFailureAsync(
-        BasicDeliverEventArgs ea,
-        TMessage? message,
-        Exception ex,
-        CancellationToken stoppingToken)
-    {
-        if (_channel == null)
-            return;
-
-        var retryCount = GetRetryCount(ea.BasicProperties);
-
-        if (retryCount < _rabbitMqOptions.MaxRetryAttempts - 1)
-        {
-            // Still have retries left - requeue with incremented retry count
-            _logger.LogWarning(
-                ex,
-                "Error processing message in {QueueName}. Retry {Retry}/{MaxRetries}. Requeueing message.",
-                QueueName,
-                retryCount + 1,
-                _rabbitMqOptions.MaxRetryAttempts);
-
-            // Reject without requeue (will not go to DLQ yet)
-            await _channel.BasicNackAsync(ea.DeliveryTag, false, false, stoppingToken);
-
-            // Republish with updated retry count
-            var newProperties = new BasicProperties
-            {
-                Persistent = true,
-                Headers = new Dictionary<string, object?>
-                {
-                    { "x-retry-count", retryCount + 1 }
-                }
-            };
-
-            await _channel.BasicPublishAsync(
-                exchange: string.Empty,
-                routingKey: QueueName,
-                mandatory: false,
-                basicProperties: newProperties,
-                body: ea.Body,
-                cancellationToken: stoppingToken);
-
-            // Acknowledge the original message
-            await _channel.BasicAckAsync(ea.DeliveryTag, false, stoppingToken);
-        }
-        else
-        {
-            // Max retries exceeded - mark as failed and send to DLQ
-            _logger.LogError(
-                ex,
-                "Message in {QueueName} failed after {MaxRetries} attempts. Moving to DLQ.",
-                QueueName,
-                _rabbitMqOptions.MaxRetryAttempts);
-
-            if (message != null)
-            {
-                try
-                {
-                    using var scope = _serviceProvider.CreateScope();
-                    var repository = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
-
-                    var (notificationId, channelId) = await GetNotificationIdsAsync(message);
-                    var channelType = GetChannelType();
-
-                    var method = typeof(INotificationRepository)
-                        .GetMethod(nameof(INotificationRepository.UpdateNotificationChannelStatusAsync))
-                        ?.MakeGenericMethod(channelType);
-
-                    if (method != null)
-                    {
-                        await (Task)method.Invoke(
-                            repository,
-                            new object[] { notificationId, channelId, NotificationStatus.Failed })!;
-
-                        _logger.LogInformation(
-                            "Notification {NotificationId} marked as Failed in database",
-                            notificationId);
-                    }
-                }
-                catch (Exception dbEx)
-                {
-                    _logger.LogError(
-                        dbEx,
-                        "Failed to update notification status to Failed");
-                }
-            }
-
-            // Reject without requeue - will be sent to DLQ via DLX
-            await _channel.BasicNackAsync(ea.DeliveryTag, false, false, stoppingToken);
-        }
-    }
 }

@@ -56,17 +56,18 @@ public class NotificationRepository : INotificationRepository
         return await _context.Notifications.CountAsync(cancellationToken);
     }
 
-    public Task UpdateNotificationChannelStatusAsync<TChannel>(Guid notificationId, Guid channelId, NotificationStatus status, string? errorMessage = null) where TChannel : NotificationChannel
+    public async Task UpdateNotificationChannelStatusAsync<TChannel>(Guid notificationId, Guid channelId, NotificationStatus status, string? errorMessage = null) where TChannel : NotificationChannel
     {
-        var channel = _context.Set<TChannel>().FirstOrDefault(c => c.Id == channelId && c.NotificationId == notificationId);
+        var channel = await _context.Set<TChannel>()
+            .FirstOrDefaultAsync(c => c.Id == channelId && c.NotificationId == notificationId);
+
         if (channel != null)
         {
             channel.Status = status;
             channel.ErrorMessage = errorMessage;
             _context.Set<TChannel>().Update(channel);
-            return _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
         }
-        return Task.CompletedTask;
     }
 
     public async Task<NotificationStats> GetStatsAsync(CancellationToken cancellationToken)

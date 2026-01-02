@@ -20,8 +20,9 @@ public class Worker : RabbitMqConsumerBase<PushChannelMessage>
         IPushNotificationService pushNotificationService,
         ILogger<Worker> logger,
         IOptions<RabbitMqOptions> rabbitMqOptions,
-        IServiceProvider serviceProvider)
-        : base(logger, rabbitMqOptions, serviceProvider)
+        IServiceProvider serviceProvider,
+        MessageProcessingMiddleware<PushChannelMessage> middleware)
+        : base(logger, rabbitMqOptions, serviceProvider, middleware)
     {
         _pushNotificationService = pushNotificationService;
         _logger = logger;

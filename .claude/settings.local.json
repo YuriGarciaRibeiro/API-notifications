@@ -27,7 +27,9 @@
       "Bash(then cat .gitignore)",
       "Bash(else echo \"No .gitignore found\")",
       "Bash(fi)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []
