@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NotificationSystem.Domain.Entities;
 using System.Text.Json;
@@ -36,7 +37,11 @@ public class PushChannelConfiguration : IEntityTypeConfiguration<PushChannel>
                 v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null)
                      ?? new Dictionary<string, string>()
             )
-            .HasColumnType("jsonb");
+            .Metadata.SetValueComparer(new ValueComparer<Dictionary<string, string>>(
+                (c1, c2) => c1!.SequenceEqual(c2!),
+                c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                c => c.ToDictionary(k => k.Key, v => v.Value)
+            ));
 
         builder.OwnsOne(p => p.Android, android =>
         {
@@ -52,7 +57,12 @@ public class PushChannelConfiguration : IEntityTypeConfiguration<PushChannel>
                 .HasConversion(
                     v => v != null ? JsonSerializer.Serialize(v, (JsonSerializerOptions?)null) : null,
                     v => v != null ? JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null) : null
-                );
+                )
+                .Metadata.SetValueComparer(new ValueComparer<Dictionary<string, string>?>(
+                    (c1, c2) => (c1 == null && c2 == null) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                    c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                    c => c == null ? null : c.ToDictionary(k => k.Key, v => v.Value)
+                ));
         });
 
         builder.OwnsOne(p => p.Webpush, webpush =>
@@ -62,7 +72,12 @@ public class PushChannelConfiguration : IEntityTypeConfiguration<PushChannel>
                 .HasConversion(
                     v => v != null ? JsonSerializer.Serialize(v, (JsonSerializerOptions?)null) : null,
                     v => v != null ? JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions?)null) : null
-                );
+                )
+                .Metadata.SetValueComparer(new ValueComparer<Dictionary<string, string>?>(
+                    (c1, c2) => (c1 == null && c2 == null) || (c1 != null && c2 != null && c1.SequenceEqual(c2)),
+                    c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+                    c => c == null ? null : c.ToDictionary(k => k.Key, v => v.Value)
+                ));
         });
 
         builder.Property(p => p.Condition)

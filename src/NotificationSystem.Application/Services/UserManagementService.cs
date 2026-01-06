@@ -72,13 +72,13 @@ public class UserManagementService : IUserManagementService
 
         await _userRepository.AddAsync(user, cancellationToken);
 
-        user = await _userRepository.GetByIdWithRolesAsync(user.Id, cancellationToken);
-        var userDto = MapToDto(user!);
+        var retrievedUser = await _userRepository.GetByIdWithRolesAsync(user.Id, cancellationToken);
+        var userDto = MapToDto(retrievedUser!);
 
-        var welcomeNotification = new Notification  
+        var welcomeNotification = new Notification
         {
             Id = Guid.NewGuid(),
-            UserId = _currentUserService.UserId ?? Guid.Empty, // TODO: mudar para id de quem está criando o usuário
+            UserId = _currentUserService.UserId ?? Guid.Empty,
             CreatedAt = DateTime.UtcNow,
             Channels = new List<NotificationChannel>
             {
@@ -86,9 +86,9 @@ public class UserManagementService : IUserManagementService
                 {
                     Id = Guid.NewGuid(),
                     NotificationId = Guid.NewGuid(),
-                    To = user.Email,
+                    To = retrievedUser!.Email,
                     Subject = "Welcome to NotificationSystem!",
-                    Body = $"Hello {user.FullName}, welcome to WUPHF",
+                    Body = $"Hello {retrievedUser.FullName}, welcome to WUPHF",
                     IsBodyHtml = false
                 }
             }

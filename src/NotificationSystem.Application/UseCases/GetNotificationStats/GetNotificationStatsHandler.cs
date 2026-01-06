@@ -16,13 +16,10 @@ public class GetNotificationStatsHandler(INotificationRepository notificationRep
         var now = DateTime.UtcNow;
         var weekAgo = now.AddDays(-7);
 
-        // Get current stats (all time)
         var currentStats = await _notificationRepository.GetStatsAsync(cancellationToken);
 
-        // Get stats from current week
         var currentWeekStats = await _notificationRepository.GetStatsForPeriodAsync(weekAgo, now, cancellationToken);
 
-        // Get stats from previous week (for comparison)
         var previousWeekStats = await _notificationRepository.GetStatsForPeriodAsync(weekAgo.AddDays(-7), weekAgo, cancellationToken);
 
         var response = new GetNotificationStatsResponse
