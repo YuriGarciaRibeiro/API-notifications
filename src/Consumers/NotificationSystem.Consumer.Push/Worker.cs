@@ -10,21 +10,21 @@ namespace NotificationSystem.Worker.Push;
 
 public class Worker : RabbitMqConsumerBase<PushChannelMessage>
 {
-    private readonly IPushNotificationService _pushNotificationService;
+    private readonly IPushProviderFactory _pushProviderFactory;
     private readonly ILogger<Worker> _logger;
     private readonly IServiceProvider _serviceProvider;
 
     protected override string QueueName => "push-notifications";
 
     public Worker(
-        IPushNotificationService pushNotificationService,
+        IPushProviderFactory pushProviderFactory,
         ILogger<Worker> logger,
         IOptions<RabbitMqOptions> rabbitMqOptions,
         IServiceProvider serviceProvider,
         MessageProcessingMiddleware<PushChannelMessage> middleware)
         : base(logger, rabbitMqOptions, serviceProvider, middleware)
     {
-        _pushNotificationService = pushNotificationService;
+        _pushProviderFactory = pushProviderFactory;
         _logger = logger;
         _serviceProvider = serviceProvider;
     }
@@ -33,7 +33,12 @@ public class Worker : RabbitMqConsumerBase<PushChannelMessage>
         PushChannelMessage message,
         CancellationToken cancellationToken)
     {
-        await _pushNotificationService.SendPushNotificationAsync(message);
+        // Cria o provedor Push dinamicamente baseado na configuração do banco
+        var pushService = await _pushProviderFactory.CreatePushProvider();
+
+        await pushService.SendPushNotificationAsync(message);
+
+        _logger.LogInformation("Push notification sent successfully via {ProviderType}", pushService.GetType().Name);
 
         using var scope = _serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<INotificationRepository>();

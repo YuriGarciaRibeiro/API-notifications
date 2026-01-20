@@ -7,7 +7,7 @@ using NotificationSystem.Application.Options;
 
 namespace NotificationSystem.Application.Services;
 
-public class SmtpService : ISmtpService
+public class SmtpService : IEmailService
 {
     private readonly SmtpOptions _smtpOptions;
 

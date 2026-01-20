@@ -9,21 +9,21 @@ namespace NotificationSystem.Worker.Sms;
 
 public class Worker : RabbitMqConsumerBase<SmsChannelMessage>
 {
-    private readonly ISmsService _smsService;
+    private readonly ISmsProviderFactory _smsProviderFactory;
     private readonly ILogger<Worker> _logger;
     private readonly IServiceProvider _serviceProvider;
 
     protected override string QueueName => "sms-notifications";
 
     public Worker(
-        ISmsService smsService,
+        ISmsProviderFactory smsProviderFactory,
         ILogger<Worker> logger,
         IOptions<RabbitMqOptions> rabbitMqOptions,
         IServiceProvider serviceProvider,
         MessageProcessingMiddleware<SmsChannelMessage> middleware)
         : base(logger, rabbitMqOptions, serviceProvider, middleware)
     {
-        _smsService = smsService;
+        _smsProviderFactory = smsProviderFactory;
         _logger = logger;
         _serviceProvider = serviceProvider;
     }
@@ -32,9 +32,12 @@ public class Worker : RabbitMqConsumerBase<SmsChannelMessage>
         SmsChannelMessage message,
         CancellationToken cancellationToken)
     {
-        await _smsService.SendSmsAsync(message.To, message.Message);
+        // Cria o provedor SMS dinamicamente baseado na configuração do banco
+        var smsService = await _smsProviderFactory.CreateSmsProvider();
 
-        _logger.LogInformation("SMS sent successfully");
+        await smsService.SendSmsAsync(message.To, message.Message);
+
+        _logger.LogInformation("SMS sent successfully via {ProviderType}", smsService.GetType().Name);
 
         using var scope = _serviceProvider.CreateScope();
         var notificationRepository = scope.ServiceProvider.GetRequiredService<INotificationRepository>();

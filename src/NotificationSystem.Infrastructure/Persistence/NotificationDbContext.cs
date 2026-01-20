@@ -29,6 +29,7 @@ public class NotificationDbContext : DbContext
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<ProviderConfiguration> ProviderConfigurations => Set<ProviderConfiguration>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

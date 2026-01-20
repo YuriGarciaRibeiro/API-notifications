@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,12 +40,20 @@ public static class DependencyInjection
             );
         });
 
+        // Data Protection for encryption
+        services.AddDataProtection()
+            .SetApplicationName("NotificationSystem");
+
         // Repositories
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IProviderConfigurationRepository, ProviderConfigurationRepository>();
+
+        // Encryption Service
+        services.AddScoped<IEncryptionService, EncryptionService>();
 
         // Auth Services
         services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
@@ -53,6 +62,18 @@ public static class DependencyInjection
 
         // Message Publisher (RabbitMQ)
         services.AddSingleton<IMessagePublisher, RabbitMQPublisher>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adiciona os Provider Factories (usado apenas pelos Consumers)
+    /// </summary>
+    public static IServiceCollection AddProviderFactories(this IServiceCollection services)
+    {
+        services.AddScoped<ISmsProviderFactory, Factories.SmsProviderFactory>();
+        services.AddScoped<IEmailProviderFactory, Factories.EmailProviderFactory>();
+        services.AddScoped<IPushProviderFactory, Factories.PushProviderFactory>();
 
         return services;
     }

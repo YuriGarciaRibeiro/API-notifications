@@ -6,6 +6,7 @@ using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Messages;
 using NotificationSystem.Application.Options;
 using NotificationSystem.Application.Services;
+using NotificationSystem.Infrastructure;
 using NotificationSystem.Infrastructure.Persistence;
 using NotificationSystem.Infrastructure.Persistence.Repositories;
 using NotificationSystem.Infrastructure.Settings;
@@ -48,6 +49,7 @@ builder.Services.AddDbContext<NotificationDbContext>((serviceProvider, options) 
 
 // Repositories (only what this consumer needs)
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<IProviderConfigurationRepository, ProviderConfigurationRepository>();
 
 // Register error handling middleware and retry strategy
 builder.Services.AddSingleton<IRetryStrategy>(sp =>
@@ -57,8 +59,10 @@ builder.Services.AddSingleton<IRetryStrategy>(sp =>
         maxDelay: TimeSpan.FromMinutes(5)));
 builder.Services.AddSingleton<MessageProcessingMiddleware<EmailChannelMessage>>();
 
-// Register services
-builder.Services.AddSingleton<ISmtpService, SmtpService>();
+// Register Provider Factories (dynamic provider configuration)
+builder.Services.AddProviderFactories();
+
+// Register Worker
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();

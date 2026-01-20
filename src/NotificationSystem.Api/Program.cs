@@ -37,7 +37,7 @@ try
 
     // Configure SMTP
     builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
-    builder.Services.AddScoped<ISmtpService, SmtpService>();
+    builder.Services.AddScoped<IEmailService, SmtpService>();
 
     // Configure RabbitMQ Options for DLQ Service
     builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
@@ -127,6 +127,7 @@ try
     app.MapUserEndpoints();
     app.MapRoleEndpoints();
     app.MapDeadLetterQueueEndpoints();
+    app.MapProviderEndpoints();
 
     app.Run();
 }

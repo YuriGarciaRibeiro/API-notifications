@@ -1,6 +1,6 @@
 namespace NotificationSystem.Application.Interfaces;
 
-public interface ISmtpService
+public interface IEmailService
 {
     Task SendEmailAsync(string to, string subject, string body, bool isHtml = false);
 }
