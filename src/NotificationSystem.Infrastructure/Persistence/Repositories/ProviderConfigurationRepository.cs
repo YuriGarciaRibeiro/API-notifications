@@ -43,6 +43,9 @@ public class ProviderConfigurationRepository(NotificationDbContext context, IEnc
     public async Task CreateAsync(ProviderConfiguration providerConfiguration, CancellationToken cancellationToken)
     {
         providerConfiguration.ConfigurationJson = _encryptionService.Encrypt(providerConfiguration.ConfigurationJson);
+        var configurationCount = await _context.ProviderConfigurations
+            .CountAsync(pc => pc.Provider == providerConfiguration.Provider, cancellationToken);
+        if (configurationCount == 0) providerConfiguration.IsPrimary = true;
         _context.ProviderConfigurations.Add(providerConfiguration);
         await _context.SaveChangesAsync(cancellationToken);
     }
