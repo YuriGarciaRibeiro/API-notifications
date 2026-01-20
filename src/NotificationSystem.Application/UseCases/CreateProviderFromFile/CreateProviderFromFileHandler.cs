@@ -26,7 +26,7 @@ public class CreateProviderFromFileHandler : IRequestHandler<CreateProviderFromF
         try
         {
             // Lê o conteúdo do arquivo
-            using var streamReader = new StreamReader(request.CredentialsFile.OpenReadStream());
+            using var streamReader = new StreamReader(request.FileStream);
             var fileContent = await streamReader.ReadToEndAsync(cancellationToken);
 
             // Valida se é um JSON válido

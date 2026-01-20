@@ -1,6 +1,5 @@
 using FluentResults;
 using MediatR;
-using Microsoft.AspNetCore.Http;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.CreateProviderFromFile;
@@ -11,7 +10,9 @@ namespace NotificationSystem.Application.UseCases.CreateProviderFromFile;
 public record CreateProviderFromFileCommand(
     ChannelType ChannelType,
     ProviderType Provider,
-    IFormFile CredentialsFile,
+    Stream FileStream,
+    string FileName,
+    long FileSize,
     string? ProjectId = null,
     bool IsActive = true,
     bool IsPrimary = false

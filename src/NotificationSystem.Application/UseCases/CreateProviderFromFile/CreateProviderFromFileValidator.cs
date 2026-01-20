@@ -17,23 +17,20 @@ public class CreateProviderFromFileValidator : AbstractValidator<CreateProviderF
             .IsInEnum()
             .WithMessage("Invalid provider type");
 
-        RuleFor(x => x.CredentialsFile)
+        RuleFor(x => x.FileStream)
             .NotNull()
             .WithMessage("Credentials file is required");
 
-        When(x => x.CredentialsFile != null, () =>
-        {
-            RuleFor(x => x.CredentialsFile.Length)
-                .LessThanOrEqualTo(MaxFileSizeBytes)
-                .WithMessage($"File size must not exceed {MaxFileSizeBytes / 1024}KB");
+        RuleFor(x => x.FileName)
+            .NotEmpty()
+            .WithMessage("File name is required")
+            .Must(fileName => AllowedExtensions.Any(ext => fileName.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
+            .WithMessage($"Only {string.Join(", ", AllowedExtensions)} files are allowed");
 
-            RuleFor(x => x.CredentialsFile.FileName)
-                .Must(fileName => AllowedExtensions.Any(ext => fileName.EndsWith(ext, StringComparison.OrdinalIgnoreCase)))
-                .WithMessage($"Only {string.Join(", ", AllowedExtensions)} files are allowed");
-
-            RuleFor(x => x.CredentialsFile.ContentType)
-                .Must(contentType => contentType == "application/json" || contentType == "text/json")
-                .WithMessage("File must be a valid JSON file");
-        });
+        RuleFor(x => x.FileSize)
+            .GreaterThan(0)
+            .WithMessage("File cannot be empty")
+            .LessThanOrEqualTo(MaxFileSizeBytes)
+            .WithMessage($"File size must not exceed {MaxFileSizeBytes / 1024}KB");
     }
 }

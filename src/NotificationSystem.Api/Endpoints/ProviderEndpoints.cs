@@ -61,10 +61,21 @@ public static class ProviderEndpoints
                 IMediator mediator,
                 CancellationToken cancellationToken) =>
             {
+                // Validação básica do arquivo
+                if (file == null || file.Length == 0)
+                {
+                    return Results.BadRequest(new { error = "File is required" });
+                }
+
+                // Abre o stream do arquivo
+                var stream = file.OpenReadStream();
+
                 var command = new CreateProviderFromFileCommand(
                     channelType,
                     provider,
-                    file,
+                    stream,
+                    file.FileName,
+                    file.Length,
                     projectId,
                     isActive,
                     isPrimary
