@@ -5,6 +5,7 @@ using NotificationSystem.Application.UseCases.CreateProvider;
 using NotificationSystem.Application.UseCases.CreateProviderFromFile;
 using NotificationSystem.Application.UseCases.GetAllProviders;
 using NotificationSystem.Application.UseCases.SetProviderAsPrimary;
+using NotificationSystem.Application.UseCases.ToggleProviderActive;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Api.Endpoints;
@@ -51,21 +52,40 @@ public static class ProviderEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/upload",
-            async (
-                [FromForm] IFormFile file,
-                [FromForm] ChannelType channelType,
-                [FromForm] ProviderType provider,
-                [FromForm] string? projectId,
-                [FromForm] bool isActive,
-                [FromForm] bool isPrimary,
-                IMediator mediator,
-                CancellationToken cancellationToken) =>
+            async (HttpRequest request, IMediator mediator, CancellationToken cancellationToken) =>
             {
-                // Validação básica do arquivo
-                if (file == null || file.Length == 0)
+                // Verifica se tem arquivo
+                if (!request.HasFormContentType || request.Form.Files.Count == 0)
                 {
                     return Results.BadRequest(new { error = "File is required" });
                 }
+
+                var file = request.Form.Files["file"];
+                if (file == null || file.Length == 0)
+                {
+                    return Results.BadRequest(new { error = "File is required and cannot be empty" });
+                }
+
+                // Extrai os parâmetros do form
+                var channelTypeStr = request.Form["channelType"].ToString();
+                var providerStr = request.Form["provider"].ToString();
+                var projectId = request.Form["projectId"].ToString();
+                var isActiveStr = request.Form["isActive"].ToString();
+                var isPrimaryStr = request.Form["isPrimary"].ToString();
+
+                // Valida e converte os parâmetros
+                if (!Enum.TryParse<ChannelType>(channelTypeStr, out var channelType))
+                {
+                    return Results.BadRequest(new { error = "Invalid channelType" });
+                }
+
+                if (!Enum.TryParse<ProviderType>(providerStr, out var provider))
+                {
+                    return Results.BadRequest(new { error = "Invalid provider" });
+                }
+
+                var isActive = string.IsNullOrEmpty(isActiveStr) || bool.Parse(isActiveStr);
+                var isPrimary = !string.IsNullOrEmpty(isPrimaryStr) && bool.Parse(isPrimaryStr);
 
                 // Abre o stream do arquivo
                 var stream = file.OpenReadStream();
@@ -76,7 +96,7 @@ public static class ProviderEndpoints
                     stream,
                     file.FileName,
                     file.Length,
-                    projectId,
+                    string.IsNullOrEmpty(projectId) ? null : projectId,
                     isActive,
                     isPrimary
                 );
@@ -93,21 +113,36 @@ public static class ProviderEndpoints
             .WithName("CreateProviderFromFile")
             .WithSummary("Cadastra um novo provedor via upload de arquivo")
             .WithDescription("Faz upload do arquivo de credenciais (ex: Firebase JSON) e cria uma nova configuração de provedor.")
+            .DisableAntiforgery()
             .Accepts<IFormFile>("multipart/form-data")
             .Produces<Guid>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/{id:guid}/set-primary",
-            async (Guid id, [FromQuery] ChannelType channelType, IMediator mediator, CancellationToken cancellationToken) =>
+            async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
             {
-                var command = new SetProviderAsPrimaryCommand(id, channelType);
+                var command = new SetProviderAsPrimaryCommand(id);
                 var result = await mediator.Send(command, cancellationToken);
                 return result.ToIResult();
             })
             .WithName("SetProviderAsPrimary")
             .WithSummary("Define um provedor como primário")
-            .WithDescription("Ativa um provedor como primário para o canal especificado, desativando os outros automaticamente.")
+            .WithDescription("Ativa um provedor como primário para o canal, desativando os outros do mesmo canal automaticamente.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+        group.MapPost("/{id:guid}/toggle-active",
+            async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
+            {
+                var command = new ToggleProviderActiveCommand(id);
+                await mediator.Send(command, cancellationToken);
+                return Results.NoContent();
+            })
+            .WithName("ToggleProviderActiveStatus")
+            .WithSummary("Ativa ou desativa um provedor")
+            .WithDescription("Alterna o status ativo/inativo de um provedor de notificação.")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

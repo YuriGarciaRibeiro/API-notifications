@@ -28,7 +28,7 @@ public class ProviderConfigurationConfiguration : IEntityTypeConfiguration<Provi
 
         builder.Property(p => p.ConfigurationJson)
             .HasColumnName("configuration_json")
-            .HasColumnType("jsonb")
+            .HasColumnType("text") // text ao invés de jsonb porque armazenamos dados criptografados
             .IsRequired();
 
         builder.Property(p => p.IsActive)

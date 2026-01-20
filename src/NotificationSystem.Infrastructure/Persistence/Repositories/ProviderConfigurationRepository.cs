@@ -17,8 +17,9 @@ public class ProviderConfigurationRepository : IProviderConfigurationRepository
 
     public async Task<ProviderConfiguration?> GetActiveProviderAsync(ChannelType channelType)
     {
+        // Busca o provedor primário E ativo para o canal
         var provider = await _context.ProviderConfigurations
-            .FirstOrDefaultAsync(pc => pc.ChannelType == channelType && pc.IsActive);
+            .FirstOrDefaultAsync(pc => pc.ChannelType == channelType && pc.isPrimary && pc.IsActive);
 
         if (provider != null)
         {
@@ -60,16 +61,28 @@ public class ProviderConfigurationRepository : IProviderConfigurationRepository
         if (providerToSetPrimary == null)
             throw new InvalidOperationException("Provider configuration not found.");
 
-        var currentPrimaryProviders = _context.ProviderConfigurations
-            .Where(pc => pc.ChannelType == providerToSetPrimary.ChannelType && pc.IsActive);
+        // Remove isPrimary de todos os provedores do mesmo canal
+        var currentPrimaryProviders = await _context.ProviderConfigurations
+            .Where(pc => pc.ChannelType == providerToSetPrimary.ChannelType && pc.isPrimary)
+            .ToListAsync();
 
         foreach (var provider in currentPrimaryProviders)
         {
-            provider.IsActive = false;
+            provider.isPrimary = false;
         }
 
+        // Define o provedor selecionado como primário e ativo
+        providerToSetPrimary.isPrimary = true;
         providerToSetPrimary.IsActive = true;
 
         await _context.SaveChangesAsync();
+    }
+
+    public Task ToggleActiveStatusAsync(Guid providerConfigurationId)
+    {
+        return _context.ProviderConfigurations
+            .Where(pc => pc.Id == providerConfigurationId)
+            .ExecuteUpdateAsync(setters => setters
+                .SetProperty(pc => pc.IsActive, pc => !pc.IsActive));
     }
 }

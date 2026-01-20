@@ -1,3 +1,4 @@
+namespace NotificationSystem.Application.Interfaces;
 public interface IProviderConfigurationRepository
 {
     Task<ProviderConfiguration?> GetActiveProviderAsync(ChannelType channelType);
@@ -5,4 +6,5 @@ public interface IProviderConfigurationRepository
     Task CreateAsync(ProviderConfiguration providerConfiguration);
     Task UpdateAsync(ProviderConfiguration providerConfiguration);
     Task SetAsPrimaryAsync(Guid providerConfigurationId);
+    Task ToggleActiveStatusAsync(Guid providerConfigurationId);
 }
