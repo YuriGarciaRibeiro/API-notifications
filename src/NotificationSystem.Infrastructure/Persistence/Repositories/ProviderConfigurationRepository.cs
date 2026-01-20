@@ -4,23 +4,16 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Persistence.Repositories;
 
-public class ProviderConfigurationRepository : IProviderConfigurationRepository
+public class ProviderConfigurationRepository(NotificationDbContext context, IEncryptionService encryptionService) : IProviderConfigurationRepository
 {
-    private readonly NotificationDbContext _context;
-    private readonly IEncryptionService _encryptionService;
+    private readonly NotificationDbContext _context = context;
+    private readonly IEncryptionService _encryptionService = encryptionService;
 
-    public ProviderConfigurationRepository(NotificationDbContext context, IEncryptionService encryptionService)
-    {
-        _context = context;
-        _encryptionService = encryptionService;
-    }
-
-    public async Task<ProviderConfiguration?> GetActiveProviderAsync(ChannelType channelType)
+    public async Task<ProviderConfiguration?> GetActiveProviderAsync(ChannelType channelType, CancellationToken cancellationToken)
     {
         // Busca o provedor primário E ativo para o canal
         var provider = await _context.ProviderConfigurations
-            .FirstOrDefaultAsync(pc => pc.ChannelType == channelType && pc.IsPrimary && pc.IsActive);
-
+            .FirstOrDefaultAsync(pc => pc.ChannelType == channelType && pc.IsPrimary && pc.IsActive, cancellationToken);
         if (provider != null)
         {
             provider.ConfigurationJson = _encryptionService.Decrypt(provider.ConfigurationJson);
@@ -29,9 +22,9 @@ public class ProviderConfigurationRepository : IProviderConfigurationRepository
         return provider;
     }
 
-    public async Task<List<ProviderConfiguration>> GetAllProvidersAsync()
+    public async Task<List<ProviderConfiguration>> GetAllProvidersAsync(CancellationToken cancellationToken)
     {
-        var providers = await _context.ProviderConfigurations.ToListAsync();
+        var providers = await _context.ProviderConfigurations.ToListAsync(cancellationToken);
 
         foreach (var provider in providers)
         {
@@ -41,21 +34,27 @@ public class ProviderConfigurationRepository : IProviderConfigurationRepository
         return providers;
     }
 
-    public async Task CreateAsync(ProviderConfiguration providerConfiguration)
+    public async Task<bool> HasAnyProviderForChannelAsync(ChannelType channelType, CancellationToken cancellationToken)
+    {
+        return await _context.ProviderConfigurations
+            .AnyAsync(pc => pc.ChannelType == channelType, cancellationToken);
+    }
+
+    public async Task CreateAsync(ProviderConfiguration providerConfiguration, CancellationToken cancellationToken)
     {
         providerConfiguration.ConfigurationJson = _encryptionService.Encrypt(providerConfiguration.ConfigurationJson);
         _context.ProviderConfigurations.Add(providerConfiguration);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateAsync(ProviderConfiguration providerConfiguration)
+    public async Task UpdateAsync(ProviderConfiguration providerConfiguration, CancellationToken cancellationToken)
     {
         providerConfiguration.ConfigurationJson = _encryptionService.Encrypt(providerConfiguration.ConfigurationJson);
         _context.ProviderConfigurations.Update(providerConfiguration);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task SetAsPrimaryAsync(Guid providerConfigurationId)
+    public async Task SetAsPrimaryAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
     {
         var providerToSetPrimary = await _context.ProviderConfigurations.FindAsync(providerConfigurationId);
         if (providerToSetPrimary == null)
@@ -64,8 +63,7 @@ public class ProviderConfigurationRepository : IProviderConfigurationRepository
         // Remove isPrimary de todos os provedores do mesmo canal
         var currentPrimaryProviders = await _context.ProviderConfigurations
             .Where(pc => pc.ChannelType == providerToSetPrimary.ChannelType && pc.IsPrimary)
-            .ToListAsync();
-
+            .ToListAsync(cancellationToken);
         // Primeiro, remove o isPrimary dos outros provedores
         foreach (var provider in currentPrimaryProviders)
         {
@@ -73,20 +71,27 @@ public class ProviderConfigurationRepository : IProviderConfigurationRepository
         }
 
         // Salva as mudanças para remover o isPrimary dos outros antes de definir o novo
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         // Agora define o provedor selecionado como primário e ativo
         providerToSetPrimary.IsPrimary = true;
         providerToSetPrimary.IsActive = true;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public Task ToggleActiveStatusAsync(Guid providerConfigurationId)
+    public Task ToggleActiveStatusAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
     {
         return _context.ProviderConfigurations
             .Where(pc => pc.Id == providerConfigurationId)
             .ExecuteUpdateAsync(setters => setters
-                .SetProperty(pc => pc.IsActive, pc => !pc.IsActive));
+                .SetProperty(pc => pc.IsActive, pc => !pc.IsActive), cancellationToken);
+    }
+
+    public Task DeleteAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
+    {
+        return _context.ProviderConfigurations
+            .Where(pc => pc.Id == providerConfigurationId)
+            .ExecuteDeleteAsync(cancellationToken);
     }
 }

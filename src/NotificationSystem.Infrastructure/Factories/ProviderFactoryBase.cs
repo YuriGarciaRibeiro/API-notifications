@@ -15,7 +15,7 @@ public abstract class ProviderFactoryBase<TService> where TService : class
 
     protected async Task<ProviderConfiguration> GetActiveConfigAsync(ChannelType channel)
     {
-        var config = await _repo.GetActiveProviderAsync(channel);
+        var config = await _repo.GetActiveProviderAsync(channel, CancellationToken.None);
         if (config == null)
             throw new InvalidOperationException($"No active provider for {channel}");
         return config;

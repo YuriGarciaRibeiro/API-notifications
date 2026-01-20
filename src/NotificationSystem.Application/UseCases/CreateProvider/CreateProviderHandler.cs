@@ -20,6 +20,10 @@ public class CreateProviderHandler : IRequestHandler<CreateProviderCommand, Resu
         // Serializa a configuração para JSON
         var configJson = JsonSerializer.Serialize(request.Configuration);
 
+        // Verifica se é o primeiro provider deste canal
+        var hasExistingProvider = await _repository.HasAnyProviderForChannelAsync(request.ChannelType, cancellationToken);
+        var isPrimary = request.IsPrimary || !hasExistingProvider;
+
         var providerConfig = new ProviderConfiguration
         {
             Id = Guid.NewGuid(),
@@ -27,10 +31,10 @@ public class CreateProviderHandler : IRequestHandler<CreateProviderCommand, Resu
             Provider = request.Provider,
             ConfigurationJson = configJson,
             IsActive = request.IsActive,
-            IsPrimary = request.IsPrimary
+            IsPrimary = isPrimary
         };
 
-        await _repository.CreateAsync(providerConfig);
+        await _repository.CreateAsync(providerConfig, cancellationToken);
 
         return Result.Ok(providerConfig.Id);
     }

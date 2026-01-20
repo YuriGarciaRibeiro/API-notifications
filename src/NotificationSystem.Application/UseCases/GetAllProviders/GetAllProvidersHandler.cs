@@ -17,7 +17,7 @@ public class GetAllProvidersHandler : IRequestHandler<GetAllProvidersQuery, Resu
         GetAllProvidersQuery request,
         CancellationToken cancellationToken)
     {
-        var providers = await _repository.GetAllProvidersAsync();
+        var providers = await _repository.GetAllProvidersAsync(cancellationToken);
 
         // Filtra por tipo de canal se especificado
         if (request.ChannelType.HasValue)

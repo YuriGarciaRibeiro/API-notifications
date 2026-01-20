@@ -10,6 +10,6 @@ public class ToggleProviderActiveHandler(IProviderConfigurationRepository reposi
 
     public Task Handle(ToggleProviderActiveCommand request, CancellationToken cancellationToken)
     {
-        return _repository.ToggleActiveStatusAsync(request.ProviderId);
+        return _repository.ToggleActiveStatusAsync(request.ProviderId, cancellationToken);
     }
 }

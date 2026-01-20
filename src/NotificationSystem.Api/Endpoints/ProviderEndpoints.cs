@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Application.UseCases.CreateProvider;
 using NotificationSystem.Application.UseCases.CreateProviderFromFile;
+using NotificationSystem.Application.UseCases.DeleteProvider;
 using NotificationSystem.Application.UseCases.GetAllProviders;
 using NotificationSystem.Application.UseCases.SetProviderAsPrimary;
 using NotificationSystem.Application.UseCases.ToggleProviderActive;
@@ -143,6 +144,20 @@ public static class ProviderEndpoints
             .WithName("ToggleProviderActiveStatus")
             .WithSummary("Ativa ou desativa um provedor")
             .WithDescription("Alterna o status ativo/inativo de um provedor de notificação.")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+        group.MapDelete("/{id:guid}",
+            async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
+            {
+                var command = new DeleteProviderCommand(id);
+                await mediator.Send(command, cancellationToken);
+                return Results.NoContent();
+            })
+            .WithName("DeleteProvider")
+            .WithSummary("Remove um provedor")
+            .WithDescription("Exclui uma configuração de provedor de notificação do sistema.")
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

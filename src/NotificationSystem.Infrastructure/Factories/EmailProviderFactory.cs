@@ -10,14 +10,14 @@ namespace NotificationSystem.Infrastructure.Factories;
 
 public class EmailProviderFactory : ProviderFactoryBase<IEmailService>, IEmailProviderFactory
 {
-    private readonly ILogger<SmtpService> _smtpLogger;
+    private readonly ILogger<EmailProviderFactory> _logger;
 
     public EmailProviderFactory(
         IProviderConfigurationRepository repo,
-        ILogger<SmtpService> smtpLogger)
+        ILogger<EmailProviderFactory> logger)
         : base(repo)
     {
-        _smtpLogger = smtpLogger;
+        _logger = logger;
     }
 
     public async Task<IEmailService> CreateEmailProvider()
@@ -34,9 +34,15 @@ public class EmailProviderFactory : ProviderFactoryBase<IEmailService>, IEmailPr
 
     private IEmailService CreateSmtp(ProviderConfiguration config)
     {
+        _logger.LogInformation("Decrypted SMTP configuration JSON: {ConfigJson}", config.ConfigurationJson);
+
         // Deserializa o JSON de configuração para SmtpOptions
         var options = DeserializeConfig<SmtpOptions>(config.ConfigurationJson)
             ?? throw new InvalidOperationException("Invalid SMTP configuration");
+
+        _logger.LogInformation(
+            "SMTP settings deserialized - Host: {Host}, Port: {Port}, FromEmail: {FromEmail}, EnableSsl: {EnableSsl}",
+            options.Host, options.Port, options.FromEmail, options.EnableSsl);
 
         // Cria e retorna uma instância do SmtpService
         return new SmtpService(Options.Create(options));
