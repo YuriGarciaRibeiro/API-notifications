@@ -5,14 +5,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.Register;
 
-public class RegisterHandler : IRequestHandler<RegisterCommand, Result<LoginResponse>>
+public class RegisterHandler(IAuthenticationService authenticationService) : IRequestHandler<RegisterCommand, Result<LoginResponse>>
 {
-    private readonly IAuthenticationService _authenticationService;
-
-    public RegisterHandler(IAuthenticationService authenticationService)
-    {
-        _authenticationService = authenticationService;
-    }
+    private readonly IAuthenticationService _authenticationService = authenticationService;
 
     public async Task<Result<LoginResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {

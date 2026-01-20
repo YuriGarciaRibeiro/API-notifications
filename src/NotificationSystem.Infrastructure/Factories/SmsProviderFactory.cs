@@ -8,17 +8,11 @@ using System.Text.Json;
 
 namespace NotificationSystem.Infrastructure.Factories;
 
-public class SmsProviderFactory : ProviderFactoryBase<ISmsService>, ISmsProviderFactory
+public class SmsProviderFactory(
+    IProviderConfigurationRepository repo,
+    ILogger<TwilioSmsService> twilioLogger) : ProviderFactoryBase<ISmsService>(repo), ISmsProviderFactory
 {
-    private readonly ILogger<TwilioSmsService> _twilioLogger;
-
-    public SmsProviderFactory(
-        IProviderConfigurationRepository repo,
-        ILogger<TwilioSmsService> twilioLogger)
-        : base(repo)
-    {
-        _twilioLogger = twilioLogger;
-    }
+    private readonly ILogger<TwilioSmsService> _twilioLogger = twilioLogger;
 
     public async Task<ISmsService> CreateSmsProvider()
     {

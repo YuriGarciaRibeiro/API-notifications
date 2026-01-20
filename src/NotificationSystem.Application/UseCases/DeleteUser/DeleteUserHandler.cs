@@ -4,14 +4,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.DeleteUser;
 
-public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, Result>
+public class DeleteUserHandler(IUserManagementService userManagementService) : IRequestHandler<DeleteUserCommand, Result>
 {
-    private readonly IUserManagementService _userManagementService;
-
-    public DeleteUserHandler(IUserManagementService userManagementService)
-    {
-        _userManagementService = userManagementService;
-    }
+    private readonly IUserManagementService _userManagementService = userManagementService;
 
     public async Task<Result> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {

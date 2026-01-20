@@ -8,24 +8,16 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Services;
 
-public class UserManagementService : IUserManagementService
+public class UserManagementService(
+    IUserRepository userRepository,
+    IPasswordHasher passwordHasher,
+    ICurrentUserService currentUserService,
+    INotificationRepository notificationRepository) : IUserManagementService
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IPasswordHasher _passwordHasher;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly INotificationRepository _notificationRepository;
-
-    public UserManagementService(
-        IUserRepository userRepository,
-        IPasswordHasher passwordHasher,
-        ICurrentUserService currentUserService,
-        INotificationRepository notificationRepository)
-    {
-        _userRepository = userRepository;
-        _passwordHasher = passwordHasher;
-        _currentUserService = currentUserService;
-        _notificationRepository = notificationRepository;
-    }
+    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
+    private readonly INotificationRepository _notificationRepository = notificationRepository;
 
     public async Task<Result<UserDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {

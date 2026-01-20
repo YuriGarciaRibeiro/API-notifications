@@ -5,21 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace NotificationSystem.Api.Middlewares;
 
-public class GlobalExceptionHandlerMiddleware
+public class GlobalExceptionHandlerMiddleware(
+    RequestDelegate next,
+    ILogger<GlobalExceptionHandlerMiddleware> logger,
+    IHostEnvironment environment)
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger;
-    private readonly IHostEnvironment _environment;
-
-    public GlobalExceptionHandlerMiddleware(
-        RequestDelegate next,
-        ILogger<GlobalExceptionHandlerMiddleware> logger,
-        IHostEnvironment environment)
-    {
-        _next = next;
-        _logger = logger;
-        _environment = environment;
-    }
+    private readonly RequestDelegate _next = next;
+    private readonly ILogger<GlobalExceptionHandlerMiddleware> _logger = logger;
+    private readonly IHostEnvironment _environment = environment;
 
     public async Task InvokeAsync(HttpContext context)
     {

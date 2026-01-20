@@ -5,14 +5,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetUserById;
 
-public class GetUserByIdHandler : IRequestHandler<GetUserByIdQuery, Result<UserDto>>
+public class GetUserByIdHandler(IUserManagementService userManagementService) : IRequestHandler<GetUserByIdQuery, Result<UserDto>>
 {
-    private readonly IUserManagementService _userManagementService;
-
-    public GetUserByIdHandler(IUserManagementService userManagementService)
-    {
-        _userManagementService = userManagementService;
-    }
+    private readonly IUserManagementService _userManagementService = userManagementService;
 
     public async Task<Result<UserDto>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {

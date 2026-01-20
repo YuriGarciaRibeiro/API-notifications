@@ -7,20 +7,13 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Factories;
 
-public class PushProviderFactory : ProviderFactoryBase<IPushNotificationService>, IPushProviderFactory
+public class PushProviderFactory(
+    IProviderConfigurationRepository repo,
+    ILogger<PushProviderFactory> logger,
+    IEncryptionService encryptionService) : ProviderFactoryBase<IPushNotificationService>(repo), IPushProviderFactory
 {
-    private readonly ILogger<PushProviderFactory> _logger;
-    private readonly IEncryptionService _encryptionService;
-
-    public PushProviderFactory(
-        IProviderConfigurationRepository repo,
-        ILogger<PushProviderFactory> logger,
-        IEncryptionService encryptionService)
-        : base(repo)
-    {
-        _logger = logger;
-        _encryptionService = encryptionService;
-    }
+    private readonly ILogger<PushProviderFactory> _logger = logger;
+    private readonly IEncryptionService _encryptionService = encryptionService;
 
     public async Task<IPushNotificationService> CreatePushProvider()
     {

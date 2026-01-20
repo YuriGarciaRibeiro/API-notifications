@@ -5,14 +5,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetAllPermissions;
 
-public class GetAllPermissionsHandler : IRequestHandler<GetAllPermissionsQuery, Result<IEnumerable<PermissionDto>>>
+public class GetAllPermissionsHandler(IRoleManagementService roleManagementService) : IRequestHandler<GetAllPermissionsQuery, Result<IEnumerable<PermissionDto>>>
 {
-    private readonly IRoleManagementService _roleManagementService;
-
-    public GetAllPermissionsHandler(IRoleManagementService roleManagementService)
-    {
-        _roleManagementService = roleManagementService;
-    }
+    private readonly IRoleManagementService _roleManagementService = roleManagementService;
 
     public async Task<Result<IEnumerable<PermissionDto>>> Handle(GetAllPermissionsQuery request, CancellationToken cancellationToken)
     {

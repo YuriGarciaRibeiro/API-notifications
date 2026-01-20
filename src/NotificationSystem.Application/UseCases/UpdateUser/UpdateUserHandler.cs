@@ -5,14 +5,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.UpdateUser;
 
-public class UpdateUserHandler : IRequestHandler<UpdateUserCommand, Result<UserDto>>
+public class UpdateUserHandler(IUserManagementService userManagementService) : IRequestHandler<UpdateUserCommand, Result<UserDto>>
 {
-    private readonly IUserManagementService _userManagementService;
-
-    public UpdateUserHandler(IUserManagementService userManagementService)
-    {
-        _userManagementService = userManagementService;
-    }
+    private readonly IUserManagementService _userManagementService = userManagementService;
 
     public async Task<Result<UserDto>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {

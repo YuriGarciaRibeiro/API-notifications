@@ -1,20 +1,13 @@
 namespace NotificationSystem.Application.Consumers;
 
-public class ExponentialBackoffRetryStrategy : IRetryStrategy
+public class ExponentialBackoffRetryStrategy(
+    int maxRetries = 3,
+    TimeSpan? initialDelay = null,
+    TimeSpan? maxDelay = null) : IRetryStrategy
 {
-    private readonly int _maxRetries;
-    private readonly TimeSpan _initialDelay;
-    private readonly TimeSpan _maxDelay;
-
-    public ExponentialBackoffRetryStrategy(
-        int maxRetries = 3,
-        TimeSpan? initialDelay = null,
-        TimeSpan? maxDelay = null)
-    {
-        _maxRetries = maxRetries;
-        _initialDelay = initialDelay ?? TimeSpan.FromSeconds(2);
-        _maxDelay = maxDelay ?? TimeSpan.FromMinutes(5);
-    }
+    private readonly int _maxRetries = maxRetries;
+    private readonly TimeSpan _initialDelay = initialDelay ?? TimeSpan.FromSeconds(2);
+    private readonly TimeSpan _maxDelay = maxDelay ?? TimeSpan.FromMinutes(5);
 
     public bool ShouldRetry(int attemptNumber, Exception exception)
     {

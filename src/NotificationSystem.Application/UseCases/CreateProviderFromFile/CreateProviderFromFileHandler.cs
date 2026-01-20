@@ -8,18 +8,12 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.CreateProviderFromFile;
 
-public class CreateProviderFromFileHandler : IRequestHandler<CreateProviderFromFileCommand, Result<Guid>>
+public class CreateProviderFromFileHandler(
+    IProviderConfigurationRepository repository,
+    ILogger<CreateProviderFromFileHandler> logger) : IRequestHandler<CreateProviderFromFileCommand, Result<Guid>>
 {
-    private readonly IProviderConfigurationRepository _repository;
-    private readonly ILogger<CreateProviderFromFileHandler> _logger;
-
-    public CreateProviderFromFileHandler(
-        IProviderConfigurationRepository repository,
-        ILogger<CreateProviderFromFileHandler> logger)
-    {
-        _repository = repository;
-        _logger = logger;
-    }
+    private readonly IProviderConfigurationRepository _repository = repository;
+    private readonly ILogger<CreateProviderFromFileHandler> _logger = logger;
 
     public async Task<Result<Guid>> Handle(CreateProviderFromFileCommand request, CancellationToken cancellationToken)
     {

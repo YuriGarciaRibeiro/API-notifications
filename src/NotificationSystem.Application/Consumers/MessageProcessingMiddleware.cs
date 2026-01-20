@@ -6,21 +6,14 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Consumers;
 
-public class MessageProcessingMiddleware<TMessage> where TMessage : class
+public class MessageProcessingMiddleware<TMessage>(
+    ILogger<MessageProcessingMiddleware<TMessage>> logger,
+    IServiceProvider serviceProvider,
+    IRetryStrategy retryStrategy) where TMessage : class
 {
-    private readonly ILogger<MessageProcessingMiddleware<TMessage>> _logger;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly IRetryStrategy _retryStrategy;
-
-    public MessageProcessingMiddleware(
-        ILogger<MessageProcessingMiddleware<TMessage>> logger,
-        IServiceProvider serviceProvider,
-        IRetryStrategy retryStrategy)
-    {
-        _logger = logger;
-        _serviceProvider = serviceProvider;
-        _retryStrategy = retryStrategy;
-    }
+    private readonly ILogger<MessageProcessingMiddleware<TMessage>> _logger = logger;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly IRetryStrategy _retryStrategy = retryStrategy;
 
     public async Task<ProcessingResult> ProcessWithErrorHandlingAsync(
         TMessage message,

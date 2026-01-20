@@ -8,17 +8,11 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Factories;
 
-public class EmailProviderFactory : ProviderFactoryBase<IEmailService>, IEmailProviderFactory
+public class EmailProviderFactory(
+    IProviderConfigurationRepository repo,
+    ILogger<EmailProviderFactory> logger) : ProviderFactoryBase<IEmailService>(repo), IEmailProviderFactory
 {
-    private readonly ILogger<EmailProviderFactory> _logger;
-
-    public EmailProviderFactory(
-        IProviderConfigurationRepository repo,
-        ILogger<EmailProviderFactory> logger)
-        : base(repo)
-    {
-        _logger = logger;
-    }
+    private readonly ILogger<EmailProviderFactory> _logger = logger;
 
     public async Task<IEmailService> CreateEmailProvider()
     {

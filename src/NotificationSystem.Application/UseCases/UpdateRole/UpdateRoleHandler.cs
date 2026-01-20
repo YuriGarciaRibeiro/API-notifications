@@ -5,14 +5,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.UpdateRole;
 
-public class UpdateRoleHandler : IRequestHandler<UpdateRoleCommand, Result<RoleDetailDto>>
+public class UpdateRoleHandler(IRoleManagementService roleManagementService) : IRequestHandler<UpdateRoleCommand, Result<RoleDetailDto>>
 {
-    private readonly IRoleManagementService _roleManagementService;
-
-    public UpdateRoleHandler(IRoleManagementService roleManagementService)
-    {
-        _roleManagementService = roleManagementService;
-    }
+    private readonly IRoleManagementService _roleManagementService = roleManagementService;
 
     public async Task<Result<RoleDetailDto>> Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
     {

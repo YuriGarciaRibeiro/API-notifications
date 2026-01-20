@@ -6,16 +6,10 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Services;
 
-public class RoleManagementService : IRoleManagementService
+public class RoleManagementService(IRoleRepository roleRepository, IPermissionRepository permissionRepository) : IRoleManagementService
 {
-    private readonly IRoleRepository _roleRepository;
-    private readonly IPermissionRepository _permissionRepository;
-
-    public RoleManagementService(IRoleRepository roleRepository, IPermissionRepository permissionRepository)
-    {
-        _roleRepository = roleRepository;
-        _permissionRepository = permissionRepository;
-    }
+    private readonly IRoleRepository _roleRepository = roleRepository;
+    private readonly IPermissionRepository _permissionRepository = permissionRepository;
 
     public async Task<Result<RoleDetailDto>> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {

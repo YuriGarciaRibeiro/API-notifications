@@ -7,21 +7,14 @@ using NotificationSystem.Domain.Events;
 
 namespace NotificationSystem.Application.EventHandlers;
 
-public class NotificationCreatedEventHandler : INotificationHandler<DomainEventNotification<NotificationCreatedEvent>>
+public class NotificationCreatedEventHandler(
+    INotificationRepository repository,
+    IMessagePublisher messagePublisher,
+    ILogger<NotificationCreatedEventHandler> logger) : INotificationHandler<DomainEventNotification<NotificationCreatedEvent>>
 {
-    private readonly INotificationRepository _repository;
-    private readonly IMessagePublisher _messagePublisher;
-    private readonly ILogger<NotificationCreatedEventHandler> _logger;
-
-    public NotificationCreatedEventHandler(
-        INotificationRepository repository,
-        IMessagePublisher messagePublisher,
-        ILogger<NotificationCreatedEventHandler> logger)
-    {
-        _repository = repository;
-        _messagePublisher = messagePublisher;
-        _logger = logger;
-    }
+    private readonly INotificationRepository _repository = repository;
+    private readonly IMessagePublisher _messagePublisher = messagePublisher;
+    private readonly ILogger<NotificationCreatedEventHandler> _logger = logger;
 
     public async Task Handle(DomainEventNotification<NotificationCreatedEvent> notification, CancellationToken cancellationToken)
     {

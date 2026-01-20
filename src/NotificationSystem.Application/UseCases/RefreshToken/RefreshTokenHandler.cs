@@ -5,14 +5,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.RefreshToken;
 
-public class RefreshTokenHandler : IRequestHandler<RefreshTokenCommand, Result<LoginResponse>>
+public class RefreshTokenHandler(IAuthenticationService authenticationService) : IRequestHandler<RefreshTokenCommand, Result<LoginResponse>>
 {
-    private readonly IAuthenticationService _authenticationService;
-
-    public RefreshTokenHandler(IAuthenticationService authenticationService)
-    {
-        _authenticationService = authenticationService;
-    }
+    private readonly IAuthenticationService _authenticationService = authenticationService;
 
     public async Task<Result<LoginResponse>> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {

@@ -5,14 +5,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetRoleById;
 
-public class GetRoleByIdHandler : IRequestHandler<GetRoleByIdQuery, Result<RoleDetailDto>>
+public class GetRoleByIdHandler(IRoleManagementService roleManagementService) : IRequestHandler<GetRoleByIdQuery, Result<RoleDetailDto>>
 {
-    private readonly IRoleManagementService _roleManagementService;
-
-    public GetRoleByIdHandler(IRoleManagementService roleManagementService)
-    {
-        _roleManagementService = roleManagementService;
-    }
+    private readonly IRoleManagementService _roleManagementService = roleManagementService;
 
     public async Task<Result<RoleDetailDto>> Handle(GetRoleByIdQuery request, CancellationToken cancellationToken)
     {

@@ -29,12 +29,7 @@ public class PermissionAuthorizationHandler : AuthorizationHandler<PermissionReq
     }
 }
 
-public class PermissionRequirement : IAuthorizationRequirement
+public class PermissionRequirement(string permission) : IAuthorizationRequirement
 {
-    public string Permission { get; }
-
-    public PermissionRequirement(string permission)
-    {
-        Permission = permission;
-    }
+    public string Permission { get; } = permission;
 }

@@ -4,14 +4,9 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Persistence.Repositories;
 
-public class RoleRepository : IRoleRepository
+public class RoleRepository(NotificationDbContext context) : IRoleRepository
 {
-    private readonly NotificationDbContext _context;
-
-    public RoleRepository(NotificationDbContext context)
-    {
-        _context = context;
-    }
+    private readonly NotificationDbContext _context = context;
 
     public async Task<Role?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {

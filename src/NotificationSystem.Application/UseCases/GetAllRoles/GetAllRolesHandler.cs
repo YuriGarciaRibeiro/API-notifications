@@ -5,14 +5,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetAllRoles;
 
-public class GetAllRolesHandler : IRequestHandler<GetAllRolesQuery, Result<IEnumerable<RoleDetailDto>>>
+public class GetAllRolesHandler(IRoleManagementService roleManagementService) : IRequestHandler<GetAllRolesQuery, Result<IEnumerable<RoleDetailDto>>>
 {
-    private readonly IRoleManagementService _roleManagementService;
-
-    public GetAllRolesHandler(IRoleManagementService roleManagementService)
-    {
-        _roleManagementService = roleManagementService;
-    }
+    private readonly IRoleManagementService _roleManagementService = roleManagementService;
 
     public async Task<Result<IEnumerable<RoleDetailDto>>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
     {

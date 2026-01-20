@@ -7,14 +7,9 @@ using NotificationSystem.Application.Options;
 
 namespace NotificationSystem.Application.Services;
 
-public class SmtpService : IEmailService
+public class SmtpService(IOptions<SmtpOptions> smtpOptions) : IEmailService
 {
-    private readonly SmtpOptions _smtpOptions;
-
-    public SmtpService(IOptions<SmtpOptions> smtpOptions)
-    {
-        _smtpOptions = smtpOptions.Value;
-    }
+    private readonly SmtpOptions _smtpOptions = smtpOptions.Value;
 
     public async Task SendEmailAsync(string to, string subject, string body, bool isHtml = false)
     {

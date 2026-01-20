@@ -4,14 +4,9 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Persistence.Repositories;
 
-public class RefreshTokenRepository : IRefreshTokenRepository
+public class RefreshTokenRepository(NotificationDbContext context) : IRefreshTokenRepository
 {
-    private readonly NotificationDbContext _context;
-
-    public RefreshTokenRepository(NotificationDbContext context)
-    {
-        _context = context;
-    }
+    private readonly NotificationDbContext _context = context;
 
     public async Task<RefreshToken?> GetByTokenAsync(string token, CancellationToken cancellationToken = default)
     {

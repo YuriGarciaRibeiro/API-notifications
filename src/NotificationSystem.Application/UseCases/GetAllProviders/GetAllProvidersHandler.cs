@@ -4,14 +4,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetAllProviders;
 
-public class GetAllProvidersHandler : IRequestHandler<GetAllProvidersQuery, Result<List<ProviderConfigurationResponse>>>
+public class GetAllProvidersHandler(IProviderConfigurationRepository repository) : IRequestHandler<GetAllProvidersQuery, Result<List<ProviderConfigurationResponse>>>
 {
-    private readonly IProviderConfigurationRepository _repository;
-
-    public GetAllProvidersHandler(IProviderConfigurationRepository repository)
-    {
-        _repository = repository;
-    }
+    private readonly IProviderConfigurationRepository _repository = repository;
 
     public async Task<Result<List<ProviderConfigurationResponse>>> Handle(
         GetAllProvidersQuery request,

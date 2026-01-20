@@ -5,20 +5,14 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.Services;
 
-public class DeadLetterQueueMonitorService : BackgroundService
+public class DeadLetterQueueMonitorService(
+    ILogger<DeadLetterQueueMonitorService> logger,
+    IServiceProvider serviceProvider) : BackgroundService
 {
-    private readonly ILogger<DeadLetterQueueMonitorService> _logger;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<DeadLetterQueueMonitorService> _logger = logger;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly TimeSpan _checkInterval = TimeSpan.FromMinutes(5);
     private readonly uint _alertThreshold = 10; // Alertar se DLQ tiver mais de 10 mensagens
-
-    public DeadLetterQueueMonitorService(
-        ILogger<DeadLetterQueueMonitorService> logger,
-        IServiceProvider serviceProvider)
-    {
-        _logger = logger;
-        _serviceProvider = serviceProvider;
-    }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

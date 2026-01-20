@@ -5,14 +5,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.ChangePassword;
 
-public class ChangePasswordHandler : IRequestHandler<ChangePasswordCommand, Result>
+public class ChangePasswordHandler(IUserManagementService userManagementService) : IRequestHandler<ChangePasswordCommand, Result>
 {
-    private readonly IUserManagementService _userManagementService;
-
-    public ChangePasswordHandler(IUserManagementService userManagementService)
-    {
-        _userManagementService = userManagementService;
-    }
+    private readonly IUserManagementService _userManagementService = userManagementService;
 
     public async Task<Result> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {

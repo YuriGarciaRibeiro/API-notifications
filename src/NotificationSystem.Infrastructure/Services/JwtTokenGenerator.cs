@@ -10,14 +10,9 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Services;
 
-public class JwtTokenGenerator : IJwtTokenGenerator
+public class JwtTokenGenerator(IOptions<JwtOptions> jwtOptions) : IJwtTokenGenerator
 {
-    private readonly JwtOptions _jwtOptions;
-
-    public JwtTokenGenerator(IOptions<JwtOptions> jwtOptions)
-    {
-        _jwtOptions = jwtOptions.Value;
-    }
+    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
 
     public string GenerateAccessToken(User user, IEnumerable<string> roles, IEnumerable<string> permissions)
     {

@@ -5,14 +5,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.CreateUser;
 
-public class CreateUserHandler : IRequestHandler<CreateUserCommand, Result<UserDto>>
+public class CreateUserHandler(IUserManagementService userManagementService) : IRequestHandler<CreateUserCommand, Result<UserDto>>
 {
-    private readonly IUserManagementService _userManagementService;
-
-    public CreateUserHandler(IUserManagementService userManagementService)
-    {
-        _userManagementService = userManagementService;
-    }
+    private readonly IUserManagementService _userManagementService = userManagementService;
 
     public async Task<Result<UserDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {

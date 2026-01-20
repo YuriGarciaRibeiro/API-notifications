@@ -4,14 +4,9 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Factories;
 
-public abstract class ProviderFactoryBase<TService> where TService : class
+public abstract class ProviderFactoryBase<TService>(IProviderConfigurationRepository repo) where TService : class
 {
-    protected readonly IProviderConfigurationRepository _repo;
-
-    protected ProviderFactoryBase(IProviderConfigurationRepository repo)
-    {
-        _repo = repo;
-    }
+    protected readonly IProviderConfigurationRepository _repo = repo;
 
     protected async Task<ProviderConfiguration> GetActiveConfigAsync(ChannelType channel)
     {

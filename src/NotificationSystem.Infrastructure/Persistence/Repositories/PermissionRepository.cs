@@ -4,14 +4,9 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Persistence.Repositories;
 
-public class PermissionRepository : IPermissionRepository
+public class PermissionRepository(NotificationDbContext context) : IPermissionRepository
 {
-    private readonly NotificationDbContext _context;
-
-    public PermissionRepository(NotificationDbContext context)
-    {
-        _context = context;
-    }
+    private readonly NotificationDbContext _context = context;
 
     public async Task<Permission?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {

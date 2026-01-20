@@ -6,14 +6,9 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.CreateProvider;
 
-public class CreateProviderHandler : IRequestHandler<CreateProviderCommand, Result<Guid>>
+public class CreateProviderHandler(IProviderConfigurationRepository repository) : IRequestHandler<CreateProviderCommand, Result<Guid>>
 {
-    private readonly IProviderConfigurationRepository _repository;
-
-    public CreateProviderHandler(IProviderConfigurationRepository repository)
-    {
-        _repository = repository;
-    }
+    private readonly IProviderConfigurationRepository _repository = repository;
 
     public async Task<Result<Guid>> Handle(CreateProviderCommand request, CancellationToken cancellationToken)
     {

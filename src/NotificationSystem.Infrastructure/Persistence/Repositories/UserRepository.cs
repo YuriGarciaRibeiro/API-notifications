@@ -4,14 +4,9 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Persistence.Repositories;
 
-public class UserRepository : IUserRepository
+public class UserRepository(NotificationDbContext context) : IUserRepository
 {
-    private readonly NotificationDbContext _context;
-
-    public UserRepository(NotificationDbContext context)
-    {
-        _context = context;
-    }
+    private readonly NotificationDbContext _context = context;
 
     public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {

@@ -13,31 +13,23 @@ using RabbitMQ.Client.Events;
 
 namespace NotificationSystem.Application.Consumers;
 
-public abstract class RabbitMqConsumerBase<TMessage> : BackgroundService
+public abstract class RabbitMqConsumerBase<TMessage>(
+    ILogger logger,
+    IOptions<RabbitMqOptions> rabbitMqOptions,
+    IServiceProvider serviceProvider,
+    MessageProcessingMiddleware<TMessage> middleware) : BackgroundService
     where TMessage : class
 {
-    private readonly ILogger _logger;
-    private readonly RabbitMqOptions _rabbitMqOptions;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly MessageProcessingMiddleware<TMessage> _middleware;
+    private readonly ILogger _logger = logger;
+    private readonly RabbitMqOptions _rabbitMqOptions = rabbitMqOptions.Value;
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly MessageProcessingMiddleware<TMessage> _middleware = middleware;
     private IConnection? _connection;
     private IChannel? _channel;
 
     protected abstract string QueueName { get; }
     protected virtual string DeadLetterQueueName => $"{QueueName}-dlq";
     protected virtual string DeadLetterExchangeName => $"{QueueName}-dlx";
-
-    protected RabbitMqConsumerBase(
-        ILogger logger,
-        IOptions<RabbitMqOptions> rabbitMqOptions,
-        IServiceProvider serviceProvider,
-        MessageProcessingMiddleware<TMessage> middleware)
-    {
-        _logger = logger;
-        _rabbitMqOptions = rabbitMqOptions.Value;
-        _serviceProvider = serviceProvider;
-        _middleware = middleware;
-    }
 
     public override async Task StartAsync(CancellationToken cancellationToken)
     {

@@ -6,15 +6,9 @@ using NotificationSystem.Domain.Events;
 
 namespace NotificationSystem.Infrastructure.Persistence;
 
-public class NotificationDbContext : DbContext
+public class NotificationDbContext(DbContextOptions<NotificationDbContext> options, IMediator? mediator = null) : DbContext(options)
 {
-    private readonly IMediator? _mediator;
-
-    public NotificationDbContext(DbContextOptions<NotificationDbContext> options, IMediator? mediator = null)
-        : base(options)
-    {
-        _mediator = mediator;
-    }
+    private readonly IMediator? _mediator = mediator;
 
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<NotificationChannel> NotificationChannels => Set<NotificationChannel>();

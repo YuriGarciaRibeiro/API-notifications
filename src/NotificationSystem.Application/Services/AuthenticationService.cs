@@ -9,31 +9,20 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Services;
 
-public class AuthenticationService : IAuthenticationService
+public class AuthenticationService(
+    IUserRepository userRepository,
+    IRefreshTokenRepository refreshTokenRepository,
+    IJwtTokenGenerator jwtTokenGenerator,
+    IPasswordHasher passwordHasher,
+    IOptions<JwtOptions> jwtOptions,
+    INotificationRepository repository) : IAuthenticationService
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IRefreshTokenRepository _refreshTokenRepository;
-    private readonly IJwtTokenGenerator _jwtTokenGenerator;
-    private readonly IPasswordHasher _passwordHasher;
-    private readonly JwtOptions _jwtOptions;
-    private readonly INotificationRepository _repository;
-    
-
-    public AuthenticationService(
-        IUserRepository userRepository,
-        IRefreshTokenRepository refreshTokenRepository,
-        IJwtTokenGenerator jwtTokenGenerator,
-        IPasswordHasher passwordHasher,
-        IOptions<JwtOptions> jwtOptions,
-        INotificationRepository repository)
-    {
-        _userRepository = userRepository;
-        _refreshTokenRepository = refreshTokenRepository;
-        _jwtTokenGenerator = jwtTokenGenerator;
-        _passwordHasher = passwordHasher;
-        _jwtOptions = jwtOptions.Value;
-        _repository = repository;
-    }
+    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IRefreshTokenRepository _refreshTokenRepository = refreshTokenRepository;
+    private readonly IJwtTokenGenerator _jwtTokenGenerator = jwtTokenGenerator;
+    private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+    private readonly INotificationRepository _repository = repository;
 
     public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default)
     {

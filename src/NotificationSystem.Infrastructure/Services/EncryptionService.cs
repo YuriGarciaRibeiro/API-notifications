@@ -3,14 +3,9 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Infrastructure.Services;
 
-public class EncryptionService : IEncryptionService
+public class EncryptionService(IDataProtectionProvider dataProtectionProvider) : IEncryptionService
 {
-    private readonly IDataProtector _protector;
-
-    public EncryptionService(IDataProtectionProvider dataProtectionProvider)
-    {
-        _protector = dataProtectionProvider.CreateProtector("NotificationSystem.ProviderConfiguration");
-    }
+    private readonly IDataProtector _protector = dataProtectionProvider.CreateProtector("NotificationSystem.ProviderConfiguration");
 
     public string Encrypt(string plainText)
     {

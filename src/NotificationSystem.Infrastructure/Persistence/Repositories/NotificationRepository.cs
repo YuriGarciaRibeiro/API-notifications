@@ -4,14 +4,9 @@ using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Persistence.Repositories;
 
-public class NotificationRepository : INotificationRepository
+public class NotificationRepository(NotificationDbContext context) : INotificationRepository
 {
-    private readonly NotificationDbContext _context;
-
-    public NotificationRepository(NotificationDbContext context)
-    {
-        _context = context;
-    }
+    private readonly NotificationDbContext _context = context;
 
     public async Task AddAsync(Notification notification)
     {
