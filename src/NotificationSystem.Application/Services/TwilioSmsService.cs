@@ -8,12 +8,12 @@ using Twilio.Types;
 
 namespace NotificationSystem.Application.Services;
 
-public class TwilioService : ISmsService
+public class TwilioSmsService : ISmsService
 {
     private readonly TwilioSettings _settings;
-    private readonly ILogger<TwilioService> _logger;
+    private readonly ILogger<TwilioSmsService> _logger;
 
-    public TwilioService(IOptions<TwilioSettings> settings, ILogger<TwilioService> logger)
+    public TwilioSmsService(IOptions<TwilioSettings> settings, ILogger<TwilioSmsService> logger)
     {
         _settings = settings.Value;
         _logger = logger;

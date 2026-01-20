@@ -10,7 +10,6 @@ namespace NotificationSystem.Worker.Email;
 
 public class Worker : RabbitMqConsumerBase<EmailChannelMessage>
 {
-    private readonly IEmailProviderFactory _emailProviderFactory;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<Worker> _logger;
 
@@ -18,13 +17,11 @@ public class Worker : RabbitMqConsumerBase<EmailChannelMessage>
 
     public Worker(
         ILogger<Worker> logger,
-        IEmailProviderFactory emailProviderFactory,
         IOptions<RabbitMqOptions> rabbitMqOptions,
         IServiceProvider serviceProvider,
         MessageProcessingMiddleware<EmailChannelMessage> middleware)
         : base(logger, rabbitMqOptions, serviceProvider, middleware)
     {
-        _emailProviderFactory = emailProviderFactory;
         _serviceProvider = serviceProvider;
         _logger = logger;
     }
@@ -33,8 +30,11 @@ public class Worker : RabbitMqConsumerBase<EmailChannelMessage>
         EmailChannelMessage message,
         CancellationToken cancellationToken)
     {
+        using var scope = _serviceProvider.CreateScope();
+
         // Cria o provedor Email dinamicamente baseado na configuração do banco
-        var emailService = await _emailProviderFactory.CreateEmailProvider();
+        var emailProviderFactory = scope.ServiceProvider.GetRequiredService<IEmailProviderFactory>();
+        var emailService = await emailProviderFactory.CreateEmailProvider();
 
         await emailService.SendEmailAsync(
             message.To,
@@ -44,7 +44,6 @@ public class Worker : RabbitMqConsumerBase<EmailChannelMessage>
 
         _logger.LogInformation("Email sent successfully via {ProviderType}", emailService.GetType().Name);
 
-        using var scope = _serviceProvider.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
 
         await repository.UpdateNotificationChannelStatusAsync<EmailChannel>(

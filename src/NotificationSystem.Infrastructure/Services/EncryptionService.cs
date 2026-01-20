@@ -25,6 +25,15 @@ public class EncryptionService : IEncryptionService
         if (string.IsNullOrEmpty(cipherText))
             return cipherText;
 
-        return _protector.Unprotect(cipherText);
+        try
+        {
+            return _protector.Unprotect(cipherText);
+        }
+        catch (System.Security.Cryptography.CryptographicException)
+        {
+            // Se falhar ao descriptografar, assume que o dado já está descriptografado
+            // Isso pode acontecer com dados antigos ou dados inseridos diretamente no banco
+            return cipherText;
+        }
     }
 }

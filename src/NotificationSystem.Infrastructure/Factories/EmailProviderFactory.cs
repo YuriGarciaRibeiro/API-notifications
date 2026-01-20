@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Options;
 using NotificationSystem.Application.Services;
+using NotificationSystem.Application.Settings;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Factories;
@@ -26,6 +27,7 @@ public class EmailProviderFactory : ProviderFactoryBase<IEmailService>, IEmailPr
         return config.Provider switch
         {
             ProviderType.Smtp => CreateSmtp(config),
+            ProviderType.SendGrid => CreateSendGrid(config),
             _ => throw new NotSupportedException($"Email Provider '{config.Provider}' is not supported")
         };
     }
@@ -38,5 +40,17 @@ public class EmailProviderFactory : ProviderFactoryBase<IEmailService>, IEmailPr
 
         // Cria e retorna uma instância do SmtpService
         return new SmtpService(Options.Create(options));
+    }
+
+    private IEmailService CreateSendGrid(ProviderConfiguration config)
+    {
+        // Deserializa o JSON de configuração para SendGridSettings
+        var settings = DeserializeConfig<SendGridSettings>(config.ConfigurationJson)
+            ?? throw new InvalidOperationException("Invalid SendGrid configuration");
+
+        // Cria e retorna uma instância do SendGridEmailService
+        return new SendGridEmailService(
+            Options.Create(settings)
+        );
     }
 }

@@ -10,11 +10,11 @@ namespace NotificationSystem.Infrastructure.Factories;
 
 public class SmsProviderFactory : ProviderFactoryBase<ISmsService>, ISmsProviderFactory
 {
-    private readonly ILogger<TwilioService> _twilioLogger;
+    private readonly ILogger<TwilioSmsService> _twilioLogger;
 
     public SmsProviderFactory(
         IProviderConfigurationRepository repo,
-        ILogger<TwilioService> twilioLogger)
+        ILogger<TwilioSmsService> twilioLogger)
         : base(repo)
     {
         _twilioLogger = twilioLogger;
@@ -37,8 +37,8 @@ public class SmsProviderFactory : ProviderFactoryBase<ISmsService>, ISmsProvider
         var settings = DeserializeConfig<TwilioSettings>(config.ConfigurationJson)
             ?? throw new InvalidOperationException("Invalid Twilio configuration");
 
-        // Cria e retorna uma instância do TwilioService
-        return new TwilioService(
+        // Cria e retorna uma instância do TwilioSsmService
+        return new TwilioSmsService(
             Options.Create(settings),
             _twilioLogger
         );

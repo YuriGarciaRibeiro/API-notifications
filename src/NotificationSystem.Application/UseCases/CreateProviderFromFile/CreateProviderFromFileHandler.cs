@@ -66,7 +66,7 @@ public class CreateProviderFromFileHandler : IRequestHandler<CreateProviderFromF
                 Provider = request.Provider,
                 ConfigurationJson = configJson,
                 IsActive = request.IsActive,
-                isPrimary = request.IsPrimary
+                IsPrimary = request.IsPrimary
             };
 
             await _repository.CreateAsync(providerConfig);

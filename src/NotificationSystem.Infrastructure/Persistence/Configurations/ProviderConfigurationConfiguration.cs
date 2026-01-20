@@ -36,7 +36,7 @@ public class ProviderConfigurationConfiguration : IEntityTypeConfiguration<Provi
             .IsRequired()
             .HasDefaultValue(true);
 
-        builder.Property(p => p.isPrimary)
+        builder.Property(p => p.IsPrimary)
             .HasColumnName("is_primary")
             .IsRequired()
             .HasDefaultValue(false);
@@ -47,7 +47,7 @@ public class ProviderConfigurationConfiguration : IEntityTypeConfiguration<Provi
             .HasDefaultValue(0);
 
         // Índice único: apenas um provedor primário por canal
-        builder.HasIndex(p => new { p.ChannelType, p.isPrimary })
+        builder.HasIndex(p => new { p.ChannelType, p.IsPrimary })
             .HasDatabaseName("ix_provider_configurations_channel_type_is_primary")
             .IsUnique()
             .HasFilter("is_primary = true");

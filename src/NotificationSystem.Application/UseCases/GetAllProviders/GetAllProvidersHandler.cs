@@ -30,7 +30,7 @@ public class GetAllProvidersHandler : IRequestHandler<GetAllProvidersQuery, Resu
             p.ChannelType,
             p.Provider,
             p.IsActive,
-            p.isPrimary,
+            p.IsPrimary,
             p.Priority
         )).ToList();
 

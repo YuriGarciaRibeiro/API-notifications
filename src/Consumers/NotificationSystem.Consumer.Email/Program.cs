@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Apllication.Interfaces;
@@ -9,6 +10,7 @@ using NotificationSystem.Application.Services;
 using NotificationSystem.Infrastructure;
 using NotificationSystem.Infrastructure.Persistence;
 using NotificationSystem.Infrastructure.Persistence.Repositories;
+using NotificationSystem.Infrastructure.Services;
 using NotificationSystem.Infrastructure.Settings;
 using NotificationSystem.Worker.Email;
 using Serilog;
@@ -47,9 +49,16 @@ builder.Services.AddDbContext<NotificationDbContext>((serviceProvider, options) 
     );
 });
 
+// Data Protection for encryption
+builder.Services.AddDataProtection()
+    .SetApplicationName("NotificationSystem");
+
 // Repositories (only what this consumer needs)
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IProviderConfigurationRepository, ProviderConfigurationRepository>();
+
+// Encryption Service
+builder.Services.AddScoped<IEncryptionService, EncryptionService>();
 
 // Register error handling middleware and retry strategy
 builder.Services.AddSingleton<IRetryStrategy>(sp =>

@@ -27,7 +27,7 @@ public class CreateProviderHandler : IRequestHandler<CreateProviderCommand, Resu
             Provider = request.Provider,
             ConfigurationJson = configJson,
             IsActive = request.IsActive,
-            isPrimary = request.IsPrimary
+            IsPrimary = request.IsPrimary
         };
 
         await _repository.CreateAsync(providerConfig);

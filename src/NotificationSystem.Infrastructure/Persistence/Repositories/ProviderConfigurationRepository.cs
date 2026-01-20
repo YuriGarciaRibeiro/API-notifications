@@ -19,7 +19,7 @@ public class ProviderConfigurationRepository : IProviderConfigurationRepository
     {
         // Busca o provedor primário E ativo para o canal
         var provider = await _context.ProviderConfigurations
-            .FirstOrDefaultAsync(pc => pc.ChannelType == channelType && pc.isPrimary && pc.IsActive);
+            .FirstOrDefaultAsync(pc => pc.ChannelType == channelType && pc.IsPrimary && pc.IsActive);
 
         if (provider != null)
         {
@@ -63,16 +63,20 @@ public class ProviderConfigurationRepository : IProviderConfigurationRepository
 
         // Remove isPrimary de todos os provedores do mesmo canal
         var currentPrimaryProviders = await _context.ProviderConfigurations
-            .Where(pc => pc.ChannelType == providerToSetPrimary.ChannelType && pc.isPrimary)
+            .Where(pc => pc.ChannelType == providerToSetPrimary.ChannelType && pc.IsPrimary)
             .ToListAsync();
 
+        // Primeiro, remove o isPrimary dos outros provedores
         foreach (var provider in currentPrimaryProviders)
         {
-            provider.isPrimary = false;
+            provider.IsPrimary = false;
         }
 
-        // Define o provedor selecionado como primário e ativo
-        providerToSetPrimary.isPrimary = true;
+        // Salva as mudanças para remover o isPrimary dos outros antes de definir o novo
+        await _context.SaveChangesAsync();
+
+        // Agora define o provedor selecionado como primário e ativo
+        providerToSetPrimary.IsPrimary = true;
         providerToSetPrimary.IsActive = true;
 
         await _context.SaveChangesAsync();

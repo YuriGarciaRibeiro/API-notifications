@@ -23,6 +23,10 @@ public abstract class ProviderFactoryBase<TService> where TService : class
 
     protected T? DeserializeConfig<T>(string json) where T : class
     {
-        return JsonSerializer.Deserialize<T>(json);
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+        return JsonSerializer.Deserialize<T>(json, options);
     }
 }
