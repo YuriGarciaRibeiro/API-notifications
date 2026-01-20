@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Application.UseCases.CreateProvider;
+using NotificationSystem.Application.UseCases.CreateProviderFromFile;
 using NotificationSystem.Application.UseCases.GetAllProviders;
 using NotificationSystem.Application.UseCases.SetProviderAsPrimary;
 using NotificationSystem.Domain.Entities;
@@ -14,7 +15,8 @@ public static class ProviderEndpoints
     {
         var group = endpoints.MapGroup("/api/admin/providers")
             .WithTags("Provider Configuration")
-            .RequireAuthorization();
+            .RequireAuthorization()
+            .DisableAntiforgery(); // Necessário para upload de arquivos
 
         group.MapGet("/",
             async ([FromQuery] ChannelType? channelType, IMediator mediator, CancellationToken cancellationToken) =>
@@ -44,6 +46,43 @@ public static class ProviderEndpoints
             .WithName("CreateProvider")
             .WithSummary("Cadastra um novo provedor")
             .WithDescription("Cria uma nova configuração de provedor de notificação (Twilio, SMTP, Firebase, etc).")
+            .Produces<Guid>(StatusCodes.Status201Created)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+        group.MapPost("/upload",
+            async (
+                [FromForm] IFormFile file,
+                [FromForm] ChannelType channelType,
+                [FromForm] ProviderType provider,
+                [FromForm] string? projectId,
+                [FromForm] bool isActive,
+                [FromForm] bool isPrimary,
+                IMediator mediator,
+                CancellationToken cancellationToken) =>
+            {
+                var command = new CreateProviderFromFileCommand(
+                    channelType,
+                    provider,
+                    file,
+                    projectId,
+                    isActive,
+                    isPrimary
+                );
+
+                var result = await mediator.Send(command, cancellationToken);
+
+                if (result.IsSuccess)
+                {
+                    return Results.Created($"/api/admin/providers/{result.Value}", new { id = result.Value });
+                }
+
+                return result.ToIResult();
+            })
+            .WithName("CreateProviderFromFile")
+            .WithSummary("Cadastra um novo provedor via upload de arquivo")
+            .WithDescription("Faz upload do arquivo de credenciais (ex: Firebase JSON) e cria uma nova configuração de provedor.")
+            .Accepts<IFormFile>("multipart/form-data")
             .Produces<Guid>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

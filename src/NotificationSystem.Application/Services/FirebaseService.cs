@@ -1,4 +1,6 @@
+using FirebaseAdmin;
 using FirebaseAdmin.Messaging;
+using Google.Apis.Auth.OAuth2;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Messages;
 using FcmAndroidConfig = FirebaseAdmin.Messaging.AndroidConfig;
@@ -8,8 +10,45 @@ using FcmNotification = FirebaseAdmin.Messaging.Notification;
 
 namespace NotificationSystem.Application.Services;
 
-public class FirebaseService : IPushNotificationService
+public class FirebaseService : IPushNotificationService, IDisposable
 {
+    private readonly FirebaseApp _firebaseApp;
+    private bool _disposed;
+
+    /// <summary>
+    /// Construtor que cria uma instância do FirebaseApp a partir de um arquivo de credenciais
+    /// </summary>
+    public FirebaseService(string credentialsPath, string projectId)
+    {
+        if (string.IsNullOrEmpty(credentialsPath))
+            throw new ArgumentNullException(nameof(credentialsPath));
+
+        if (!File.Exists(credentialsPath))
+            throw new FileNotFoundException($"Firebase credentials file not found at: {credentialsPath}");
+
+        _firebaseApp = FirebaseApp.Create(new AppOptions
+        {
+            Credential = GoogleCredential.FromFile(credentialsPath),
+            ProjectId = projectId
+        }, $"firebase-{Guid.NewGuid()}"); // Nome único para cada instância
+    }
+
+    /// <summary>
+    /// Construtor que cria uma instância do FirebaseApp a partir do conteúdo JSON das credenciais
+    /// </summary>
+    public FirebaseService(string credentialsJson)
+    {
+        if (string.IsNullOrEmpty(credentialsJson))
+            throw new ArgumentNullException(nameof(credentialsJson));
+
+        using var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(credentialsJson));
+
+        _firebaseApp = FirebaseApp.Create(new AppOptions
+        {
+            Credential = GoogleCredential.FromStream(stream)
+        }, $"firebase-{Guid.NewGuid()}"); // Nome único para cada instância
+    }
+
     public async Task<string> SendPushNotificationAsync(PushChannelMessage pushMessage)
     {
         var message = new Message
@@ -26,7 +65,16 @@ public class FirebaseService : IPushNotificationService
             Webpush = MapWebpushConfig(pushMessage.Webpush, pushMessage.Content)
         };
 
-        return await FirebaseMessaging.DefaultInstance.SendAsync(message);
+        return await FirebaseMessaging.GetMessaging(_firebaseApp).SendAsync(message);
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            _firebaseApp?.Delete();
+            _disposed = true;
+        }
     }
 
     private static FcmAndroidConfig? MapAndroidConfig(AndroidConfigMessage? androidConfig, PushContentMessage content)

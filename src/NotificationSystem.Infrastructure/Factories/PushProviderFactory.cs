@@ -1,20 +1,25 @@
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Services;
+using NotificationSystem.Application.Settings;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Factories;
 
 public class PushProviderFactory : ProviderFactoryBase<IPushNotificationService>, IPushProviderFactory
 {
-    private readonly ILogger<FirebaseService> _firebaseLogger;
+    private readonly ILogger<PushProviderFactory> _logger;
+    private readonly IEncryptionService _encryptionService;
 
     public PushProviderFactory(
         IProviderConfigurationRepository repo,
-        ILogger<FirebaseService> firebaseLogger)
+        ILogger<PushProviderFactory> logger,
+        IEncryptionService encryptionService)
         : base(repo)
     {
-        _firebaseLogger = firebaseLogger;
+        _logger = logger;
+        _encryptionService = encryptionService;
     }
 
     public async Task<IPushNotificationService> CreatePushProvider()
@@ -30,8 +35,38 @@ public class PushProviderFactory : ProviderFactoryBase<IPushNotificationService>
 
     private IPushNotificationService CreateFirebase(ProviderConfiguration config)
     {
-        // Firebase usa configuração global inicializada no Program.cs
-        // Não precisa deserializar aqui pois FirebaseApp já foi inicializado
-        return new FirebaseService();
+        try
+        {
+            // Descriptografa a configuração
+            var decryptedJson = _encryptionService.Decrypt(config.ConfigurationJson);
+            var settings = JsonSerializer.Deserialize<FirebaseSettings>(decryptedJson);
+
+            if (settings == null)
+                throw new InvalidOperationException("Failed to deserialize Firebase settings");
+
+            _logger.LogInformation("Creating Firebase service with configuration from database");
+
+            // Prioriza credenciais em JSON (mais seguro)
+            if (!string.IsNullOrEmpty(settings.CredentialsJson))
+            {
+                _logger.LogInformation("Using Firebase credentials from JSON content");
+                return new FirebaseService(settings.CredentialsJson);
+            }
+
+            // Fallback para arquivo de credenciais
+            if (!string.IsNullOrEmpty(settings.CredentialsPath))
+            {
+                _logger.LogInformation("Using Firebase credentials from file: {Path}", settings.CredentialsPath);
+                return new FirebaseService(settings.CredentialsPath, settings.ProjectId);
+            }
+
+            throw new InvalidOperationException(
+                "Firebase configuration must contain either 'CredentialsJson' or 'CredentialsPath'");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating Firebase service from database configuration");
+            throw;
+        }
     }
 }

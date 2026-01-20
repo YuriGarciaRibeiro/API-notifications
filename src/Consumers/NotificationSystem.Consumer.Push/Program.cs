@@ -1,5 +1,3 @@
-using FirebaseAdmin;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Apllication.Interfaces;
@@ -58,28 +56,7 @@ builder.Services.AddSingleton<IRetryStrategy>(sp =>
         maxDelay: TimeSpan.FromMinutes(5)));
 builder.Services.AddSingleton<MessageProcessingMiddleware<PushChannelMessage>>();
 
-// Initialize Firebase Admin SDK (global configuration - ainda necessário)
-var firebaseCredentialsPath = builder.Configuration["Firebase:CredentialsPath"];
-if (!string.IsNullOrEmpty(firebaseCredentialsPath) && File.Exists(firebaseCredentialsPath))
-{
-    FirebaseApp.Create(new AppOptions
-    {
-        Credential = GoogleCredential.FromFile(firebaseCredentialsPath)
-    });
-}
-else if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")))
-{
-    FirebaseApp.Create(new AppOptions
-    {
-        Credential = GoogleCredential.GetApplicationDefault()
-    });
-}
-else
-{
-    Log.Warning("Firebase credentials not configured. Push notifications will not work.");
-}
-
-// Register Provider Factories (dynamic provider configuration)
+// Register Provider Factories (dynamic provider configuration from database)
 builder.Services.AddProviderFactories();
 
 // Register Worker
