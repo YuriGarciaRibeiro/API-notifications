@@ -29,7 +29,8 @@
       "Bash(fi)",
       "Bash(mkdir:*)",
       "Bash(curl:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(xargs -I {} bash -c 'dir={}; base=$\\(basename \"\"$dir\"\"\\); if [ ! -f \"\"$dir/${base}Validator.cs\"\" ]; then echo \"\"$base \\(missing validator\\)\"\"; fi')"
     ],
     "deny": [],
     "ask": []

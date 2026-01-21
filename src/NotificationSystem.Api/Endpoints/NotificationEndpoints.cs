@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NotificationSystem.Api.Extensions;
+using NotificationSystem.Application.DTOs.Common;
 using NotificationSystem.Application.UseCases.CreateNotification;
 using NotificationSystem.Application.UseCases.GetAllNotifications;
 using NotificationSystem.Application.UseCases.GetNotificationById;
@@ -73,8 +74,3 @@ public static class NotificationEndpoints
         return endpoints;
     }
 }
-
-public record PaginationRequest(
-    int PageNumber = 1,
-    int PageSize = 10
-);

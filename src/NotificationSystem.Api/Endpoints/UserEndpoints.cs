@@ -177,11 +177,3 @@ public static class UserEndpoints
         return result.ToIResult();
     }
 }
-
-public record CreateUserRequest(
-    string Email,
-    string Password,
-    string FullName,
-    List<Guid> RoleIds);
-
-public record AssignRolesRequest(List<Guid> RoleIds);

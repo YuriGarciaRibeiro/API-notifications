@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using NotificationSystem.Application.DTOs;
+using NotificationSystem.Application.DTOs.DeadLetter;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Api.Endpoints;

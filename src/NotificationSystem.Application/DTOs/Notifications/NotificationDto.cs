@@ -1,8 +1,6 @@
-using NotificationSystem.Application.DTOs.Notifications;
+namespace NotificationSystem.Application.DTOs.Notifications;
 
-namespace NotificationSystem.Application.UseCases.GetNotificationById;
-
-public record GetNotificationByIdResponse
+public record NotificationDto
 {
     public Guid Id { get; init; }
     public Guid UserId { get; init; }

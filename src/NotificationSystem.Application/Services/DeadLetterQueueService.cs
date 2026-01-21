@@ -1,7 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NotificationSystem.Application.DTOs;
+using NotificationSystem.Application.DTOs.DeadLetter;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Options;
 using RabbitMQ.Client;
