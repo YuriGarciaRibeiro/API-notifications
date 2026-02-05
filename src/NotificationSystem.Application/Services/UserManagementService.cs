@@ -1,5 +1,6 @@
 using FluentResults;
 using FluentValidation;
+using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.DTOs.Common;
 using NotificationSystem.Application.DTOs.Roles;
 using NotificationSystem.Application.DTOs.Users;
@@ -25,7 +26,7 @@ public class UserManagementService(
         var user = await _userRepository.GetByIdWithRolesAsync(id, cancellationToken);
 
         if (user == null)
-            return Result.Fail<UserDto>("User not found");
+            return Result.Fail<UserDto>(new NotFoundError("User", id));
 
         var userDto = MapToDto(user);
         return Result.Ok(userDto);
@@ -41,7 +42,7 @@ public class UserManagementService(
     public async Task<Result<UserDto>> CreateAsync(string email, string password, string fullName, List<Guid> roleIds, CancellationToken cancellationToken = default)
     {
         if (await _userRepository.EmailExistsAsync(email, cancellationToken))
-            return Result.Fail<UserDto>("Email already exists");
+            return Result.Fail<UserDto>(new ConflictError("User", $"email '{email}' already in use"));
 
         var user = new User
         {
@@ -100,12 +101,12 @@ public class UserManagementService(
         var user = await _userRepository.GetByIdWithRolesAsync(id, cancellationToken);
 
         if (user == null)
-            return Result.Fail<UserDto>("User not found");
+            return Result.Fail<UserDto>(new NotFoundError("User", id));
 
         if (request.Email != null && request.Email != user.Email)
         {
             if (await _userRepository.EmailExistsAsync(request.Email, cancellationToken))
-                return Result.Fail<UserDto>("Email already exists");
+                return Result.Fail<UserDto>(new ConflictError("User", $"email '{request.Email}' already in use"));
 
             user.Email = request.Email;
         }
@@ -141,12 +142,12 @@ public class UserManagementService(
         var currentUserId = _currentUserService.UserId;
 
         if (currentUserId.HasValue && currentUserId.Value == id)
-            return Result.Fail("Cannot delete your own user account");
+            return Result.Fail(new ForbiddenError("Cannot delete your own user account"));
 
         var user = await _userRepository.GetByIdAsync(id, cancellationToken);
 
         if (user == null)
-            return Result.Fail("User not found");
+            return Result.Fail(new NotFoundError("User", id));
 
         await _userRepository.DeleteAsync(id, cancellationToken);
         return Result.Ok();
@@ -159,17 +160,21 @@ public class UserManagementService(
 
         if (!validationResult.IsValid)
         {
-            var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-            return Result.Fail(errors);
+            var result = Result.Fail<bool>();
+            foreach (var error in validationResult.Errors)
+            {
+                result.Reasons.Add(new ValidationError(error.PropertyName, error.ErrorMessage));
+            }
+            return result;
         }
 
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
 
         if (user == null)
-            return Result.Fail("User not found");
+            return Result.Fail(new NotFoundError("User", userId));
 
         if (!_passwordHasher.VerifyPassword(request.CurrentPassword, user.PasswordHash))
-            return Result.Fail("Current password is incorrect");
+            return Result.Fail(new ValidationError("CurrentPassword", "Current password is incorrect"));
 
         user.PasswordHash = _passwordHasher.HashPassword(request.NewPassword);
         user.UpdatedAt = DateTime.UtcNow;
@@ -183,7 +188,7 @@ public class UserManagementService(
         var user = await _userRepository.GetByIdWithRolesAsync(userId, cancellationToken);
 
         if (user == null)
-            return Result.Fail("User not found");
+            return Result.Fail(new NotFoundError("User", userId));
 
         user.UserRoles.Clear();
         user.UserRoles = roleIds.Select(roleId => new UserRole
