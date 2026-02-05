@@ -26,6 +26,11 @@ public class PushProviderFactory(
         };
     }
 
+    public async Task<bool> HasActiveConfigAsync(ChannelType channel)
+    {
+        return await base.HasActiveConfigAsync(channel);
+    }
+
     private IPushNotificationService CreateFirebase(ProviderConfiguration config)
     {
         try

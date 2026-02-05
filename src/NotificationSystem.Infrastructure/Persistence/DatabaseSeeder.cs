@@ -65,6 +65,11 @@ public static class DatabaseSeeder
             { Permissions.NotificationStats, ("Estatísticas de Notificações", "Notification") },
             { Permissions.NotificationDelete, ("Excluir Notificações", "Notification") },
 
+            // Bulk Notifications
+            { Permissions.BulkNotificationCreate, ("Criar Notificações em Massa", "BulkNotification") },
+            { Permissions.BulkNotificationView, ("Visualizar Notificações em Massa", "BulkNotification") },
+            { Permissions.BulkNotificationCancel, ("Cancelar Notificações em Massa", "BulkNotification") },
+
             // Providers (Admin-only)
             { Permissions.ProviderCreate, ("Criar Provedores", "Provider") },
             { Permissions.ProviderView, ("Visualizar Provedores", "Provider") },
@@ -202,6 +207,8 @@ public static class DatabaseSeeder
             "user.create", "user.view", "user.update", "user.delete", "user.assign-roles",
             // Notification management
             "notification.create", "notification.view", "notification.stats", "notification.delete",
+            // Bulk Notification management
+            "bulk-notification.create", "bulk-notification.view", "bulk-notification.cancel",
             // Roles
             "role.view",
             // Audit Logs

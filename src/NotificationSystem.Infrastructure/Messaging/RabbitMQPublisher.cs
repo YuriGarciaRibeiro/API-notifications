@@ -8,11 +8,12 @@ using RabbitMQ.Client;
 
 namespace NotificationSystem.Infrastructure.Messaging;
 
-public class RabbitMQPublisher : IMessagePublisher, IAsyncDisposable
+public class RabbitMQPublisher : IMessagePublisher, IDisposable, IAsyncDisposable
 {
     private readonly IConnection _connection;
     private readonly IChannel _channel;
     private readonly JsonSerializerOptions _jsonOptions;
+    private bool _disposed;
 
     public RabbitMQPublisher(IOptions<RabbitMqSettings> options)
     {
@@ -45,6 +46,7 @@ public class RabbitMQPublisher : IMessagePublisher, IAsyncDisposable
         await DeclareQueueWithDlxAsync("email-notifications");
         await DeclareQueueWithDlxAsync("sms-notifications");
         await DeclareQueueWithDlxAsync("push-notifications");
+        await DeclareQueueWithDlxAsync("bulk-notification");
     }
 
     private async Task DeclareQueueWithDlxAsync(string queueName)
@@ -115,8 +117,37 @@ public class RabbitMQPublisher : IMessagePublisher, IAsyncDisposable
         );
     }
 
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
     public async ValueTask DisposeAsync()
     {
+        await DisposeAsyncCore().ConfigureAwait(false);
+        GC.SuppressFinalize(this);
+    }
+
+    private void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+
+        if (disposing)
+        {
+            _channel?.Dispose();
+            _connection?.Dispose();
+        }
+
+        _disposed = true;
+    }
+
+    private async ValueTask DisposeAsyncCore()
+    {
+        if (_disposed)
+            return;
+
         if (_channel != null)
         {
             await _channel.CloseAsync();
@@ -128,5 +159,7 @@ public class RabbitMQPublisher : IMessagePublisher, IAsyncDisposable
             await _connection.CloseAsync();
             await _connection.DisposeAsync();
         }
+
+        _disposed = true;
     }
 }

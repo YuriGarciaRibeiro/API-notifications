@@ -32,6 +32,16 @@ public class Worker : RabbitMqConsumerBase<SmsChannelMessage>
         SmsChannelMessage message,
         CancellationToken cancellationToken)
     {
+        // Verifica se existe um provider de SMS configurado
+        if (!await _smsProviderFactory.HasActiveConfigAsync(ChannelType.Sms))
+        {
+            _logger.LogWarning(
+                "Skipping SMS notification {NotificationId} - No active SMS provider configured. " +
+                "Configure an SMS provider in the database and set IsActive=true",
+                message.NotificationId);
+            return;
+        }
+
         // Cria o provedor SMS dinamicamente baseado na configuração do banco
         var smsService = await _smsProviderFactory.CreateSmsProvider();
 

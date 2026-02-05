@@ -150,6 +150,7 @@ public static class DependencyInjection
 
         // Endpoints
         app.MapNotificationEndpoints();
+        app.MapBulkNotificationEndpoints();
         app.MapAuthEndpoints();
         app.MapUserEndpoints();
         app.MapRoleEndpoints();

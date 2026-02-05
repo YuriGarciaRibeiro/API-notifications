@@ -57,6 +57,7 @@ public static class DependencyInjection
 
         // Repositories
         services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IBulkNotificationRepository, BulkNotificationRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();

@@ -25,6 +25,11 @@ public class EmailProviderFactory(
         };
     }
 
+    public async Task<bool> HasActiveConfigAsync(ChannelType channel)
+    {
+        return await base.HasActiveConfigAsync(channel);
+    }
+
     private IEmailService CreateSmtp(ProviderConfiguration config)
     {
         _logger.LogInformation("Decrypted SMTP configuration JSON: {ConfigJson}", config.ConfigurationJson);

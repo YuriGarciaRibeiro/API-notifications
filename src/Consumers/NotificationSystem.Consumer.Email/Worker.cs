@@ -32,8 +32,18 @@ public class Worker : RabbitMqConsumerBase<EmailChannelMessage>
     {
         using var scope = _serviceProvider.CreateScope();
 
-        // Cria o provedor Email dinamicamente baseado na configuração do banco
+        // Verifica se existe um provider de email configurado
         var emailProviderFactory = scope.ServiceProvider.GetRequiredService<IEmailProviderFactory>();
+        if (!await emailProviderFactory.HasActiveConfigAsync(ChannelType.Email))
+        {
+            _logger.LogWarning(
+                "Skipping email notification {NotificationId} - No active email provider configured. " +
+                "Configure an email provider in the database and set IsActive=true",
+                message.NotificationId);
+            return;
+        }
+
+        // Cria o provedor Email dinamicamente baseado na configuração do banco
         var emailService = await emailProviderFactory.CreateEmailProvider();
 
         await emailService.SendEmailAsync(

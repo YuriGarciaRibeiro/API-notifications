@@ -25,6 +25,11 @@ public static class Permissions
     public const string NotificationStats = "notification.stats";
     public const string NotificationDelete = "notification.delete";
 
+    // ========== BULK NOTIFICATION PERMISSIONS ==========
+    public const string BulkNotificationCreate = "bulk-notification.create";
+    public const string BulkNotificationView = "bulk-notification.view";
+    public const string BulkNotificationCancel = "bulk-notification.cancel";
+
     // ========== PROVIDER PERMISSIONS ==========
     public const string ProviderCreate = "provider.create";
     public const string ProviderView = "provider.view";
@@ -69,6 +74,11 @@ public static class Permissions
         yield return NotificationView;
         yield return NotificationStats;
         yield return NotificationDelete;
+
+        // Bulk Notifications
+        yield return BulkNotificationCreate;
+        yield return BulkNotificationView;
+        yield return BulkNotificationCancel;
 
         // Providers
         yield return ProviderCreate;

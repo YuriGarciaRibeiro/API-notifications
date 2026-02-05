@@ -33,6 +33,16 @@ public class Worker : RabbitMqConsumerBase<PushChannelMessage>
         PushChannelMessage message,
         CancellationToken cancellationToken)
     {
+        // Verifica se existe um provider de Push configurado
+        if (!await _pushProviderFactory.HasActiveConfigAsync(ChannelType.Push))
+        {
+            _logger.LogWarning(
+                "Skipping push notification {NotificationId} - No active push provider configured. " +
+                "Configure a push provider in the database and set IsActive=true",
+                message.NotificationId);
+            return;
+        }
+
         // Cria o provedor Push dinamicamente baseado na configuração do banco
         var pushService = await _pushProviderFactory.CreatePushProvider();
 

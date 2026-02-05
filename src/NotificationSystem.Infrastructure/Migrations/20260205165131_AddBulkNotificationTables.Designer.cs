@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NotificationSystem.Infrastructure.Persistence;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -12,16 +13,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace NotificationSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(NotificationDbContext))]
-    partial class NotificationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260205165131_AddBulkNotificationTables")]
+    partial class AddBulkNotificationTables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "hstore");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("NotificationSystem.Domain.Entities.AuditLog", b =>
@@ -120,106 +122,6 @@ namespace NotificationSystem.Infrastructure.Migrations
                         .HasDatabaseName("ix_audit_logs_entity_name_action_timestamp");
 
                     b.ToTable("audit_logs", (string)null);
-                });
-
-            modelBuilder.Entity("NotificationSystem.Domain.Entities.BulkNotificationItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BulkJobId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Channel")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("NotificationId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Recipient")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("SentAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Dictionary<string, string>>("Variables")
-                        .IsRequired()
-                        .HasColumnType("hstore");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BulkJobId");
-
-                    b.ToTable("BulkNotificationItems");
-                });
-
-            modelBuilder.Entity("NotificationSystem.Domain.Entities.BulkNotificationJob", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.PrimitiveCollection<List<string>>("ErrorMessages")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.Property<int>("FailedCount")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("ProcessedCount")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("StartedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("SuccessCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TotalCount")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("bulkNotificationJobs");
                 });
 
             modelBuilder.Entity("NotificationSystem.Domain.Entities.Notification", b =>
@@ -658,17 +560,6 @@ namespace NotificationSystem.Infrastructure.Migrations
                     b.HasDiscriminator().HasValue("Sms");
                 });
 
-            modelBuilder.Entity("NotificationSystem.Domain.Entities.BulkNotificationItem", b =>
-                {
-                    b.HasOne("NotificationSystem.Domain.Entities.BulkNotificationJob", "BulkJob")
-                        .WithMany("Items")
-                        .HasForeignKey("BulkJobId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("BulkJob");
-                });
-
             modelBuilder.Entity("NotificationSystem.Domain.Entities.NotificationChannel", b =>
                 {
                     b.HasOne("NotificationSystem.Domain.Entities.Notification", "Notification")
@@ -821,11 +712,6 @@ namespace NotificationSystem.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Webpush");
-                });
-
-            modelBuilder.Entity("NotificationSystem.Domain.Entities.BulkNotificationJob", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("NotificationSystem.Domain.Entities.Notification", b =>

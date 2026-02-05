@@ -16,6 +16,12 @@ public abstract class ProviderFactoryBase<TService>(IProviderConfigurationReposi
         return config;
     }
 
+    protected async Task<bool> HasActiveConfigAsync(ChannelType channel)
+    {
+        var config = await _repo.GetActiveProviderAsync(channel, CancellationToken.None);
+        return config != null;
+    }
+
     protected T? DeserializeConfig<T>(string json) where T : class
     {
         var options = new JsonSerializerOptions

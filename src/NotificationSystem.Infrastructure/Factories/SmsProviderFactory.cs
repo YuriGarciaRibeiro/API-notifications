@@ -25,6 +25,11 @@ public class SmsProviderFactory(
         };
     }
 
+    public async Task<bool> HasActiveConfigAsync(ChannelType channel)
+    {
+        return await base.HasActiveConfigAsync(channel);
+    }
+
     private ISmsService CreateTwilio(ProviderConfiguration config)
     {
         // Deserializa o JSON de configuração para TwilioSettings
