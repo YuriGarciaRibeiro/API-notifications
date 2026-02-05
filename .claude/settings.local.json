@@ -6,7 +6,10 @@
       "Bash(__NEW_LINE_074607cdea3c87f7__ echo \"Pastas vazias deletadas:\")",
       "Bash(dotnet build:*)",
       "Bash(dotnet run:*)",
-      "Bash(dotnet ef migrations add:*)"
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(dotnet ef database update:*)"
     ]
   }
 }
