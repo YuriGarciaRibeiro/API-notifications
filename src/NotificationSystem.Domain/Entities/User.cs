@@ -1,6 +1,8 @@
+using NotificationSystem.Domain.Interfaces;
+
 namespace NotificationSystem.Domain.Entities;
 
-public class User
+public class User : IAuditable
 {
     public Guid Id { get; set; }
     public string Email { get; set; } = string.Empty;

@@ -25,6 +25,9 @@ public class NotificationDbContext(DbContextOptions<NotificationDbContext> optio
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<ProviderConfiguration> ProviderConfigurations => Set<ProviderConfiguration>();
 
+    // Audit Log
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

@@ -5,7 +5,8 @@
       "Bash(__NEW_LINE_074607cdea3c87f7__ rm -rf /Users/yurigarciaribeiro/Documents/GitHub/API-notifications/docs/examples /Users/yurigarciaribeiro/Documents/GitHub/API-notifications/docs/assets /Users/yurigarciaribeiro/Documents/GitHub/API-notifications/src/NotificationSystem.Application/DTOs/Providers /Users/yurigarciaribeiro/Documents/GitHub/API-notifications/src/Consumers/NotificationSystem.Consumer.Dlq)",
       "Bash(__NEW_LINE_074607cdea3c87f7__ echo \"Pastas vazias deletadas:\")",
       "Bash(dotnet build:*)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "Bash(dotnet ef migrations add:*)"
     ]
   }
 }

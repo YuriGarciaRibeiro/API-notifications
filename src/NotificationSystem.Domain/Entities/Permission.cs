@@ -1,6 +1,8 @@
+using NotificationSystem.Domain.Interfaces;
+
 namespace NotificationSystem.Domain.Entities;
 
-public class Permission
+public class Permission : IAuditable
 {
     public Guid Id { get; set; }
     public string Code { get; set; } = string.Empty; // e.g., "notification.send"

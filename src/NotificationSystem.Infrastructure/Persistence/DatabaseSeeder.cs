@@ -80,7 +80,12 @@ public static class DatabaseSeeder
             { Permissions.DlqPurge, ("Limpar DLQ", "DeadLetterQueue") },
 
             // Permissions
-            { Permissions.PermissionView, ("Visualizar Permissões", "Permission") }
+            { Permissions.PermissionView, ("Visualizar Permissões", "Permission") },
+
+            // Audit Logs
+            { Permissions.AuditView, ("Visualizar Logs de Auditoria", "AuditLog") },
+            { Permissions.AuditViewAll, ("Visualizar Todos os Logs", "AuditLog") },
+            { Permissions.AuditExport, ("Exportar Logs de Auditoria", "AuditLog") }
         };
 
         var existingPermissions = await context.Permissions.ToListAsync();
@@ -199,6 +204,8 @@ public static class DatabaseSeeder
             "notification.create", "notification.view", "notification.stats", "notification.delete",
             // Roles
             "role.view",
+            // Audit Logs
+            "audit.view",
             // Permission view
             "permission.view"
         };
@@ -258,6 +265,8 @@ public static class DatabaseSeeder
             "dlq.view", "dlq.reprocess",
             // Notification view
             "notification.view", "notification.stats",
+            // Audit Logs
+            "audit.view",
             // Permission view
             "permission.view"
         };

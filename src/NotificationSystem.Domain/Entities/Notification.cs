@@ -1,8 +1,9 @@
 using NotificationSystem.Domain.Events;
+using NotificationSystem.Domain.Interfaces;
 
 namespace NotificationSystem.Domain.Entities;
 
-public class Notification
+public class Notification : IAuditable
 {
     private readonly List<IDomainEvent> _domainEvents = [];
 

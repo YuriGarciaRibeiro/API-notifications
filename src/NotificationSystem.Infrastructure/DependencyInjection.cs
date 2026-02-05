@@ -8,6 +8,7 @@ using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Infrastructure.Messaging;
 using NotificationSystem.Infrastructure.Persistence;
+using NotificationSystem.Infrastructure.Persistence.Interceptors;
 using NotificationSystem.Infrastructure.Persistence.Repositories;
 using NotificationSystem.Infrastructure.Services;
 
@@ -24,6 +25,9 @@ public static class DependencyInjection
         services.Configure<RabbitMqSettings>(configuration.GetSection(RabbitMqSettings.SectionName));
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
 
+        // Audit Log Interceptor
+        services.AddScoped<AuditLogInterceptor>();
+
         // Database
         services.AddDbContext<NotificationDbContext>((serviceProvider, options) =>
         {
@@ -34,10 +38,17 @@ public static class DependencyInjection
                 throw new InvalidOperationException("Database connection string not found.");
             }
 
+            var auditInterceptor = serviceProvider.GetService<AuditLogInterceptor>();
+
             options.UseNpgsql(
                 databaseSettings.ConnectionString,
                 b => b.MigrationsAssembly(typeof(NotificationDbContext).Assembly.FullName)
             );
+
+            if (auditInterceptor != null)
+            {
+                options.AddInterceptors(auditInterceptor);
+            }
         });
 
         // Data Protection for encryption
@@ -51,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IProviderConfigurationRepository, ProviderConfigurationRepository>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
         // Encryption Service
         services.AddScoped<IEncryptionService, EncryptionService>();

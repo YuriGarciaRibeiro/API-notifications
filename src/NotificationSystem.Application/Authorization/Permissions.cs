@@ -42,6 +42,11 @@ public static class Permissions
     // ========== PERMISSION MANAGEMENT ==========
     public const string PermissionView = "permission.view";
 
+    // ========== AUDIT LOG PERMISSIONS ==========
+    public const string AuditView = "audit.view";
+    public const string AuditViewAll = "audit.view-all";
+    public const string AuditExport = "audit.export";
+
     // Get all permission constants
     public static IEnumerable<string> GetAll()
     {
@@ -81,5 +86,10 @@ public static class Permissions
 
         // Permissions
         yield return PermissionView;
+
+        // Audit Logs
+        yield return AuditView;
+        yield return AuditViewAll;
+        yield return AuditExport;
     }
 }

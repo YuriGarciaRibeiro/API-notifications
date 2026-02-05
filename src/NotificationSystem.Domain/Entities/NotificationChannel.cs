@@ -1,6 +1,8 @@
+using NotificationSystem.Domain.Interfaces;
+
 namespace NotificationSystem.Domain.Entities;
 
-public abstract class NotificationChannel
+public abstract class NotificationChannel : IAuditable
 {
     public Guid Id { get; set; }
     public Guid NotificationId { get; set; }

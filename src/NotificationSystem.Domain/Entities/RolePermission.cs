@@ -1,6 +1,8 @@
+using NotificationSystem.Domain.Interfaces;
+
 namespace NotificationSystem.Domain.Entities;
 
-public class RolePermission
+public class RolePermission : IAuditable
 {
     public Guid RoleId { get; set; }
     public Role Role { get; set; } = null!;

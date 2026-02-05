@@ -1,6 +1,8 @@
+using NotificationSystem.Domain.Interfaces;
+
 namespace NotificationSystem.Domain.Entities;
 
-public class ProviderConfiguration
+public class ProviderConfiguration : IAuditable
 {
     public Guid Id { get; set; }
     public ChannelType ChannelType { get; set; }

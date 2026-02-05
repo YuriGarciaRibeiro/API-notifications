@@ -155,5 +155,6 @@ public static class DependencyInjection
         app.MapRoleEndpoints();
         app.MapDeadLetterQueueEndpoints();
         app.MapProviderEndpoints();
+        app.MapAuditLogEndpoints();
     }
 }
