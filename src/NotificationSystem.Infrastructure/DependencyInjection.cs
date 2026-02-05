@@ -4,12 +4,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Apllication.Interfaces;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Infrastructure.Messaging;
 using NotificationSystem.Infrastructure.Persistence;
 using NotificationSystem.Infrastructure.Persistence.Repositories;
 using NotificationSystem.Infrastructure.Services;
-using NotificationSystem.Infrastructure.Settings;
 
 namespace NotificationSystem.Infrastructure;
 
@@ -21,8 +21,8 @@ public static class DependencyInjection
     {
         // Configure Settings
         services.Configure<DatabaseSettings>(configuration.GetSection(DatabaseSettings.SectionName));
-        services.Configure<RabbitMQSettings>(configuration.GetSection(RabbitMQSettings.SectionName));
-        services.Configure<Application.Options.JwtOptions>(configuration.GetSection(Application.Options.JwtOptions.SectionName));
+        services.Configure<RabbitMqSettings>(configuration.GetSection(RabbitMqSettings.SectionName));
+        services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
 
         // Database
         services.AddDbContext<NotificationDbContext>((serviceProvider, options) =>

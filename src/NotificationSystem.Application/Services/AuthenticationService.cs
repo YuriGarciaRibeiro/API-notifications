@@ -1,9 +1,9 @@
 using FluentResults;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Application.Common.Errors;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.DTOs.Auth;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Application.Options;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Services;
@@ -13,14 +13,14 @@ public class AuthenticationService(
     IRefreshTokenRepository refreshTokenRepository,
     IJwtTokenGenerator jwtTokenGenerator,
     IPasswordHasher passwordHasher,
-    IOptions<JwtOptions> jwtOptions,
+    IOptions<JwtSettings> jwtOptions,
     INotificationRepository repository) : IAuthenticationService
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository = refreshTokenRepository;
     private readonly IJwtTokenGenerator _jwtTokenGenerator = jwtTokenGenerator;
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
-    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+    private readonly JwtSettings _jwtOptions = jwtOptions.Value;
     private readonly INotificationRepository _repository = repository;
 
     public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default)

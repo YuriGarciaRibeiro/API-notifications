@@ -1,9 +1,9 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.DTOs.DeadLetter;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Application.Options;
 using RabbitMQ.Client;
 
 namespace NotificationSystem.Application.Services;
@@ -11,7 +11,7 @@ namespace NotificationSystem.Application.Services;
 public class DeadLetterQueueService : IDeadLetterQueueService, IDisposable
 {
     private readonly ILogger<DeadLetterQueueService> _logger;
-    private readonly RabbitMqOptions _options;
+    private readonly RabbitMqSettings _options;
     private readonly IConnection _connection;
     private readonly IChannel _channel;
 
@@ -24,7 +24,7 @@ public class DeadLetterQueueService : IDeadLetterQueueService, IDisposable
 
     public DeadLetterQueueService(
         ILogger<DeadLetterQueueService> logger,
-        IOptions<RabbitMqOptions> options)
+        IOptions<RabbitMqSettings> options)
     {
         _logger = logger;
         _options = options.Value;

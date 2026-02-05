@@ -1,16 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Apllication.Interfaces;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Consumers;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Messages;
-using NotificationSystem.Application.Options;
 using NotificationSystem.Application.Services;
-using NotificationSystem.Application.Settings;
 using NotificationSystem.Infrastructure;
 using NotificationSystem.Infrastructure.Persistence;
 using NotificationSystem.Infrastructure.Persistence.Repositories;
-using NotificationSystem.Infrastructure.Settings;
 using NotificationSystem.Worker.Sms;
 using Serilog;
 
@@ -26,8 +24,8 @@ builder.Services.AddSerilog(config =>
 builder.Services.Configure<TwilioSettings>(
     builder.Configuration.GetSection(TwilioSettings.SectionName));
 
-builder.Services.Configure<RabbitMqOptions>(
-    builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+builder.Services.Configure<RabbitMqSettings>(
+    builder.Configuration.GetSection(RabbitMqSettings.SectionName));
 
 builder.Services.Configure<DatabaseSettings>(
     builder.Configuration.GetSection(DatabaseSettings.SectionName));

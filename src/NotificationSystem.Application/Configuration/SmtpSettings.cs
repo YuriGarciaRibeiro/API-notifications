@@ -1,6 +1,6 @@
-namespace NotificationSystem.Application.Options;
+namespace NotificationSystem.Application.Configuration;
 
-public class SmtpOptions
+public class SmtpSettings
 {
     public const string SectionName = "Smtp";
 

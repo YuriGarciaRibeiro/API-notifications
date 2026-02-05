@@ -1,9 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Application.Options;
 using NotificationSystem.Application.Services;
-using NotificationSystem.Application.Settings;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Factories;
@@ -30,8 +29,8 @@ public class EmailProviderFactory(
     {
         _logger.LogInformation("Decrypted SMTP configuration JSON: {ConfigJson}", config.ConfigurationJson);
 
-        // Deserializa o JSON de configuração para SmtpOptions
-        var options = DeserializeConfig<SmtpOptions>(config.ConfigurationJson)
+        // Deserializa o JSON de configuração para SmtpSettings
+        var options = DeserializeConfig<SmtpSettings>(config.ConfigurationJson)
             ?? throw new InvalidOperationException("Invalid SMTP configuration");
 
         _logger.LogInformation(

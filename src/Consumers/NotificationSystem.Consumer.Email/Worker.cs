@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Options;
 using NotificationSystem.Apllication.Interfaces;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Consumers;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Messages;
-using NotificationSystem.Application.Options;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Worker.Email;
@@ -17,7 +17,7 @@ public class Worker : RabbitMqConsumerBase<EmailChannelMessage>
 
     public Worker(
         ILogger<Worker> logger,
-        IOptions<RabbitMqOptions> rabbitMqOptions,
+        IOptions<RabbitMqSettings> rabbitMqOptions,
         IServiceProvider serviceProvider,
         MessageProcessingMiddleware<EmailChannelMessage> middleware)
         : base(logger, rabbitMqOptions, serviceProvider, middleware)

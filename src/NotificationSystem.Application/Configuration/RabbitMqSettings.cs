@@ -1,6 +1,6 @@
-namespace NotificationSystem.Application.Options;
+namespace NotificationSystem.Application.Configuration;
 
-public class RabbitMqOptions
+public class RabbitMqSettings
 {
     public const string SectionName = "RabbitMQ";
 

@@ -2,14 +2,14 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Application.Options;
 
 namespace NotificationSystem.Application.Services;
 
-public class SmtpService(IOptions<SmtpOptions> smtpOptions) : IEmailService
+public class SmtpService(IOptions<SmtpSettings> smtpOptions) : IEmailService
 {
-    private readonly SmtpOptions _smtpOptions = smtpOptions.Value;
+    private readonly SmtpSettings _smtpOptions = smtpOptions.Value;
 
     public async Task SendEmailAsync(string to, string subject, string body, bool isHtml = false)
     {

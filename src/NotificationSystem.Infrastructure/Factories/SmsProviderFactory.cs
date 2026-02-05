@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Services;
-using NotificationSystem.Application.Settings;
 using NotificationSystem.Domain.Entities;
 using System.Text.Json;
 

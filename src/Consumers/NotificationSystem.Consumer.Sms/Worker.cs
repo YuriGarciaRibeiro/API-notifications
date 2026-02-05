@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Options;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Consumers;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Messages;
-using NotificationSystem.Application.Options;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Worker.Sms;
@@ -18,7 +18,7 @@ public class Worker : RabbitMqConsumerBase<SmsChannelMessage>
     public Worker(
         ISmsProviderFactory smsProviderFactory,
         ILogger<Worker> logger,
-        IOptions<RabbitMqOptions> rabbitMqOptions,
+        IOptions<RabbitMqSettings> rabbitMqOptions,
         IServiceProvider serviceProvider,
         MessageProcessingMiddleware<SmsChannelMessage> middleware)
         : base(logger, rabbitMqOptions, serviceProvider, middleware)

@@ -1,4 +1,4 @@
-namespace NotificationSystem.Application.Settings;
+namespace NotificationSystem.Application.Configuration;
 
 /// <summary>
 /// Configuração para o provedor Firebase Cloud Messaging

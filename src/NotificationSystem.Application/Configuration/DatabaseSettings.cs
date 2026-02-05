@@ -1,4 +1,4 @@
-namespace NotificationSystem.Infrastructure.Settings;
+namespace NotificationSystem.Application.Configuration;
 
 public class DatabaseSettings
 {

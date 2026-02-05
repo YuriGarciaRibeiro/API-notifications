@@ -2,8 +2,8 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Apllication.Interfaces;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Infrastructure.Settings;
 using RabbitMQ.Client;
 
 namespace NotificationSystem.Infrastructure.Messaging;
@@ -14,14 +14,14 @@ public class RabbitMQPublisher : IMessagePublisher, IAsyncDisposable
     private readonly IChannel _channel;
     private readonly JsonSerializerOptions _jsonOptions;
 
-    public RabbitMQPublisher(IOptions<RabbitMQSettings> options)
+    public RabbitMQPublisher(IOptions<RabbitMqSettings> options)
     {
         var settings = options.Value;
 
         var factory = new ConnectionFactory
         {
-            HostName = settings.HostName,
-            UserName = settings.UserName,
+            HostName = settings.Host,
+            UserName = settings.Username,
             Password = settings.Password,
             Port = settings.Port
         };

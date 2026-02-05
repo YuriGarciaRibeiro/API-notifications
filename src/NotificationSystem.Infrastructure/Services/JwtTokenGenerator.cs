@@ -4,15 +4,15 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Application.Options;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Infrastructure.Services;
 
-public class JwtTokenGenerator(IOptions<JwtOptions> jwtOptions) : IJwtTokenGenerator
+public class JwtTokenGenerator(IOptions<JwtSettings> jwtOptions) : IJwtTokenGenerator
 {
-    private readonly JwtOptions _jwtOptions = jwtOptions.Value;
+    private readonly JwtSettings _jwtOptions = jwtOptions.Value;
 
     public string GenerateAccessToken(User user, IEnumerable<string> roles, IEnumerable<string> permissions)
     {

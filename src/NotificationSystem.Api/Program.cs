@@ -7,8 +7,8 @@ using NotificationSystem.Api.Endpoints;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Api.Middlewares;
 using NotificationSystem.Application;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Application.Options;
 using NotificationSystem.Application.Services;
 using NotificationSystem.Infrastructure;
 using NotificationSystem.Infrastructure.Persistence;
@@ -36,11 +36,11 @@ try
     builder.Services.AddSwaggerConfiguration();
 
     // Configure SMTP
-    builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection(SmtpOptions.SectionName));
+    builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection(SmtpSettings.SectionName));
     builder.Services.AddScoped<IEmailService, SmtpService>();
 
-    // Configure RabbitMQ Options for DLQ Service
-    builder.Services.Configure<RabbitMqOptions>(builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+    // Configure RabbitMQ Settings for DLQ Service
+    builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection(RabbitMqSettings.SectionName));
 
     // Configure Dead Letter Queue Management
     builder.Services.AddSingleton<IDeadLetterQueueService, DeadLetterQueueService>();

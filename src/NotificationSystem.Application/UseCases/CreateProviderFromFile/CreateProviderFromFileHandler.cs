@@ -2,8 +2,8 @@ using System.Text.Json;
 using FluentResults;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Application.Settings;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.CreateProviderFromFile;

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Application.Settings;
 using Twilio;
 using Twilio.Rest.Api.V2010.Account;
 using Twilio.Types;

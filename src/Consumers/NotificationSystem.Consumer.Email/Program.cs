@@ -2,16 +2,15 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Apllication.Interfaces;
+using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Consumers;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Messages;
-using NotificationSystem.Application.Options;
 using NotificationSystem.Application.Services;
 using NotificationSystem.Infrastructure;
 using NotificationSystem.Infrastructure.Persistence;
 using NotificationSystem.Infrastructure.Persistence.Repositories;
 using NotificationSystem.Infrastructure.Services;
-using NotificationSystem.Infrastructure.Settings;
 using NotificationSystem.Worker.Email;
 using Serilog;
 
@@ -24,11 +23,11 @@ builder.Services.AddSerilog(config =>
 });
 
 // Configure Options
-builder.Services.Configure<SmtpOptions>(
-    builder.Configuration.GetSection(SmtpOptions.SectionName));
+builder.Services.Configure<SmtpSettings>(
+    builder.Configuration.GetSection(SmtpSettings.SectionName));
 
-builder.Services.Configure<RabbitMqOptions>(
-    builder.Configuration.GetSection(RabbitMqOptions.SectionName));
+builder.Services.Configure<RabbitMqSettings>(
+    builder.Configuration.GetSection(RabbitMqSettings.SectionName));
 
 builder.Services.Configure<DatabaseSettings>(
     builder.Configuration.GetSection(DatabaseSettings.SectionName));

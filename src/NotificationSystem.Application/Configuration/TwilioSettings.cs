@@ -1,4 +1,4 @@
-namespace NotificationSystem.Application.Settings;
+namespace NotificationSystem.Application.Configuration;
 
 public class TwilioSettings
 {

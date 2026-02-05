@@ -1,6 +1,6 @@
-namespace NotificationSystem.Application.Options;
+namespace NotificationSystem.Application.Configuration;
 
-public class JwtOptions
+public class JwtSettings
 {
     public const string SectionName = "Jwt";
 
