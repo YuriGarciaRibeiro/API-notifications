@@ -1,6 +1,7 @@
 using FluentResults;
 using FluentValidation;
 using Microsoft.Extensions.Options;
+using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.DTOs.Auth;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Options;
@@ -29,13 +30,13 @@ public class AuthenticationService(
         var user = await _userRepository.GetByEmailWithRolesAsync(request.Email, cancellationToken);
 
         if (user == null)
-            return Result.Fail<LoginResponse>("Invalid email or password");
+            return Result.Fail<LoginResponse>(new UnauthorizedError("Invalid email or password"));
 
         if (!user.IsActive)
-            return Result.Fail<LoginResponse>("User account is inactive");
+            return Result.Fail<LoginResponse>(new UnauthorizedError("User account is inactive"));
 
         if (!_passwordHasher.VerifyPassword(request.Password, user.PasswordHash))
-            return Result.Fail<LoginResponse>("Invalid email or password");
+            return Result.Fail<LoginResponse>(new UnauthorizedError("Invalid email or password"));
 
         var roles = user.UserRoles.Select(ur => ur.Role.Name).ToList();
         var permissions = user.UserRoles
@@ -85,12 +86,12 @@ public class AuthenticationService(
         var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken, cancellationToken);
 
         if (token == null || !token.IsActive)
-            return Result.Fail<LoginResponse>("Invalid or expired refresh token");
+            return Result.Fail<LoginResponse>(new UnauthorizedError("Invalid or expired refresh token"));
 
         var user = await _userRepository.GetByIdWithRolesAsync(token.UserId, cancellationToken);
 
         if (user == null || !user.IsActive)
-            return Result.Fail<LoginResponse>("User not found or inactive");
+            return Result.Fail<LoginResponse>(new UnauthorizedError("User not found or inactive"));
 
         var newRefreshToken = _jwtTokenGenerator.GenerateRefreshToken();
 
@@ -143,7 +144,7 @@ public class AuthenticationService(
         var token = await _refreshTokenRepository.GetByTokenAsync(refreshToken, cancellationToken);
 
         if (token == null || !token.IsActive)
-            return Result.Fail("Invalid or expired refresh token");
+            return Result.Fail(new UnauthorizedError("Invalid or expired refresh token"));
 
         token.RevokedAt = DateTime.UtcNow;
         token.RevokedByIp = ipAddress;
@@ -160,11 +161,11 @@ public class AuthenticationService(
         if (!validationResult.IsValid)
         {
             var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-            return Result.Fail<LoginResponse>(errors);
+            return Result.Fail<LoginResponse>(new ValidationError("RegisterUserRequest", errors));
         }
 
         if (await _userRepository.EmailExistsAsync(request.Email, cancellationToken))
-            return Result.Fail<LoginResponse>("Email already exists");
+            return Result.Fail<LoginResponse>(new ConflictError("User", $"email '{request.Email}' already in use"));
 
         var user = new User
         {

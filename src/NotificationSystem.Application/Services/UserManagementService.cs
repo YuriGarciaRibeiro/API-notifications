@@ -160,7 +160,7 @@ public class UserManagementService(
 
         if (!validationResult.IsValid)
         {
-            var result = Result.Fail<bool>();
+            var result = Result.Fail(new ValidationError("ChangePasswordRequest", "Invalid password change request"));
             foreach (var error in validationResult.Errors)
             {
                 result.Reasons.Add(new ValidationError(error.PropertyName, error.ErrorMessage));

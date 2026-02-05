@@ -1,4 +1,5 @@
 using FluentResults;
+using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.DTOs.Common;
 using NotificationSystem.Application.DTOs.Roles;
 using NotificationSystem.Application.Interfaces;
@@ -16,7 +17,7 @@ public class RoleManagementService(IRoleRepository roleRepository, IPermissionRe
         var role = await _roleRepository.GetByIdWithPermissionsAsync(id, cancellationToken);
 
         if (role == null)
-            return Result.Fail<RoleDetailDto>("Role not found");
+            return Result.Fail<RoleDetailDto>(new NotFoundError("role", id));
 
         var roleDto = MapToDetailDto(role);
         return Result.Ok(roleDto);
@@ -66,15 +67,15 @@ public class RoleManagementService(IRoleRepository roleRepository, IPermissionRe
         var role = await _roleRepository.GetByIdWithPermissionsAsync(id, cancellationToken);
 
         if (role == null)
-            return Result.Fail<RoleDetailDto>("Role not found");
+            return Result.Fail<RoleDetailDto>(new NotFoundError("role", id));
 
         if (role.IsSystemRole)
-            return Result.Fail<RoleDetailDto>("Cannot modify system role");
+            return Result.Fail<RoleDetailDto>(new ConflictError("Role", "Cannot modify system role"));
 
         if (request.Name != null && request.Name != role.Name)
         {
             if (await _roleRepository.NameExistsAsync(request.Name, cancellationToken))
-                return Result.Fail<RoleDetailDto>("Role name already exists");
+                return Result.Fail<RoleDetailDto>(new ConflictError("Role", $"name '{request.Name}' already in use"));
 
             role.Name = request.Name;
         }
@@ -107,13 +108,13 @@ public class RoleManagementService(IRoleRepository roleRepository, IPermissionRe
         var role = await _roleRepository.GetByIdAsync(id, cancellationToken);
 
         if (role == null)
-            return Result.Fail("Role not found");
+            return Result.Fail(new NotFoundError("role", id));
 
         if (role.IsSystemRole)
-            return Result.Fail("Cannot delete system role");
+            return Result.Fail(new ConflictError("Role", "Cannot delete system role"));
 
         if (await _roleRepository.HasUsersAsync(id, cancellationToken))
-            return Result.Fail("Cannot delete role that is assigned to users");
+            return Result.Fail(new ConflictError("Role", "Cannot delete role that is assigned to users"));
 
         await _roleRepository.DeleteAsync(id, cancellationToken);
         return Result.Ok();

@@ -1,38 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(tree:*)",
-      "Bash(dotnet:*)",
-      "Bash(rm:*)",
-      "Bash(find:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(chmod:*)",
-      "Bash(docker --version:*)",
-      "Bash(docker ps:*)",
-      "Bash(docker-compose up:*)",
-      "Bash(docker exec:*)",
-      "Bash(timeout 10 dotnet run:*)",
-      "Bash(gtimeout 10 dotnet run:*)",
-      "Bash(./scripts/list-migrations.sh:*)",
-      "Bash(./scripts/add-migration.sh:*)",
-      "Bash(./scripts/database/list-migrations.sh:*)",
-      "Bash(docker-compose ps:*)",
-      "Bash(wc:*)",
-      "Bash(~/.zshrc)",
-      "Bash(export Twilio__AccountSid=\"ACef1d1c1b875988a23b546202b9ad3546\")",
-      "Bash(export Twilio__AuthToken=\"45ef11c65f6514818bc404fcc0ccf674\")",
-      "Bash(export Twilio__FromPhoneNumber=\"+14012467147\")",
-      "Bash(if [ -f .gitignore ])",
-      "Bash(then cat .gitignore)",
-      "Bash(else echo \"No .gitignore found\")",
-      "Bash(fi)",
-      "Bash(mkdir:*)",
-      "Bash(curl:*)",
-      "Bash(python3:*)",
-      "Bash(xargs -I {} bash -c 'dir={}; base=$\\(basename \"\"$dir\"\"\\); if [ ! -f \"\"$dir/${base}Validator.cs\"\" ]; then echo \"\"$base \\(missing validator\\)\"\"; fi')"
-    ],
-    "deny": [],
-    "ask": []
+      "Bash(git commit:*)",
+      "Bash(__NEW_LINE_074607cdea3c87f7__ rm -rf /Users/yurigarciaribeiro/Documents/GitHub/API-notifications/docs/examples /Users/yurigarciaribeiro/Documents/GitHub/API-notifications/docs/assets /Users/yurigarciaribeiro/Documents/GitHub/API-notifications/src/NotificationSystem.Application/DTOs/Providers /Users/yurigarciaribeiro/Documents/GitHub/API-notifications/src/Consumers/NotificationSystem.Consumer.Dlq)",
+      "Bash(__NEW_LINE_074607cdea3c87f7__ echo \"Pastas vazias deletadas:\")"
+    ]
   }
 }
