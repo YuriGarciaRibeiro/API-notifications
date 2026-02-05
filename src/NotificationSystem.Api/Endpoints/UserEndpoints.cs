@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using NotificationSystem.Application.Authorization;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Application.DTOs.Users;
 using NotificationSystem.Application.UseCases.AssignRoles;
@@ -73,17 +74,17 @@ public static class UserEndpoints
             .WithName("ChangePassword")
             .WithSummary("Altera a senha do usuário")
             .WithDescription(UserEndpointsDocumentation.ChangePasswordDescription)
-            .RequireAuthorization()
+            .RequireAuthorization(Permissions.UserChangePassword)
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status400BadRequest)
-            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("{id:guid}/assign-roles", AssignRoles)
             .WithName("AssignRoles")
             .WithSummary("Atribui roles a um usuário")
             .WithDescription(UserEndpointsDocumentation.AssignRolesDescription)
-            .RequireAuthorization("user.update")
+            .RequireAuthorization(Permissions.UserAssignRoles)
             .Produces(StatusCodes.Status204NoContent)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NotificationSystem.Application.Authorization;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Domain.Entities;
 
@@ -40,90 +41,166 @@ public static class DatabaseSeeder
 
     private static async Task SeedPermissionsAsync(NotificationDbContext context, ILogger logger)
     {
-        if (await context.Permissions.AnyAsync())
+        // Mapa de permissões sincronizado com Permissions.cs
+        // (código da permissão, nome amigável, categoria)
+        var permissionMap = new Dictionary<string, (string Name, string Category)>
         {
-            logger.LogInformation("Permissions already exist, skipping seed");
+            // Roles
+            { Permissions.RoleCreate, ("Criar Perfis", "Role") },
+            { Permissions.RoleView, ("Visualizar Perfis", "Role") },
+            { Permissions.RoleUpdate, ("Atualizar Perfis", "Role") },
+            { Permissions.RoleDelete, ("Excluir Perfis", "Role") },
+
+            // Users
+            { Permissions.UserCreate, ("Criar Usuários", "User") },
+            { Permissions.UserView, ("Visualizar Usuários", "User") },
+            { Permissions.UserUpdate, ("Atualizar Usuários", "User") },
+            { Permissions.UserDelete, ("Excluir Usuários", "User") },
+            { Permissions.UserChangePassword, ("Alterar Senha", "User") },
+            { Permissions.UserAssignRoles, ("Atribuir Funções", "User") },
+
+            // Notifications
+            { Permissions.NotificationCreate, ("Criar Notificações", "Notification") },
+            { Permissions.NotificationView, ("Visualizar Notificações", "Notification") },
+            { Permissions.NotificationStats, ("Estatísticas de Notificações", "Notification") },
+            { Permissions.NotificationDelete, ("Excluir Notificações", "Notification") },
+
+            // Providers (Admin-only)
+            { Permissions.ProviderCreate, ("Criar Provedores", "Provider") },
+            { Permissions.ProviderView, ("Visualizar Provedores", "Provider") },
+            { Permissions.ProviderUpdate, ("Atualizar Provedores", "Provider") },
+            { Permissions.ProviderDelete, ("Excluir Provedores", "Provider") },
+            { Permissions.ProviderUpload, ("Upload de Credenciais", "Provider") },
+            { Permissions.ProviderToggle, ("Ativar/Desativar Provedores", "Provider") },
+            { Permissions.ProviderSetPrimary, ("Definir Provedor Primário", "Provider") },
+
+            // Dead Letter Queue (Crítico)
+            { Permissions.DlqView, ("Visualizar DLQ", "DeadLetterQueue") },
+            { Permissions.DlqReprocess, ("Reprocessar DLQ", "DeadLetterQueue") },
+            { Permissions.DlqPurge, ("Limpar DLQ", "DeadLetterQueue") },
+
+            // Permissions
+            { Permissions.PermissionView, ("Visualizar Permissões", "Permission") }
+        };
+
+        var existingPermissions = await context.Permissions.ToListAsync();
+        var existingCodes = existingPermissions.Select(p => p.Code).ToHashSet();
+
+        // Detecta permissões novas (faltando no banco)
+        var newPermissionCodes = permissionMap.Keys.Except(existingCodes).ToList();
+
+        if (newPermissionCodes.Count == 0)
+        {
+            logger.LogInformation("All {Count} permissions already exist", permissionMap.Count);
             return;
         }
 
-        var permissions = new List<Permission>
+        // Cria apenas as permissões faltantes
+        var newPermissions = newPermissionCodes.Select(code =>
         {
-            // Notification permissions
-            new() { Id = Guid.NewGuid(), Code = "notification.send", Name = "Enviar Notificações", Description = "Permite enviar notificações", Category = "Notification", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "notification.view", Name = "Visualizar Notificações", Description = "Permite visualizar notificações", Category = "Notification", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "notification.delete", Name = "Excluir Notificações", Description = "Permite excluir notificações", Category = "Notification", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "notification.stats", Name = "Estatísticas de Notificações", Description = "Permite visualizar estatísticas de notificações", Category = "Notification", CreatedAt = DateTime.UtcNow },
+            var (name, category) = permissionMap[code];
+            return new Permission
+            {
+                Id = Guid.NewGuid(),
+                Code = code,
+                Name = name,
+                Description = $"Permite {name.ToLower()}",
+                Category = category,
+                CreatedAt = DateTime.UtcNow
+            };
+        }).ToList();
 
-            // Channel permissions
-            new() { Id = Guid.NewGuid(), Code = "channel.create", Name = "Criar Canais", Description = "Permite criar canais de notificação", Category = "Channel", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "channel.update", Name = "Atualizar Canais", Description = "Permite atualizar canais de notificação", Category = "Channel", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "channel.delete", Name = "Excluir Canais", Description = "Permite excluir canais de notificação", Category = "Channel", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "channel.view", Name = "Visualizar Canais", Description = "Permite visualizar canais de notificação", Category = "Channel", CreatedAt = DateTime.UtcNow },
-
-            // User permissions
-            new() { Id = Guid.NewGuid(), Code = "user.create", Name = "Criar Usuários", Description = "Permite criar usuários", Category = "User", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "user.update", Name = "Atualizar Usuários", Description = "Permite atualizar usuários", Category = "User", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "user.delete", Name = "Excluir Usuários", Description = "Permite excluir usuários", Category = "User", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "user.view", Name = "Visualizar Usuários", Description = "Permite visualizar usuários", Category = "User", CreatedAt = DateTime.UtcNow },
-
-            // Role permissions
-            new() { Id = Guid.NewGuid(), Code = "role.create", Name = "Criar Perfis", Description = "Permite criar perfis", Category = "Role", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "role.update", Name = "Atualizar Perfis", Description = "Permite atualizar perfis", Category = "Role", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "role.delete", Name = "Excluir Perfis", Description = "Permite excluir perfis", Category = "Role", CreatedAt = DateTime.UtcNow },
-            new() { Id = Guid.NewGuid(), Code = "role.view", Name = "Visualizar Perfis", Description = "Permite visualizar perfis", Category = "Role", CreatedAt = DateTime.UtcNow },
-
-            // Settings permissions
-            new() { Id = Guid.NewGuid(), Code = "settings.manage", Name = "Gerenciar Configurações", Description = "Permite gerenciar configurações do sistema", Category = "Settings", CreatedAt = DateTime.UtcNow }
-        };
-
-        await context.Permissions.AddRangeAsync(permissions);
+        await context.Permissions.AddRangeAsync(newPermissions);
         await context.SaveChangesAsync();
 
-        logger.LogInformation("Seeded {Count} permissions", permissions.Count);
+        logger.LogInformation("Synced permissions: {Total} total, {New} added, {Existing} already exist",
+            permissionMap.Count, newPermissions.Count, existingCodes.Count);
     }
 
     private static async Task SeedRolesAsync(NotificationDbContext context, ILogger logger)
     {
-        if (await context.Roles.AnyAsync())
+        var allPermissions = await context.Permissions.ToListAsync();
+
+        // ========== ADMIN ROLE - FULL ACCESS (Sincroniza automaticamente) ==========
+        var adminRole = await context.Roles.Include(r => r.RolePermissions)
+            .FirstOrDefaultAsync(r => r.Name == "Administrator");
+
+        if (adminRole == null)
         {
-            logger.LogInformation("Roles already exist, skipping seed");
+            // Primeira execução: cria role Admin com todas as permissões
+            adminRole = new Role
+            {
+                Id = Guid.NewGuid(),
+                Name = "Administrator",
+                Description = "Administrador do sistema com acesso total a todos os recursos",
+                IsSystemRole = true,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            adminRole.RolePermissions = allPermissions.Select(p => new RolePermission
+            {
+                RoleId = adminRole.Id,
+                PermissionId = p.Id,
+                GrantedAt = DateTime.UtcNow
+            }).ToList();
+
+            await context.Roles.AddAsync(adminRole);
+            logger.LogInformation("Created Administrator role with {Count} permissions", allPermissions.Count);
+        }
+        else
+        {
+            // Sincroniza: adiciona novas permissões ao admin sem remover as antigas
+            var adminPermissionIds = adminRole.RolePermissions.Select(rp => rp.PermissionId).ToHashSet();
+            var missingPermissions = allPermissions.Where(p => !adminPermissionIds.Contains(p.Id)).ToList();
+
+            if (missingPermissions.Count > 0)
+            {
+                foreach (var permission in missingPermissions)
+                {
+                    adminRole.RolePermissions.Add(new RolePermission
+                    {
+                        RoleId = adminRole.Id,
+                        PermissionId = permission.Id,
+                        GrantedAt = DateTime.UtcNow
+                    });
+                }
+
+                context.Roles.Update(adminRole);
+                logger.LogInformation("Updated Administrator role: added {Count} new permissions",
+                    missingPermissions.Count);
+            }
+        }
+
+        await context.SaveChangesAsync();
+
+        // Verifica se as outras roles já foram criadas
+        var otherRolesExist = await context.Roles.AnyAsync(r => r.Name != "Administrator");
+        if (otherRolesExist)
+        {
+            logger.LogInformation("Other roles already exist, skipping seed");
             return;
         }
 
-        var allPermissions = await context.Permissions.ToListAsync();
-
-        // Admin role - all permissions
-        var adminRole = new Role
-        {
-            Id = Guid.NewGuid(),
-            Name = "Admin",
-            Description = "Administrador do sistema com acesso total",
-            IsSystemRole = true,
-            CreatedAt = DateTime.UtcNow
-        };
-
-        adminRole.RolePermissions = allPermissions.Select(p => new RolePermission
-        {
-            RoleId = adminRole.Id,
-            PermissionId = p.Id,
-            GrantedAt = DateTime.UtcNow
-        }).ToList();
-
-        // Manager role
+        // ========== MANAGER ROLE - GERENCIAMENTO DE USUÁRIOS E NOTIFICAÇÕES ==========
         var managerRole = new Role
         {
             Id = Guid.NewGuid(),
             Name = "Manager",
-            Description = "Gerente com permissões de gerenciamento",
+            Description = "Gerente com permissões de gerenciamento de usuários e notificações",
             IsSystemRole = true,
             CreatedAt = DateTime.UtcNow
         };
 
         var managerPermissionCodes = new[]
         {
-            "notification.send", "notification.view", "notification.delete", "notification.stats",
-            "channel.view", "channel.update",
-            "user.view"
+            // User management
+            "user.create", "user.view", "user.update", "user.delete", "user.assign-roles",
+            // Notification management
+            "notification.create", "notification.view", "notification.stats", "notification.delete",
+            // Roles
+            "role.view",
+            // Permission view
+            "permission.view"
         };
 
         managerRole.RolePermissions = allPermissions
@@ -135,20 +212,54 @@ public static class DatabaseSeeder
                 GrantedAt = DateTime.UtcNow
             }).ToList();
 
-        // Operator role
+        // ========== DEVELOPER ROLE - GERENCIAMENTO DE PROVEDORES ==========
+        var developerRole = new Role
+        {
+            Id = Guid.NewGuid(),
+            Name = "Developer",
+            Description = "Desenvolvedor com permissões de configuração de provedores",
+            IsSystemRole = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var developerPermissionCodes = new[]
+        {
+            // Provider management
+            "provider.create", "provider.view", "provider.update", "provider.delete",
+            "provider.upload", "provider.toggle", "provider.set-primary",
+            // Notification view
+            "notification.view", "notification.stats",
+            // Permission view
+            "permission.view"
+        };
+
+        developerRole.RolePermissions = allPermissions
+            .Where(p => developerPermissionCodes.Contains(p.Code))
+            .Select(p => new RolePermission
+            {
+                RoleId = developerRole.Id,
+                PermissionId = p.Id,
+                GrantedAt = DateTime.UtcNow
+            }).ToList();
+
+        // ========== OPERATOR ROLE - MONITORAMENTO DE DLQ ==========
         var operatorRole = new Role
         {
             Id = Guid.NewGuid(),
             Name = "Operator",
-            Description = "Operador com permissões básicas de operação",
+            Description = "Operador com permissões de monitoramento e gerenciamento de filas",
             IsSystemRole = true,
             CreatedAt = DateTime.UtcNow
         };
 
         var operatorPermissionCodes = new[]
         {
-            "notification.send", "notification.view",
-            "channel.view"
+            // DLQ management
+            "dlq.view", "dlq.reprocess",
+            // Notification view
+            "notification.view", "notification.stats",
+            // Permission view
+            "permission.view"
         };
 
         operatorRole.RolePermissions = allPermissions
@@ -160,7 +271,7 @@ public static class DatabaseSeeder
                 GrantedAt = DateTime.UtcNow
             }).ToList();
 
-        // Viewer role
+        // ========== VIEWER ROLE - APENAS LEITURA ==========
         var viewerRole = new Role
         {
             Id = Guid.NewGuid(),
@@ -172,8 +283,13 @@ public static class DatabaseSeeder
 
         var viewerPermissionCodes = new[]
         {
+            // Read-only
             "notification.view", "notification.stats",
-            "channel.view"
+            "user.view",
+            "role.view",
+            "provider.view",
+            "dlq.view",
+            "permission.view"
         };
 
         viewerRole.RolePermissions = allPermissions
@@ -185,10 +301,10 @@ public static class DatabaseSeeder
                 GrantedAt = DateTime.UtcNow
             }).ToList();
 
-        await context.Roles.AddRangeAsync(new[] { adminRole, managerRole, operatorRole, viewerRole });
+        await context.Roles.AddRangeAsync(new[] { managerRole, developerRole, operatorRole, viewerRole });
         await context.SaveChangesAsync();
 
-        logger.LogInformation("Seeded {Count} roles", 4);
+        logger.LogInformation("Seeded {Count} roles", 5);
     }
 
     private static async Task SeedAdminUserAsync(NotificationDbContext context, IPasswordHasher passwordHasher, ILogger logger)
@@ -201,7 +317,7 @@ public static class DatabaseSeeder
             return;
         }
 
-        var adminRole = await context.Roles.FirstAsync(r => r.Name == "Admin");
+        var adminRole = await context.Roles.FirstAsync(r => r.Name == "Administrator");
 
         var adminUser = new User
         {

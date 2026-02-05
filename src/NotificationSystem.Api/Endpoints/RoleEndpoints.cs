@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using NotificationSystem.Application.Authorization;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Application.DTOs.Common;
 using NotificationSystem.Application.DTOs.Roles;
@@ -42,9 +43,9 @@ public static class RoleEndpoints
             .WithName("GetAllPermissions")
             .WithSummary("Lista todas as permissões")
             .WithDescription(RoleEndpointsDocumentation.GetAllPermissionsDescription)
-            .RequireAuthorization()
+            .RequireAuthorization(Permissions.PermissionView)
             .Produces<IEnumerable<PermissionDto>>(StatusCodes.Status200OK, "application/json")
-            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("", CreateRole)

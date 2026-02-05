@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using NotificationSystem.Application.Authorization;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Application.UseCases.CreateProvider;
 using NotificationSystem.Application.UseCases.CreateProviderFromFile;
@@ -17,7 +18,6 @@ public static class ProviderEndpoints
     {
         var group = endpoints.MapGroup("/api/admin/providers")
             .WithTags("Provider Configuration")
-            .RequireAuthorization()
             .DisableAntiforgery(); // Necessário para upload de arquivos
 
         group.MapGet("/",
@@ -30,7 +30,9 @@ public static class ProviderEndpoints
             .WithName("GetAllProviders")
             .WithSummary("Lista todos os provedores configurados")
             .WithDescription("Retorna a lista de provedores de notificação configurados, opcionalmente filtrados por tipo de canal.")
+            .RequireAuthorization(Permissions.ProviderView)
             .Produces<List<ProviderConfigurationResponse>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/",
@@ -48,8 +50,10 @@ public static class ProviderEndpoints
             .WithName("CreateProvider")
             .WithSummary("Cadastra um novo provedor")
             .WithDescription("Cria uma nova configuração de provedor de notificação (Twilio, SMTP, Firebase, etc).")
+            .RequireAuthorization(Permissions.ProviderCreate)
             .Produces<Guid>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/upload",
@@ -114,10 +118,12 @@ public static class ProviderEndpoints
             .WithName("CreateProviderFromFile")
             .WithSummary("Cadastra um novo provedor via upload de arquivo")
             .WithDescription("Faz upload do arquivo de credenciais (ex: Firebase JSON) e cria uma nova configuração de provedor.")
+            .RequireAuthorization(Permissions.ProviderUpload)
             .DisableAntiforgery()
             .Accepts<IFormFile>("multipart/form-data")
             .Produces<Guid>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/{id:guid}/set-primary",
@@ -130,7 +136,9 @@ public static class ProviderEndpoints
             .WithName("SetProviderAsPrimary")
             .WithSummary("Define um provedor como primário")
             .WithDescription("Ativa um provedor como primário para o canal, desativando os outros do mesmo canal automaticamente.")
+            .RequireAuthorization(Permissions.ProviderSetPrimary)
             .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
@@ -144,7 +152,9 @@ public static class ProviderEndpoints
             .WithName("ToggleProviderActiveStatus")
             .WithSummary("Ativa ou desativa um provedor")
             .WithDescription("Alterna o status ativo/inativo de um provedor de notificação.")
+            .RequireAuthorization(Permissions.ProviderToggle)
             .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
@@ -158,7 +168,9 @@ public static class ProviderEndpoints
             .WithName("DeleteProvider")
             .WithSummary("Remove um provedor")
             .WithDescription("Exclui uma configuração de provedor de notificação do sistema.")
+            .RequireAuthorization(Permissions.ProviderDelete)
             .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 

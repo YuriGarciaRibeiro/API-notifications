@@ -2,7 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
-using NotificationSystem.Api.Authorization;
+using NotificationSystem.Application.Authorization;
 using NotificationSystem.Api.Endpoints;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Api.Middlewares;
@@ -71,19 +71,7 @@ try
             };
         });
 
-    builder.Services.AddAuthorization(options =>
-    {
-        // Permission policies
-        options.AddPolicy("role.create", policy => policy.RequireClaim("permission", "role.create"));
-        options.AddPolicy("role.update", policy => policy.RequireClaim("permission", "role.update"));
-        options.AddPolicy("role.delete", policy => policy.RequireClaim("permission", "role.delete"));
-        options.AddPolicy("role.view", policy => policy.RequireClaim("permission", "role.view"));
-
-        options.AddPolicy("user.create", policy => policy.RequireClaim("permission", "user.create"));
-        options.AddPolicy("user.update", policy => policy.RequireClaim("permission", "user.update"));
-        options.AddPolicy("user.delete", policy => policy.RequireClaim("permission", "user.delete"));
-        options.AddPolicy("user.view", policy => policy.RequireClaim("permission", "user.view"));
-    });
+    builder.Services.AddPermissionPolicies();
 
     // Configure CORS
     builder.Services.AddCors(options =>

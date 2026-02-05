@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using NotificationSystem.Application.Authorization;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Application.DTOs.Common;
 using NotificationSystem.Application.UseCases.CreateNotification;
@@ -27,8 +28,10 @@ public static class NotificationEndpoints
             .WithName("GetAllNotifications")
             .WithSummary("Lista todas as notificações")
             .WithDescription(NotificationEndpointsDocumentation.GetAllNotificationsDescription)
+            .RequireAuthorization(Permissions.NotificationView)
             .Produces<GetAllNotificationsResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapGet("/{id:guid}",
@@ -41,7 +44,9 @@ public static class NotificationEndpoints
             .WithName("GetNotificationById")
             .WithSummary("Obtém uma notificação pelo ID")
             .WithDescription("Retorna os detalhes completos de uma notificação específica, incluindo todos os canais e seus status.")
+            .RequireAuthorization(Permissions.NotificationView)
             .Produces<GetNotificationByIdResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
@@ -55,7 +60,9 @@ public static class NotificationEndpoints
             .WithName("GetNotificationStats")
             .WithSummary("Obtém estatísticas das notificações")
             .WithDescription("Retorna estatísticas agregadas das notificações, incluindo contagem por status e por canal.")
+            .RequireAuthorization(Permissions.NotificationStats)
             .Produces<GetNotificationStatsResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/",
@@ -67,8 +74,10 @@ public static class NotificationEndpoints
             .WithName("CreateNotification")
             .WithSummary("Cria uma nova notificação multi-canal")
             .WithDescription(NotificationEndpointsDocumentation.CreateNotificationDescription)
+            .RequireAuthorization(Permissions.NotificationCreate)
             .Produces<Guid>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         return endpoints;

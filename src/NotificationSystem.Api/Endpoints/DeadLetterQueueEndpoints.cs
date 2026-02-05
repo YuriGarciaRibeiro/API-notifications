@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using NotificationSystem.Application.Authorization;
 using NotificationSystem.Application.DTOs.DeadLetter;
 using NotificationSystem.Application.Interfaces;
 
@@ -28,7 +29,9 @@ public static class DeadLetterQueueEndpoints
             .WithName("GetDLQStats")
             .WithSummary("Obtém estatísticas de todas as Dead Letter Queues")
             .WithDescription(DeadLetterQueueEndpointsDocumentation.GetStatsDescription)
+            .RequireAuthorization(Permissions.DlqView)
             .Produces<IEnumerable<DeadLetterQueueStatsDto>>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapGet("/{queueName}/messages",
@@ -52,8 +55,10 @@ public static class DeadLetterQueueEndpoints
             .WithName("GetDLQMessages")
             .WithSummary("Lista as mensagens de uma Dead Letter Queue específica")
             .WithDescription(DeadLetterQueueEndpointsDocumentation.GetMessagesDescription)
+            .RequireAuthorization(Permissions.DlqView)
             .Produces<IEnumerable<DeadLetterMessageDto>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/{queueName}/reprocess/{deliveryTag}",
@@ -84,8 +89,10 @@ public static class DeadLetterQueueEndpoints
             .WithName("ReprocessDLQMessage")
             .WithSummary("Reprocessa uma mensagem específica da DLQ")
             .WithDescription(DeadLetterQueueEndpointsDocumentation.ReprocessMessageDescription)
+            .RequireAuthorization(Permissions.DlqReprocess)
             .Produces(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/{queueName}/reprocess-all",
@@ -114,8 +121,10 @@ public static class DeadLetterQueueEndpoints
             .WithName("ReprocessAllDLQMessages")
             .WithSummary("Reprocessa todas as mensagens de uma DLQ")
             .WithDescription(DeadLetterQueueEndpointsDocumentation.ReprocessAllDescription)
+            .RequireAuthorization(Permissions.DlqReprocess)
             .Produces(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapDelete("/{queueName}/purge",
@@ -143,8 +152,10 @@ public static class DeadLetterQueueEndpoints
             .WithName("PurgeDLQ")
             .WithSummary("Remove todas as mensagens de uma DLQ")
             .WithDescription(DeadLetterQueueEndpointsDocumentation.PurgeDescription)
+            .RequireAuthorization(Permissions.DlqPurge)
             .Produces(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         return endpoints;
