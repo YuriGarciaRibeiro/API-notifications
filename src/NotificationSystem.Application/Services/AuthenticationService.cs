@@ -1,11 +1,9 @@
 using FluentResults;
-using FluentValidation;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.DTOs.Auth;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Options;
-using NotificationSystem.Application.Validators;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Services;
@@ -155,15 +153,6 @@ public class AuthenticationService(
 
     public async Task<Result<LoginResponse>> RegisterAsync(RegisterUserRequest request, CancellationToken cancellationToken = default)
     {
-        var validator = new RegisterUserRequestValidator();
-        var validationResult = await validator.ValidateAsync(request, cancellationToken);
-
-        if (!validationResult.IsValid)
-        {
-            var errors = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
-            return Result.Fail<LoginResponse>(new ValidationError("RegisterUserRequest", errors));
-        }
-
         if (await _userRepository.EmailExistsAsync(request.Email, cancellationToken))
             return Result.Fail<LoginResponse>(new ConflictError("User", $"email '{request.Email}' already in use"));
 

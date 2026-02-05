@@ -1,4 +1,5 @@
 using FluentValidation;
+using NotificationSystem.Application.Validators;
 
 namespace NotificationSystem.Application.UseCases.ChangePassword;
 
@@ -13,7 +14,7 @@ public class ChangePasswordValidator : AbstractValidator<ChangePasswordCommand>
             .NotEmpty().WithMessage("Senha atual é obrigatória");
 
         RuleFor(x => x.NewPassword)
-            .NotEmpty().WithMessage("Nova senha é obrigatória")
-            .MinimumLength(6).WithMessage("Nova senha deve ter no mínimo 6 caracteres");
+            .StrongPassword()
+            .NotEqual(x => x.CurrentPassword).WithMessage("Nova senha deve ser diferente da senha atual");
     }
 }

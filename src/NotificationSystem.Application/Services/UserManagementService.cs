@@ -1,11 +1,9 @@
 using FluentResults;
-using FluentValidation;
 using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.DTOs.Common;
 using NotificationSystem.Application.DTOs.Roles;
 using NotificationSystem.Application.DTOs.Users;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Application.Validators;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Services;
@@ -155,19 +153,6 @@ public class UserManagementService(
 
     public async Task<Result> ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken cancellationToken = default)
     {
-        var validator = new ChangePasswordRequestValidator();
-        var validationResult = await validator.ValidateAsync(request, cancellationToken);
-
-        if (!validationResult.IsValid)
-        {
-            var result = Result.Fail(new ValidationError("ChangePasswordRequest", "Invalid password change request"));
-            foreach (var error in validationResult.Errors)
-            {
-                result.Reasons.Add(new ValidationError(error.PropertyName, error.ErrorMessage));
-            }
-            return result;
-        }
-
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
 
         if (user == null)
