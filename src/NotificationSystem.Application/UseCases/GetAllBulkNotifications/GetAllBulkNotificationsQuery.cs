@@ -22,7 +22,11 @@ public record BulkNotificationSummary(
     int FailureCount,
     double PercentComplete,
     DateTime CreatedAt,
-    DateTime? CompletedAt
+    DateTime? CompletedAt,
+    DateTime? ScheduledFor,
+    string? RecurringCron,
+    bool IsRecurring,
+    bool IsScheduled
 );
 
 public record PagedBulkNotificationResponse(

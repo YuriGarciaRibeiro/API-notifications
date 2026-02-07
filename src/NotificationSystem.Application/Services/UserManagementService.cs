@@ -66,26 +66,29 @@ public class UserManagementService(
         var retrievedUser = await _userRepository.GetByIdWithRolesAsync(user.Id, cancellationToken);
         var userDto = MapToDto(retrievedUser!);
 
+        var id = Guid.NewGuid();
         var welcomeNotification = new Notification
         {
-            Id = Guid.NewGuid(),
-            UserId = _currentUserService.UserId ?? Guid.Empty,
+            Id = id,
+            UserId = retrievedUser!.Id,
             CreatedAt = DateTime.UtcNow,
-            Channels = new List<NotificationChannel>
-            {
+            Origin = NotificationOrigin.System,
+            Type = NotificationType.Unique,
+            Channels =
+            [
                 new EmailChannel
                 {
                     Id = Guid.NewGuid(),
-                    NotificationId = Guid.NewGuid(),
+                    NotificationId = id,
                     To = retrievedUser!.Email,
                     Subject = "Welcome to NotificationSystem!",
                     Body = $"Hello {retrievedUser.FullName}, welcome to WUPHF",
                     IsBodyHtml = false
                 }
-            }
+            ]
         };
 
-       await _notificationRepository.AddAsync(welcomeNotification);
+        await _notificationRepository.AddAsync(welcomeNotification);
 
         welcomeNotification.PublishToAllChannels();
 

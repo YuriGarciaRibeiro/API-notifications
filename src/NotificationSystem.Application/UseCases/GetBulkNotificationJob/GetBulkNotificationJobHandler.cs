@@ -35,6 +35,12 @@ public class GetBulkNotificationJobHandler(IBulkNotificationRepository repositor
             job.StartedAt,
             job.CompletedAt,
             job.CreatedAt,
+            job.ScheduledFor,
+            job.RecurringCron,
+            job.TimeZone,
+            job.HangfireJobId,
+            job.IsRecurring,
+            job.IsScheduled,
             job.ErrorMessages);
 
         return Result.Ok(response);

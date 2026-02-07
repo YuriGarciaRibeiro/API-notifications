@@ -6,7 +6,10 @@ namespace NotificationSystem.Application.UseCases.CreateBulkNotification;
 public record CreateBulkNotificationCommand(
     string Name,
     string? Description,
-    List<CreateBulkNotificationItemRequest> Items
+    List<CreateBulkNotificationItemRequest> Items,
+    DateTime? ScheduledFor = null,
+    string? RecurringCron = null,
+    string? TimeZone = null
 ) : IRequest<Result<Guid>>;
 
 public record CreateBulkNotificationItemRequest(

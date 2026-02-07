@@ -98,8 +98,10 @@ public class Worker : RabbitMqConsumerBase<BulkNotificationJobMessage>
                 var notification = new Notification
                 {
                     Id = Guid.NewGuid(),
-                    UserId = job.CreatedBy,  // Quem criou o bulk job
+                    UserId = job.CreatedBy,
                     CreatedAt = DateTime.UtcNow,
+                    Origin = NotificationOrigin.System,
+                    Type = NotificationType.Bulk,
                     Channels = new()
                 };
 
@@ -197,7 +199,7 @@ public class Worker : RabbitMqConsumerBase<BulkNotificationJobMessage>
                 // Atualizar item como enviado
                 await bulkRepository.UpdateItemStatusAsync(
                     item.Id,
-                    NotificationStatus.Sent,
+                    item.Status == NotificationStatus.Scheduled ? NotificationStatus.Scheduled : NotificationStatus.Sent,
                     notificationId: notification.Id,
                     cancellationToken: cancellationToken);
 

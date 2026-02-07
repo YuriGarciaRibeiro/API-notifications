@@ -1,8 +1,11 @@
 using System.Text;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NotificationSystem.Api.Endpoints;
 using NotificationSystem.Api.Extensions;
+using NotificationSystem.Api.Infrastructure.Hangfire;
 using NotificationSystem.Api.Middlewares;
 using NotificationSystem.Application;
 using NotificationSystem.Application.Configuration;
@@ -41,6 +44,29 @@ public static class DependencyInjection
         services.AddCustomProblemDetails();
         services.AddHttpContextAccessor();
         services.AddSwaggerConfiguration();
+
+        // Hangfire Configuration
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(connectionString, new PostgreSqlStorageOptions
+            {
+                QueuePollInterval = TimeSpan.FromSeconds(15),
+                JobExpirationCheckInterval = TimeSpan.FromHours(1),
+                CountersAggregateInterval = TimeSpan.FromMinutes(5),
+                PrepareSchemaIfNecessary = true,
+                SchemaName = "hangfire"
+            }));
+
+        // Adicionar servidor Hangfire
+        services.AddHangfireServer(options =>
+        {
+            options.WorkerCount = Environment.ProcessorCount * 2;
+            options.Queues = new[] { "default", "campaigns" };
+            options.ServerName = $"{Environment.MachineName}:hangfire";
+        });
 
         // Configuration-based services
         services.Configure<SmtpSettings>(configuration.GetSection(SmtpSettings.SectionName));
@@ -146,6 +172,22 @@ public static class DependencyInjection
         app.UseHttpsRedirection();
         app.UseAuthentication();
         app.UseAuthorization();
+
+        // Hangfire Dashboard
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                Authorization = new[] { new HangfireDashboardNoAuthFilter() }
+            });
+        }
+        else
+        {
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                Authorization = new[] { new HangfireAuthorizationFilter() }
+            });
+        }
 
         // Endpoints
         app.MapNotificationEndpoints();

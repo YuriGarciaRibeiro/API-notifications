@@ -28,6 +28,8 @@ public class GetNotificationByIdHandler(INotificationRepository notificationRepo
             Id = notification.Id,
             UserId = notification.UserId,
             CreatedAt = notification.CreatedAt,
+            Origin = notification.Origin,
+            Type = notification.Type,
             Channels = [.. notification.Channels.Select<NotificationChannel, ChannelDto>(c =>
             {
                 return c switch

@@ -36,7 +36,11 @@ public class GetAllBulkNotificationsHandler(IBulkNotificationRepository reposito
             j.FailedCount,
             j.TotalCount > 0 ? (j.ProcessedCount / (double)j.TotalCount * 100) : 0,
             j.CreatedAt,
-            j.CompletedAt
+            j.CompletedAt,
+            j.ScheduledFor,
+            j.RecurringCron,
+            j.IsRecurring,
+            j.IsScheduled
         ));
 
         var response = new PagedBulkNotificationResponse(

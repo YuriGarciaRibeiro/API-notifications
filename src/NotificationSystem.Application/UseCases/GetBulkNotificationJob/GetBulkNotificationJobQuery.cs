@@ -18,5 +18,11 @@ public record BulkNotificationJobDetailResponse(
     DateTime? StartedAt,
     DateTime? CompletedAt,
     DateTime CreatedAt,
+    DateTime? ScheduledFor,
+    string? RecurringCron,
+    string? TimeZone,
+    string? HangfireJobId,
+    bool IsRecurring,
+    bool IsScheduled,
     List<string> ErrorMessages
 );

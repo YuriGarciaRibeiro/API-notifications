@@ -20,16 +20,27 @@ public class BulkNotificationJob : IAuditable
     public DateTime CreatedAt { get; set; }
     public Guid? UpdatedBy { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public DateTime? ScheduledAt { get; set; }
+    public DateTime? ScheduledFor { get; set; }
+    public string? RecurringCron { get; set; }
+    public string? TimeZone { get; set; } = "UTC";
+    public string? HangfireJobId { get; set; }
     public List<string> ErrorMessages { get; set; } = [];
+
+    // Helper properties
+    public bool IsRecurring => !string.IsNullOrEmpty(RecurringCron);
+    public bool IsScheduled => ScheduledFor.HasValue || IsRecurring;
 }
 
 
 public enum BulkJobStatus
 {
-    Pending = 0,
-    Processing = 1,
-    Paused = 2,
-    Completed = 3,
-    Failed = 4,
-    Cancelled = 5
+    Draft = 0,        // Criado mas não agendado
+    Scheduled = 1,    // Agendado para disparo futuro
+    Pending = 2,      // Pronto para processar imediatamente
+    Processing = 3,   // Sendo processado agora
+    Paused = 4,       // Pausado manualmente
+    Completed = 5,    // Finalizado
+    Failed = 6,       // Falhou
+    Cancelled = 7     // Cancelado
 }

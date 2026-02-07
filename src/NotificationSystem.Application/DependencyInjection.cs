@@ -27,6 +27,9 @@ public static class DependencyInjection
         services.AddScoped<IUserManagementService, UserManagementService>();
         services.AddScoped<IRoleManagementService, RoleManagementService>();
 
+        // Campaign Services
+        services.AddScoped<ICampaignSchedulerService, CampaignSchedulerService>();
+
         return services;
     }
 }

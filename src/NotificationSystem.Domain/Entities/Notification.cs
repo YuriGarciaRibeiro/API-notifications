@@ -10,6 +10,8 @@ public class Notification : IAuditable
     public Guid Id { get; set; }
     public Guid UserId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public NotificationOrigin Origin { get; set; }
+    public NotificationType Type { get; set; }
     public List<NotificationChannel> Channels { get; set; } = new();
 
     public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
@@ -29,5 +31,23 @@ public enum NotificationStatus
 {
     Pending,
     Sent,
-    Failed
+    Failed,
+    Cancelled,
+    Scheduled,
+    Recurring
+}
+
+public enum NotificationOrigin
+{
+    User,      // Usuário via UI
+    Api,       // Sistema externo via API Key (futuro)
+    System,    // Gerado automaticamente pelo sistema (eventos, triggers, jobs)
+    Scheduled  // Notificação agendada
+}
+
+public enum NotificationType
+{
+    Unique,
+    Bulk,
+    Campaign
 }

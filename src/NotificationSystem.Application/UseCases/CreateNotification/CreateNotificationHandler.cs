@@ -15,6 +15,8 @@ public class CreateNotificationHandler(INotificationRepository repository) : IRe
             Id = Guid.NewGuid(),
             UserId = request.UserId,
             CreatedAt = DateTime.UtcNow,
+            Origin = NotificationOrigin.User,
+            Type = NotificationType.Unique,
             Channels = []
         };
 

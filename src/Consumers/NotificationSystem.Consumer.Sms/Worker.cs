@@ -57,7 +57,6 @@ public class Worker : RabbitMqConsumerBase<SmsChannelMessage>
             message.ChannelId,
             NotificationStatus.Sent);
     }
-        
 
     protected override Task<(Guid NotificationId, Guid ChannelId)> GetNotificationIdsAsync(
         SmsChannelMessage message)

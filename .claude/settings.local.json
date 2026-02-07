@@ -11,7 +11,8 @@
       "Bash(find:*)",
       "Bash(dotnet ef database update:*)",
       "Bash(code:*)",
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(dotnet restore:*)"
     ]
   }
 }

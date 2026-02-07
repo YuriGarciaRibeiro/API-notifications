@@ -25,6 +25,8 @@ public class GetAllNotificationsHandler(INotificationRepository notificationRepo
             Id = n.Id,
             UserId = n.UserId,
             CreatedAt = n.CreatedAt,
+            Origin = n.Origin,
+            Type = n.Type,
             Channels = [.. n.Channels.Select<NotificationChannel, ChannelDto>(c =>
             {
                 return c switch

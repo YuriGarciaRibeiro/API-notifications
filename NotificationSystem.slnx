@@ -6,6 +6,7 @@
     <Project Path="src/NotificationSystem.Infrastructure/NotificationSystem.Infrastructure.csproj" />
   </Folder>
   <Folder Name="/src/Consumers/">
+    <Project Path="src/Consumers/NotificationSystem.Consumer.Bulk/NotificationSystem.Consumer.Bulk.csproj" />
     <Project Path="src/Consumers/NotificationSystem.Consumer.Email/NotificationSystem.Consumer.Email.csproj" />
     <Project Path="src/Consumers/NotificationSystem.Consumer.Push/NotificationSystem.Consumer.Push.csproj" />
     <Project Path="src/Consumers/NotificationSystem.Consumer.Sms/NotificationSystem.Consumer.Sms.csproj" />
