@@ -13,7 +13,7 @@ public class SmtpService(IOptions<SmtpSettings> smtpOptions) : IEmailService
 
     public async Task SendEmailAsync(string to, string subject, string body, bool isHtml = false)
     {
-        var message = new MimeMessage();
+        using var message = new MimeMessage();
         message.From.Add(new MailboxAddress(_smtpOptions.FromName, _smtpOptions.FromEmail));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;

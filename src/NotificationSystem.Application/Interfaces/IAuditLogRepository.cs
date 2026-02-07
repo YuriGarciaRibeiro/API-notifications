@@ -15,7 +15,7 @@ public interface IAuditLogRepository
     /// <param name="pageSize">Number of records per page</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of audit logs</returns>
-    Task<IEnumerable<AuditLog>> GetAllAsync(
+    public Task<IEnumerable<AuditLog>> GetAllAsync(
         int pageNumber,
         int pageSize,
         CancellationToken cancellationToken);
@@ -23,13 +23,13 @@ public interface IAuditLogRepository
     /// <summary>
     /// Gets total count of all audit logs.
     /// </summary>
-    Task<int> GetTotalCountAsync(CancellationToken cancellationToken);
+    public Task<int> GetTotalCountAsync(CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets a specific audit log by ID.
     /// </summary>
     /// <returns>AuditLog if found, null otherwise</returns>
-    Task<AuditLog?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    public Task<AuditLog?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets paginated audit history for a specific entity (all changes to one record).
@@ -40,7 +40,7 @@ public interface IAuditLogRepository
     /// <param name="pageSize">Number of records per page</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated history of changes to the entity</returns>
-    Task<IEnumerable<AuditLog>> GetByEntityAsync(
+    public Task<IEnumerable<AuditLog>> GetByEntityAsync(
         string entityName,
         string entityId,
         int pageNumber,
@@ -50,7 +50,7 @@ public interface IAuditLogRepository
     /// <summary>
     /// Gets count of audit log entries for a specific entity.
     /// </summary>
-    Task<int> GetEntityAuditCountAsync(
+    public Task<int> GetEntityAuditCountAsync(
         string entityName,
         string entityId,
         CancellationToken cancellationToken);
@@ -63,7 +63,7 @@ public interface IAuditLogRepository
     /// <param name="pageSize">Number of records per page</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of audit logs filtered by user</returns>
-    Task<IEnumerable<AuditLog>> GetByUserAsync(
+    public Task<IEnumerable<AuditLog>> GetByUserAsync(
         Guid userId,
         int pageNumber,
         int pageSize,
@@ -83,7 +83,7 @@ public interface IAuditLogRepository
     /// <param name="pageSize">Number of records per page</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Paginated list of filtered audit logs</returns>
-    Task<IEnumerable<AuditLog>> GetFilteredAsync(
+    public Task<IEnumerable<AuditLog>> GetFilteredAsync(
         string? entityName,
         string? entityId,
         Guid? userId,
@@ -98,7 +98,7 @@ public interface IAuditLogRepository
     /// Gets count of audit logs matching the filter criteria.
     /// Uses same filter logic as GetFilteredAsync.
     /// </summary>
-    Task<int> GetFilteredCountAsync(
+    public Task<int> GetFilteredCountAsync(
         string? entityName,
         string? entityId,
         Guid? userId,

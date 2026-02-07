@@ -65,7 +65,7 @@ namespace NotificationSystem.Infrastructure.Migrations
                 name: "ix_audit_logs_timestamp",
                 table: "audit_logs",
                 column: "timestamp",
-                descending: new bool[0]);
+                descending: []);
 
             migrationBuilder.CreateIndex(
                 name: "ix_audit_logs_user_id",

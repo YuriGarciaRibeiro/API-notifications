@@ -59,9 +59,7 @@ public class ProviderConfigurationRepository(NotificationDbContext context, IEnc
 
     public async Task SetAsPrimaryAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
     {
-        var providerToSetPrimary = await _context.ProviderConfigurations.FindAsync(providerConfigurationId);
-        if (providerToSetPrimary == null)
-            throw new InvalidOperationException("Provider configuration not found.");
+        var providerToSetPrimary = await _context.ProviderConfigurations.FindAsync(new object?[] { providerConfigurationId }, cancellationToken: cancellationToken) ?? throw new InvalidOperationException("Provider configuration not found.");
 
         // Remove isPrimary de todos os provedores do mesmo canal
         var currentPrimaryProviders = await _context.ProviderConfigurations

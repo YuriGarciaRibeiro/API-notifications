@@ -4,6 +4,6 @@ namespace NotificationSystem.Application.Interfaces;
 
 public interface IJwtTokenGenerator
 {
-    string GenerateAccessToken(User user, IEnumerable<string> roles, IEnumerable<string> permissions);
-    string GenerateRefreshToken();
+    public string GenerateAccessToken(User user, IEnumerable<string> roles, IEnumerable<string> permissions);
+    public string GenerateRefreshToken();
 }

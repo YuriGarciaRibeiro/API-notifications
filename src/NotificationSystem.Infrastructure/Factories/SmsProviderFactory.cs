@@ -25,7 +25,7 @@ public class SmsProviderFactory(
         };
     }
 
-    public async Task<bool> HasActiveConfigAsync(ChannelType channel)
+    public new async Task<bool> HasActiveConfigAsync(ChannelType channel)
     {
         return await base.HasActiveConfigAsync(channel);
     }

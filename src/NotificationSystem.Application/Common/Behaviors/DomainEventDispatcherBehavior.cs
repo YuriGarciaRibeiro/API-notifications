@@ -15,7 +15,7 @@ public class DomainEventDispatcherBehavior<TRequest, TResponse> : IPipelineBehav
 
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        var response = await next();
+        var response = await next(cancellationToken);
 
         // Check if response contains a Notification with domain events
         if (response is FluentResults.Result result && result.IsSuccess)

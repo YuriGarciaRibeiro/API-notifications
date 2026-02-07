@@ -4,6 +4,6 @@ using NotificationSystem.Domain.Entities;
 
 public interface IPushProviderFactory
 {
-    Task<IPushNotificationService> CreatePushProvider();
-    Task<bool> HasActiveConfigAsync(ChannelType channel);
+    public Task<IPushNotificationService> CreatePushProvider();
+    public Task<bool> HasActiveConfigAsync(ChannelType channel);
 }

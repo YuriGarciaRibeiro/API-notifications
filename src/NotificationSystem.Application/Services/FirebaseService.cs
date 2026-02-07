@@ -74,6 +74,7 @@ public class FirebaseService : IPushNotificationService, IDisposable
         {
             _firebaseApp?.Delete();
             _disposed = true;
+            GC.SuppressFinalize(this);
         }
     }
 

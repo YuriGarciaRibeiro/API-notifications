@@ -9,7 +9,8 @@
       "Bash(dotnet ef migrations add:*)",
       "Bash(grep:*)",
       "Bash(find:*)",
-      "Bash(dotnet ef database update:*)"
+      "Bash(dotnet ef database update:*)",
+      "Bash(code:*)"
     ]
   }
 }

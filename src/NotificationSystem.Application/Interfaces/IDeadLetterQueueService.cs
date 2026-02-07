@@ -4,9 +4,9 @@ namespace NotificationSystem.Application.Interfaces;
 
 public interface IDeadLetterQueueService
 {
-    Task<IEnumerable<DeadLetterQueueStatsDto>> GetAllDeadLetterQueueStatsAsync();
-    Task<IEnumerable<DeadLetterMessageDto>> GetDeadLetterMessagesAsync(string queueName, int limit = 100);
-    Task ReprocessMessageAsync(string dlqName, string originalQueueName, ulong deliveryTag);
-    Task ReprocessAllMessagesAsync(string dlqName, string originalQueueName);
-    Task PurgeDeadLetterQueueAsync(string queueName);
+    public Task<IEnumerable<DeadLetterQueueStatsDto>> GetAllDeadLetterQueueStatsAsync();
+    public Task<IEnumerable<DeadLetterMessageDto>> GetDeadLetterMessagesAsync(string queueName, int limit = 100);
+    public Task ReprocessMessageAsync(string dlqName, string originalQueueName, ulong deliveryTag);
+    public Task ReprocessAllMessagesAsync(string dlqName, string originalQueueName);
+    public Task PurgeDeadLetterQueueAsync(string queueName);
 }

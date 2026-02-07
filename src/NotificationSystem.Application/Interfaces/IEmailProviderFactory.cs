@@ -4,6 +4,6 @@ using NotificationSystem.Domain.Entities;
 
 public interface IEmailProviderFactory
 {
-    Task<IEmailService> CreateEmailProvider();
-    Task<bool> HasActiveConfigAsync(ChannelType channel);
+    public Task<IEmailService> CreateEmailProvider();
+    public Task<bool> HasActiveConfigAsync(ChannelType channel);
 }

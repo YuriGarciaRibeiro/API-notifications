@@ -4,6 +4,6 @@ using NotificationSystem.Domain.Entities;
 
 public interface ISmsProviderFactory
 {
-    Task<ISmsService> CreateSmsProvider();
-    Task<bool> HasActiveConfigAsync(ChannelType channel);
+    public Task<ISmsService> CreateSmsProvider();
+    public Task<bool> HasActiveConfigAsync(ChannelType channel);
 }

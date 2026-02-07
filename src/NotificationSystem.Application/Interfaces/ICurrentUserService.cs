@@ -2,11 +2,11 @@ namespace NotificationSystem.Application.Interfaces;
 
 public interface ICurrentUserService
 {
-    Guid? UserId { get; }
-    string? Email { get; }
-    IEnumerable<string> Roles { get; }
-    IEnumerable<string> Permissions { get; }
-    bool IsAuthenticated { get; }
-    bool HasPermission(string permission);
-    bool HasRole(string role);
+    public Guid? UserId { get; }
+    public string? Email { get; }
+    public IEnumerable<string> Roles { get; }
+    public IEnumerable<string> Permissions { get; }
+    public bool IsAuthenticated { get; }
+    public bool HasPermission(string permission);
+    public bool HasRole(string role);
 }
