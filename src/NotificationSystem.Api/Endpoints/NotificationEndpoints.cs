@@ -24,7 +24,7 @@ public static class NotificationEndpoints
                 var result = await mediator.Send(query, cancellationToken);
 
                 return result.ToIResult();
-             })
+            })
             .WithName("GetAllNotifications")
             .WithSummary("Lista todas as notificações")
             .WithDescription(NotificationEndpointsDocumentation.GetAllNotificationsDescription)

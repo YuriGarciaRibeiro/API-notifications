@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using NotificationSystem.Application.Authorization;
 
 namespace NotificationSystem.Api.Extensions;

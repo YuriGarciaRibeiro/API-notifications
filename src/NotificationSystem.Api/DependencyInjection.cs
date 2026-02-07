@@ -5,7 +5,6 @@ using NotificationSystem.Api.Endpoints;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Api.Middlewares;
 using NotificationSystem.Application;
-using NotificationSystem.Application.Authorization;
 using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Services;

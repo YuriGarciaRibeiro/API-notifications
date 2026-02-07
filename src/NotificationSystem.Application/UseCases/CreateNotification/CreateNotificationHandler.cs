@@ -1,18 +1,12 @@
 using FluentResults;
 using MediatR;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.CreateNotification;
 
-public class CreateNotificationHandler : IRequestHandler<CreateNotificationCommand, Result<Guid>>
+public class CreateNotificationHandler(INotificationRepository repository) : IRequestHandler<CreateNotificationCommand, Result<Guid>>
 {
-        private readonly INotificationRepository _repository;
-
-    public CreateNotificationHandler(INotificationRepository repository)
-    {
-        _repository = repository;
-    }
+    private readonly INotificationRepository _repository = repository;
 
     public async Task<Result<Guid>> Handle(CreateNotificationCommand request, CancellationToken cancellationToken)
     {
@@ -35,9 +29,7 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
             };
 
             if (channel != null)
-            {
                 notification.Channels.Add(channel);
-            }
         }
 
         await _repository.AddAsync(notification);
@@ -69,26 +61,19 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
 
     private static string GetStringValue(Dictionary<string, object> data, string key)
     {
-        if (!data.TryGetValue(key, out var value) || value == null)
-            return string.Empty;
-
-        // Handle JsonElement from System.Text.Json
-        if (value is System.Text.Json.JsonElement jsonElement)
-        {
-            return jsonElement.ValueKind == System.Text.Json.JsonValueKind.String
-                ? jsonElement.GetString() ?? string.Empty
-                : jsonElement.ToString();
-        }
-
-        return value.ToString() ?? string.Empty;
+        return !data.TryGetValue(key, out var value) || value == null
+            ? string.Empty
+            : (value is System.Text.Json.JsonElement jsonElement)
+                ? jsonElement.ValueKind == System.Text.Json.JsonValueKind.String
+                    ? jsonElement.GetString() ?? string.Empty
+                    : jsonElement.ToString()
+                : value.ToString() ?? string.Empty;
     }
 
     private static bool GetBoolValue(Dictionary<string, object> data, string key)
     {
-        if (!data.TryGetValue(key, out var value) || value == null)
-            return false;
+        if (!data.TryGetValue(key, out var value) || value == null) return false;
 
-        // Handle JsonElement from System.Text.Json
         if (value is System.Text.Json.JsonElement jsonElement)
         {
             if (jsonElement.ValueKind == System.Text.Json.JsonValueKind.True)
@@ -102,8 +87,7 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
 
     private static bool? GetNullableBoolValue(Dictionary<string, object> data, string key)
     {
-        if (!data.TryGetValue(key, out var value) || value == null)
-            return null;
+        if (!data.TryGetValue(key, out var value) || value == null) return null;
 
         if (value is System.Text.Json.JsonElement jsonElement)
         {
@@ -120,8 +104,7 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
 
     private static int? GetIntValue(Dictionary<string, object> data, string key)
     {
-        if (!data.TryGetValue(key, out var value) || value == null)
-            return null;
+        if (!data.TryGetValue(key, out var value) || value == null) return null;
 
         if (value is System.Text.Json.JsonElement jsonElement)
         {
@@ -136,8 +119,7 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
 
     private static Dictionary<string, string> GetStringDictionaryValue(Dictionary<string, object> data, string key)
     {
-        if (!data.TryGetValue(key, out var value) || value == null)
-            return [];
+        if (!data.TryGetValue(key, out var value) || value == null) return [];
 
         if (value is System.Text.Json.JsonElement jsonElement && jsonElement.ValueKind == System.Text.Json.JsonValueKind.Object)
         {
@@ -157,17 +139,14 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
         if (!data.TryGetValue(key, out var value) || value == null)
             return null;
 
-        if (value is System.Text.Json.JsonElement jsonElement && jsonElement.ValueKind == System.Text.Json.JsonValueKind.Object)
-        {
-            var dict = new Dictionary<string, object>();
-            foreach (var prop in jsonElement.EnumerateObject())
-            {
-                dict[prop.Name] = prop.Value;
-            }
-            return dict;
-        }
+        if (!(value is System.Text.Json.JsonElement jsonElement && jsonElement.ValueKind == System.Text.Json.JsonValueKind.Object)) return null;
 
-        return null;
+        var dict = new Dictionary<string, object>();
+        foreach (var prop in jsonElement.EnumerateObject())
+        {
+            dict[prop.Name] = prop.Value;
+        }
+        return dict;
     }
 
     private static SmsChannel CreateSmsChannel(Guid notificationId, Dictionary<string, object> data)
@@ -218,32 +197,32 @@ public class CreateNotificationHandler : IRequestHandler<CreateNotificationComma
 
     private static AndroidConfig? CreateAndroidConfig(Dictionary<string, object>? data)
     {
-        if (data == null) return null;
-
-        return new AndroidConfig
-        {
-            Priority = GetNullableStringValue(data, "priority"),
-            Ttl = GetNullableStringValue(data, "ttl")
-        };
+        return data == null
+            ? null
+            : new AndroidConfig
+            {
+                Priority = GetNullableStringValue(data, "priority"),
+                Ttl = GetNullableStringValue(data, "ttl")
+            };
     }
 
     private static ApnsConfig? CreateApnsConfig(Dictionary<string, object>? data)
     {
-        if (data == null) return null;
-
-        return new ApnsConfig
-        {
-            Headers = GetStringDictionaryValue(data, "headers")
-        };
+        return data == null
+            ? null
+            : new ApnsConfig
+            {
+                Headers = GetStringDictionaryValue(data, "headers")
+            };
     }
 
     private static WebpushConfig? CreateWebpushConfig(Dictionary<string, object>? data)
     {
-        if (data == null) return null;
-
-        return new WebpushConfig
-        {
-            Headers = GetStringDictionaryValue(data, "headers")
-        };
+        return data == null
+            ? null
+            : new WebpushConfig
+            {
+                Headers = GetStringDictionaryValue(data, "headers")
+            };
     }
 }

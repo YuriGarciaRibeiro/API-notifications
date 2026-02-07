@@ -4,7 +4,6 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.CreateProviderFromFile;
 
@@ -38,6 +37,9 @@ public class CreateProviderFromFileHandler(
             var validationResult = request.Provider switch
             {
                 ProviderType.Firebase => ValidateFirebaseCredentials(jsonDocument, request.ProjectId),
+                ProviderType.Smtp => Result.Fail($"File upload not supported for provider type: {request.Provider}"),
+                ProviderType.Twilio => Result.Fail($"File upload not supported for provider type: {request.Provider}"),
+                ProviderType.SendGrid => Result.Fail($"File upload not supported for provider type: {request.Provider}"),
                 _ => Result.Fail($"File upload not supported for provider type: {request.Provider}")
             };
 
@@ -48,6 +50,9 @@ public class CreateProviderFromFileHandler(
             var configuration = request.Provider switch
             {
                 ProviderType.Firebase => CreateFirebaseConfiguration(fileContent, request.ProjectId, jsonDocument),
+                ProviderType.Smtp => throw new NotSupportedException($"Provider {request.Provider} is not supported"),
+                ProviderType.Twilio => throw new NotSupportedException($"Provider {request.Provider} is not supported"),
+                ProviderType.SendGrid => throw new NotSupportedException($"Provider {request.Provider} is not supported"),
                 _ => throw new NotSupportedException($"Provider {request.Provider} is not supported")
             };
 
@@ -94,19 +99,13 @@ public class CreateProviderFromFileHandler(
         }
 
         if (!root.TryGetProperty("project_id", out var projectIdProperty))
-        {
             return Result.Fail("Invalid Firebase credentials: missing 'project_id'");
-        }
 
         if (!root.TryGetProperty("private_key", out _))
-        {
             return Result.Fail("Invalid Firebase credentials: missing 'private_key'");
-        }
 
         if (!root.TryGetProperty("client_email", out _))
-        {
             return Result.Fail("Invalid Firebase credentials: missing 'client_email'");
-        }
 
         // Se projectId foi fornecido, valida se bate com o do arquivo
         if (!string.IsNullOrEmpty(projectId))

@@ -16,7 +16,7 @@ namespace NotificationSystem.Infrastructure.Persistence.Interceptors;
 /// </summary>
 public class AuditLogInterceptor : SaveChangesInterceptor
 {
-    private static readonly HashSet<string> ExcludedProperties = new()
+    private static readonly HashSet<string> _excludedProperties = new()
     {
         "PasswordHash",
         "RefreshToken",
@@ -44,10 +44,9 @@ public class AuditLogInterceptor : SaveChangesInterceptor
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default)
     {
-        if (eventData.Context is null)
-            return base.SavingChangesAsync(eventData, result, cancellationToken);
+        if (eventData.Context is not null)
+            CreateAndAddAuditLogs(eventData.Context);
 
-        CreateAndAddAuditLogs(eventData.Context);
         return base.SavingChangesAsync(eventData, result, cancellationToken);
     }
 
@@ -58,10 +57,9 @@ public class AuditLogInterceptor : SaveChangesInterceptor
         DbContextEventData eventData,
         InterceptionResult<int> result)
     {
-        if (eventData.Context is null)
-            return base.SavingChanges(eventData, result);
+        if (eventData.Context is not null)
+            CreateAndAddAuditLogs(eventData.Context);
 
-        CreateAndAddAuditLogs(eventData.Context);
         return base.SavingChanges(eventData, result);
     }
 
@@ -73,9 +71,7 @@ public class AuditLogInterceptor : SaveChangesInterceptor
         var auditLogs = CreateAuditLogs(context);
 
         if (auditLogs.Count > 0)
-        {
             context.Set<AuditLog>().AddRange(auditLogs);
-        }
     }
 
     /// <summary>
@@ -102,7 +98,7 @@ public class AuditLogInterceptor : SaveChangesInterceptor
                 continue;
 
             // Skip entities with no state change
-            if (entry.State == EntityState.Unchanged || entry.State == EntityState.Detached)
+            if (entry.State is EntityState.Unchanged or EntityState.Detached)
                 continue;
 
             var entityName = entry.Entity.GetType().Name;
@@ -143,7 +139,6 @@ public class AuditLogInterceptor : SaveChangesInterceptor
                     auditLog.OldValues = SerializeEntity(entry.OriginalValues);
                     break;
 
-                // AddedToContext and Modified are captured, others are ignored
             }
 
             auditLogs.Add(auditLog);
@@ -172,20 +167,19 @@ public class AuditLogInterceptor : SaveChangesInterceptor
         var properties = propertyValues.Properties
             .Where(p =>
                 !p.IsShadowProperty() && // Skip EF Core shadow properties
-                !ExcludedProperties.Contains(p.Name)) // Skip sensitive fields
+                !_excludedProperties.Contains(p.Name)) // Skip sensitive fields
             .ToDictionary(
                 p => p.Name,
                 p => propertyValues[p]
             );
 
-        if (properties.Count == 0)
-            return null;
-
-        return JsonSerializer.Serialize(properties, new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-        });
+        return properties.Count == 0
+            ? null
+            : JsonSerializer.Serialize(properties, new JsonSerializerOptions
+            {
+                WriteIndented = false,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            });
     }
 
     /// <summary>
@@ -214,8 +208,7 @@ public class AuditLogInterceptor : SaveChangesInterceptor
         if (!string.IsNullOrEmpty(forwardedFor))
         {
             var ips = forwardedFor.Split(',', StringSplitOptions.RemoveEmptyEntries);
-            if (ips.Length > 0)
-                return ips[0].Trim();
+            return ips.Length > 0 ? ips[0].Trim() : null;
         }
 
         return context.Connection.RemoteIpAddress?.ToString();

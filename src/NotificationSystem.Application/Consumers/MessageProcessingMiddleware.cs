@@ -1,8 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using NotificationSystem.Apllication.Interfaces;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Consumers;
 
@@ -22,9 +20,9 @@ public class MessageProcessingMiddleware<TMessage>(
         Type channelType,
         CancellationToken cancellationToken)
     {
-        Exception? lastException = null;
-        int attemptNumber = 0;
+        var attemptNumber = 0;
 
+        Exception? lastException;
         do
         {
             try
@@ -51,21 +49,23 @@ public class MessageProcessingMiddleware<TMessage>(
                     ex.Message);
 
                 // Verificar se deve fazer retry
-                if (_retryStrategy.ShouldRetry(attemptNumber, ex))
+                if (!_retryStrategy.ShouldRetry(attemptNumber, ex))
                 {
-                    var delay = _retryStrategy.GetRetryDelay(attemptNumber);
-
-                    _logger.LogInformation(
-                        "Retrying in {DelaySeconds} seconds...",
-                        delay.TotalSeconds);
-
-                    await Task.Delay(delay, cancellationToken);
-                    attemptNumber++;
-                }
-                else
-                {
+                    _logger.LogWarning(
+                        "Not retrying message processing after attempt {Attempt}",
+                        attemptNumber + 1);
                     break;
                 }
+
+                var delay = _retryStrategy.GetRetryDelay(attemptNumber);
+
+                _logger.LogInformation(
+                    "Retrying in {DelaySeconds} seconds...",
+                    delay.TotalSeconds);
+
+                await Task.Delay(delay, cancellationToken);
+                attemptNumber++;
+
             }
         } while (true);
 
@@ -112,7 +112,7 @@ public class MessageProcessingMiddleware<TMessage>(
             {
                 var task = method.Invoke(
                     repository,
-                    new object?[] { notificationId, channelId, status, null });
+                    [notificationId, channelId, status, null]);
 
                 if (task is Task t)
                 {

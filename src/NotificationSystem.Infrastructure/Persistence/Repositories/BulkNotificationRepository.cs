@@ -10,15 +10,15 @@ public class BulkNotificationRepository(NotificationDbContext context) : IBulkNo
 
     public async Task AddErrorMessageAsync(Guid jobId, string erroMessage, CancellationToken cancellationToken = default)
     {
-        var job = await _context.bulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
-        if (job != null) job.ErrorMessages.Add($"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}: {erroMessage}");
-        _context.bulkNotificationJobs.Update(job!);
+        var job = await _context.BulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
+        job?.ErrorMessages.Add($"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}: {erroMessage}");
+        _context.BulkNotificationJobs.Update(job!);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task AddItemsAsync(Guid jobId, IEnumerable<BulkNotificationItem> items, CancellationToken cancellationToken = default)
     {
-        var job = await _context.bulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
+        var job = await _context.BulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
         if (job != null)
         {
             foreach (var item in items)
@@ -32,7 +32,7 @@ public class BulkNotificationRepository(NotificationDbContext context) : IBulkNo
 
     public Task CreateJobAsync(BulkNotificationJob job, CancellationToken cancellationToken = default)
     {
-        _context.bulkNotificationJobs.Add(job);
+        _context.BulkNotificationJobs.Add(job);
         return _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -46,13 +46,13 @@ public class BulkNotificationRepository(NotificationDbContext context) : IBulkNo
 
     public async Task<int> GetProcessedCountAsync(Guid jobId, CancellationToken cancellationToken = default)
     {
-        var job = await _context.bulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
+        var job = await _context.BulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
         return job?.ProcessedCount ?? 0;
     }
 
     public async Task<BulkNotificationJob?> GetWithItemsAsync(Guid jobId, CancellationToken cancellationToken = default)
     {
-        var job = _context.bulkNotificationJobs
+        var job = _context.BulkNotificationJobs
             .Where(j => j.Id == jobId)
             .Include(j => j.Items)
             .FirstOrDefaultAsync(cancellationToken);
@@ -62,35 +62,39 @@ public class BulkNotificationRepository(NotificationDbContext context) : IBulkNo
 
     public async Task IncrementProcessedCountAssync(Guid jobId, BulkJobStatus status, CancellationToken cancellationToken = default)
     {
-        var job = await _context.bulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
+        var job = await _context.BulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
         if (job != null)
         {
             job.ProcessedCount++;
             job.UpdatedAt = DateTime.UtcNow;
-            _context.bulkNotificationJobs.Update(job);
+            _context.BulkNotificationJobs.Update(job);
             await _context.SaveChangesAsync(cancellationToken);
         }
     }
 
-    public async Task UpdateItemStatusAsync(Guid itemId, NotificationStatus stats, string? ErrorMessage = null, Guid? notificationId = null, CancellationToken cancellationToken = default)
+    public async Task UpdateItemStatusAsync(Guid itemId, NotificationStatus status, string? errorMessage = null, Guid? notificationId = null, CancellationToken cancellationToken = default)
     {
         var item = await _context.BulkNotificationItems.FirstOrDefaultAsync(i => i.Id == itemId, cancellationToken);
-        if (item != null)
-        {
-            item.Status = stats;
-            item.ErrorMessage = ErrorMessage;
-            item.UpdatedAt = DateTime.UtcNow;
+        if (item == null)
+            return;
 
-            if (stats == NotificationStatus.Sent) item.SentAt = DateTime.UtcNow;
-            if (notificationId.HasValue) item.NotificationId = notificationId;
-            _context.BulkNotificationItems.Update(item);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
+        item.Status = status;
+        item.ErrorMessage = errorMessage;
+        item.UpdatedAt = DateTime.UtcNow;
+
+        if (status == NotificationStatus.Sent)
+            item.SentAt = DateTime.UtcNow;
+
+        if (notificationId.HasValue)
+            item.NotificationId = notificationId;
+
+        _context.BulkNotificationItems.Update(item);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateJobStatusAsync(Guid jobId, BulkJobStatus status, CancellationToken cancellationToken = default)
     {
-        var job = await _context.bulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
+        var job = await _context.BulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
         if (job != null)
         {
             job.Status = status;
@@ -102,14 +106,14 @@ public class BulkNotificationRepository(NotificationDbContext context) : IBulkNo
             if (status == BulkJobStatus.Completed && !job.CompletedAt.HasValue)
                 job.CompletedAt = DateTime.UtcNow;
 
-            _context.bulkNotificationJobs.Update(job);
+            _context.BulkNotificationJobs.Update(job);
             await _context.SaveChangesAsync(cancellationToken);
         }
     }
 
     public async Task UpdateJobAsync(BulkNotificationJob job, CancellationToken cancellationToken = default)
     {
-        _context.bulkNotificationJobs.Update(job);
+        _context.BulkNotificationJobs.Update(job);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
@@ -121,7 +125,7 @@ public class BulkNotificationRepository(NotificationDbContext context) : IBulkNo
         string sortOrder = "desc",
         CancellationToken cancellationToken = default)
     {
-        var query = _context.bulkNotificationJobs.AsQueryable();
+        var query = _context.BulkNotificationJobs.AsQueryable();
 
         // Filter by status if provided
         if (!string.IsNullOrEmpty(status))

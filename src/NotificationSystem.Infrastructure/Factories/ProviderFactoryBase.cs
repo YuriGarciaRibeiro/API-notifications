@@ -6,19 +6,17 @@ namespace NotificationSystem.Infrastructure.Factories;
 
 public abstract class ProviderFactoryBase<TService>(IProviderConfigurationRepository repo) where TService : class
 {
-    protected readonly IProviderConfigurationRepository _repo = repo;
+    protected readonly IProviderConfigurationRepository Repo = repo;
 
     protected async Task<ProviderConfiguration> GetActiveConfigAsync(ChannelType channel)
     {
-        var config = await _repo.GetActiveProviderAsync(channel, CancellationToken.None);
-        if (config == null)
-            throw new InvalidOperationException($"No active provider for {channel}");
-        return config;
+        var config = await Repo.GetActiveProviderAsync(channel, CancellationToken.None);
+        return config ?? throw new InvalidOperationException($"No active provider for {channel}");
     }
 
     protected async Task<bool> HasActiveConfigAsync(ChannelType channel)
     {
-        var config = await _repo.GetActiveProviderAsync(channel, CancellationToken.None);
+        var config = await Repo.GetActiveProviderAsync(channel, CancellationToken.None);
         return config != null;
     }
 

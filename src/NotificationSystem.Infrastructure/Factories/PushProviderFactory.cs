@@ -1,9 +1,11 @@
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using NotificationSystem.Apllication.Exceptions;
 using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Services;
 using NotificationSystem.Domain.Entities;
+
 
 namespace NotificationSystem.Infrastructure.Factories;
 
@@ -22,6 +24,18 @@ public class PushProviderFactory(
         return config.Provider switch
         {
             ProviderType.Firebase => CreateFirebase(config),
+            ProviderType.Smtp => throw new InvalidProviderTypeException(
+                ProviderType.Smtp,
+                ChannelType.Push,
+                "SMTP is an Email provider and cannot be used with Push factory. Use EmailProviderFactory instead."),
+            ProviderType.SendGrid => throw new InvalidProviderTypeException(
+                ProviderType.SendGrid,
+                ChannelType.Push,
+                "SendGrid is an Email provider and cannot be used with Push factory. Use EmailProviderFactory instead."),
+            ProviderType.Twilio => throw new InvalidProviderTypeException(
+                ProviderType.Twilio,
+                ChannelType.Push,
+                "Twilio is an SMS provider and cannot be used with Push factory. Use SmsProviderFactory instead."),
             _ => throw new NotSupportedException($"Push Provider '{config.Provider}' is not supported")
         };
     }
@@ -37,11 +51,7 @@ public class PushProviderFactory(
         {
             // Descriptografa a configuração
             var decryptedJson = _encryptionService.Decrypt(config.ConfigurationJson);
-            var settings = JsonSerializer.Deserialize<FirebaseSettings>(decryptedJson);
-
-            if (settings == null)
-                throw new InvalidOperationException("Failed to deserialize Firebase settings");
-
+            var settings = JsonSerializer.Deserialize<FirebaseSettings>(decryptedJson) ?? throw new InvalidOperationException("Failed to deserialize Firebase settings");
             _logger.LogInformation("Creating Firebase service with configuration from database");
 
             // Prioriza credenciais em JSON (mais seguro)

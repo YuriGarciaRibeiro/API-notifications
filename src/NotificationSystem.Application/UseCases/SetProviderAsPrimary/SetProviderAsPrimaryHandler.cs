@@ -10,7 +10,6 @@ public class SetProviderAsPrimaryHandler(IProviderConfigurationRepository reposi
 
     public async Task<Result> Handle(SetProviderAsPrimaryCommand request, CancellationToken cancellationToken)
     {
-        
         await _repository.SetAsPrimaryAsync(request.ProviderId, cancellationToken);
         return Result.Ok();
     }

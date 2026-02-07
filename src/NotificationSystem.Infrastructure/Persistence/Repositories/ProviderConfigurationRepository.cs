@@ -14,10 +14,8 @@ public class ProviderConfigurationRepository(NotificationDbContext context, IEnc
         // Busca o provedor primário E ativo para o canal
         var provider = await _context.ProviderConfigurations
             .FirstOrDefaultAsync(pc => pc.ChannelType == channelType && pc.IsPrimary && pc.IsActive, cancellationToken);
-        if (provider != null)
-        {
-            provider.ConfigurationJson = _encryptionService.Decrypt(provider.ConfigurationJson);
-        }
+
+        provider?.ConfigurationJson = _encryptionService.Decrypt(provider.ConfigurationJson);
 
         return provider;
     }
@@ -45,7 +43,10 @@ public class ProviderConfigurationRepository(NotificationDbContext context, IEnc
         providerConfiguration.ConfigurationJson = _encryptionService.Encrypt(providerConfiguration.ConfigurationJson);
         var configurationCount = await _context.ProviderConfigurations
             .CountAsync(pc => pc.Provider == providerConfiguration.Provider, cancellationToken);
-        if (configurationCount == 0) providerConfiguration.IsPrimary = true;
+
+        if (configurationCount == 0)
+            providerConfiguration.IsPrimary = true;
+
         _context.ProviderConfigurations.Add(providerConfiguration);
         await _context.SaveChangesAsync(cancellationToken);
     }

@@ -1,7 +1,6 @@
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using NotificationSystem.Apllication.Interfaces;
 using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
 using RabbitMQ.Client;
@@ -131,8 +130,7 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable, IAsyncDisposabl
 
     private void Dispose(bool disposing)
     {
-        if (_disposed)
-            return;
+        if (_disposed) return;
 
         if (disposing)
         {
@@ -145,8 +143,7 @@ public class RabbitMQPublisher : IMessagePublisher, IDisposable, IAsyncDisposabl
 
     private async ValueTask DisposeAsyncCore()
     {
-        if (_disposed)
-            return;
+        if (_disposed) return;
 
         if (_channel != null)
         {

@@ -56,13 +56,13 @@ public class NotificationRepository(NotificationDbContext context) : INotificati
         var channel = await _context.Set<TChannel>()
             .FirstOrDefaultAsync(c => c.Id == channelId && c.NotificationId == notificationId);
 
-        if (channel != null)
-        {
-            channel.Status = status;
-            channel.ErrorMessage = errorMessage;
-            _context.Set<TChannel>().Update(channel);
-            await _context.SaveChangesAsync();
-        }
+        if (channel == null) return;
+
+        channel.Status = status;
+        channel.ErrorMessage = errorMessage;
+        _context.Set<TChannel>().Update(channel);
+        await _context.SaveChangesAsync();
+
     }
 
     public async Task<NotificationStats> GetStatsAsync(CancellationToken cancellationToken)

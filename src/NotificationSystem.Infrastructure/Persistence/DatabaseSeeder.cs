@@ -147,12 +147,12 @@ public static class DatabaseSeeder
                 CreatedAt = DateTime.UtcNow
             };
 
-            adminRole.RolePermissions = allPermissions.Select(p => new RolePermission
+            adminRole.RolePermissions = [.. allPermissions.Select(p => new RolePermission
             {
                 RoleId = adminRole.Id,
                 PermissionId = p.Id,
                 GrantedAt = DateTime.UtcNow
-            }).ToList();
+            })];
 
             await context.Roles.AddAsync(adminRole);
             logger.LogInformation("Created Administrator role with {Count} permissions", allPermissions.Count);
@@ -217,14 +217,14 @@ public static class DatabaseSeeder
             "permission.view"
         };
 
-        managerRole.RolePermissions = allPermissions
+        managerRole.RolePermissions = [.. allPermissions
             .Where(p => managerPermissionCodes.Contains(p.Code))
             .Select(p => new RolePermission
             {
                 RoleId = managerRole.Id,
                 PermissionId = p.Id,
                 GrantedAt = DateTime.UtcNow
-            }).ToList();
+            })];
 
         // ========== DEVELOPER ROLE - GERENCIAMENTO DE PROVEDORES ==========
         var developerRole = new Role
@@ -247,14 +247,14 @@ public static class DatabaseSeeder
             "permission.view"
         };
 
-        developerRole.RolePermissions = allPermissions
+        developerRole.RolePermissions = [.. allPermissions
             .Where(p => developerPermissionCodes.Contains(p.Code))
             .Select(p => new RolePermission
             {
                 RoleId = developerRole.Id,
                 PermissionId = p.Id,
                 GrantedAt = DateTime.UtcNow
-            }).ToList();
+            })];
 
         // ========== OPERATOR ROLE - MONITORAMENTO DE DLQ ==========
         var operatorRole = new Role
@@ -278,14 +278,14 @@ public static class DatabaseSeeder
             "permission.view"
         };
 
-        operatorRole.RolePermissions = allPermissions
+        operatorRole.RolePermissions = [.. allPermissions
             .Where(p => operatorPermissionCodes.Contains(p.Code))
             .Select(p => new RolePermission
             {
                 RoleId = operatorRole.Id,
                 PermissionId = p.Id,
                 GrantedAt = DateTime.UtcNow
-            }).ToList();
+            })];
 
         // ========== VIEWER ROLE - APENAS LEITURA ==========
         var viewerRole = new Role
@@ -308,16 +308,16 @@ public static class DatabaseSeeder
             "permission.view"
         };
 
-        viewerRole.RolePermissions = allPermissions
+        viewerRole.RolePermissions = [.. allPermissions
             .Where(p => viewerPermissionCodes.Contains(p.Code))
             .Select(p => new RolePermission
             {
                 RoleId = viewerRole.Id,
                 PermissionId = p.Id,
                 GrantedAt = DateTime.UtcNow
-            }).ToList();
+            })];
 
-        await context.Roles.AddRangeAsync(new[] { managerRole, developerRole, operatorRole, viewerRole });
+        await context.Roles.AddRangeAsync([managerRole, developerRole, operatorRole, viewerRole]);
         await context.SaveChangesAsync();
 
         logger.LogInformation("Seeded {Count} roles", 5);
@@ -345,15 +345,15 @@ public static class DatabaseSeeder
             CreatedAt = DateTime.UtcNow
         };
 
-        adminUser.UserRoles = new List<UserRole>
-        {
+        adminUser.UserRoles =
+        [
             new()
             {
                 UserId = adminUser.Id,
                 RoleId = adminRole.Id,
                 AssignedAt = DateTime.UtcNow
             }
-        };
+        ];
 
         await context.Users.AddAsync(adminUser);
         await context.SaveChangesAsync();

@@ -3,7 +3,6 @@ using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.DTOs.Common;
 using NotificationSystem.Application.DTOs.Roles;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Services;
 
@@ -16,8 +15,7 @@ public class RoleManagementService(IRoleRepository roleRepository, IPermissionRe
     {
         var role = await _roleRepository.GetByIdWithPermissionsAsync(id, cancellationToken);
 
-        if (role == null)
-            return Result.Fail<RoleDetailDto>(new NotFoundError("role", id));
+        if (role == null) return Result.Fail<RoleDetailDto>(new NotFoundError("role", id));
 
         var roleDto = MapToDetailDto(role);
         return Result.Ok(roleDto);
@@ -44,14 +42,14 @@ public class RoleManagementService(IRoleRepository roleRepository, IPermissionRe
             CreatedAt = DateTime.UtcNow
         };
 
-        if (request.PermissionIds.Any())
+        if (request.PermissionIds.Count != 0)
         {
-            role.RolePermissions = request.PermissionIds.Select(permissionId => new RolePermission
+            role.RolePermissions = [.. request.PermissionIds.Select(permissionId => new RolePermission
             {
                 RoleId = role.Id,
                 PermissionId = permissionId,
                 GrantedAt = DateTime.UtcNow
-            }).ToList();
+            })];
         }
 
         await _roleRepository.AddAsync(role, cancellationToken);
@@ -86,12 +84,12 @@ public class RoleManagementService(IRoleRepository roleRepository, IPermissionRe
         if (request.PermissionIds != null)
         {
             role.RolePermissions.Clear();
-            role.RolePermissions = request.PermissionIds.Select(permissionId => new RolePermission
+            role.RolePermissions = [.. request.PermissionIds.Select(permissionId => new RolePermission
             {
                 RoleId = role.Id,
                 PermissionId = permissionId,
                 GrantedAt = DateTime.UtcNow
-            }).ToList();
+            })];
         }
 
         role.UpdatedAt = DateTime.UtcNow;
@@ -107,11 +105,9 @@ public class RoleManagementService(IRoleRepository roleRepository, IPermissionRe
     {
         var role = await _roleRepository.GetByIdAsync(id, cancellationToken);
 
-        if (role == null)
-            return Result.Fail(new NotFoundError("role", id));
+        if (role == null) return Result.Fail(new NotFoundError("role", id));
 
-        if (role.IsSystemRole)
-            return Result.Fail(new ConflictError("Role", "Cannot delete system role"));
+        if (role.IsSystemRole) return Result.Fail(new ConflictError("Role", "Cannot delete system role"));
 
         if (await _roleRepository.HasUsersAsync(id, cancellationToken))
             return Result.Fail(new ConflictError("Role", "Cannot delete role that is assigned to users"));
@@ -145,14 +141,14 @@ public class RoleManagementService(IRoleRepository roleRepository, IPermissionRe
             IsSystemRole = role.IsSystemRole,
             CreatedAt = role.CreatedAt,
             UpdatedAt = role.UpdatedAt,
-            Permissions = role.RolePermissions.Select(rp => new PermissionDto
+            Permissions = [.. role.RolePermissions.Select(rp => new PermissionDto
             {
                 Id = rp.Permission.Id,
                 Code = rp.Permission.Code,
                 Name = rp.Permission.Name,
                 Description = rp.Permission.Description,
                 Category = rp.Permission.Category
-            }).ToList()
+            })]
         };
     }
 }

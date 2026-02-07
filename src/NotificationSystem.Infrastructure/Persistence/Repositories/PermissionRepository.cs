@@ -10,7 +10,7 @@ public class PermissionRepository(NotificationDbContext context) : IPermissionRe
 
     public async Task<Permission?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Permissions.FindAsync(new object[] { id }, cancellationToken);
+        return await _context.Permissions.FindAsync([id], cancellationToken);
     }
 
     public async Task<Permission?> GetByCodeAsync(string code, CancellationToken cancellationToken = default)

@@ -15,7 +15,7 @@ public class NotificationDbContext(DbContextOptions<NotificationDbContext> optio
     public DbSet<EmailChannel> EmailChannels => Set<EmailChannel>();
     public DbSet<SmsChannel> SmsChannels => Set<SmsChannel>();
     public DbSet<PushChannel> PushChannels => Set<PushChannel>();
-    public DbSet<BulkNotificationJob> bulkNotificationJobs => Set<BulkNotificationJob>();
+    public DbSet<BulkNotificationJob> BulkNotificationJobs => Set<BulkNotificationJob>();
     public DbSet<BulkNotificationItem> BulkNotificationItems => Set<BulkNotificationItem>();
 
     // Auth entities

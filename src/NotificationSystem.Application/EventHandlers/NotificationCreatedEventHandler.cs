@@ -32,7 +32,7 @@ public class NotificationCreatedEventHandler(
 
         foreach (var channel in notificationEntity.Channels)
         {
-            Task publishTask = channel switch
+            var publishTask = channel switch
             {
                 EmailChannel emailChannel => PublishEmailChannelAsync(emailChannel, cancellationToken),
                 SmsChannel smsChannel => PublishSmsChannelAsync(smsChannel, cancellationToken),
@@ -107,9 +107,9 @@ public class NotificationCreatedEventHandler(
 
     private static AndroidConfigMessage? MapAndroidConfig(AndroidConfig? config)
     {
-        if (config == null) return null;
-
-        return new AndroidConfigMessage(
+        return config == null
+            ? null
+            : new AndroidConfigMessage(
             Priority: config.Priority,
             Ttl: config.Ttl,
             CollapseKey: null,
@@ -120,9 +120,9 @@ public class NotificationCreatedEventHandler(
 
     private static ApnsConfigMessage? MapApnsConfig(ApnsConfig? config)
     {
-        if (config == null) return null;
-
-        return new ApnsConfigMessage(
+        return config == null
+            ? null
+            : new ApnsConfigMessage(
             Headers: config.Headers,
             Payload: null
         );
@@ -130,9 +130,9 @@ public class NotificationCreatedEventHandler(
 
     private static WebpushConfigMessage? MapWebpushConfig(WebpushConfig? config)
     {
-        if (config == null) return null;
-
-        return new WebpushConfigMessage(
+        return config == null
+            ? null
+            : new WebpushConfigMessage(
             Headers: config.Headers,
             Notification: null,
             FcmOptions: null

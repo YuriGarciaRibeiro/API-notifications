@@ -2,7 +2,6 @@ using FluentResults;
 using MediatR;
 using NotificationSystem.Application.DTOs.Notifications;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.GetNotificationById;
 
@@ -29,7 +28,7 @@ public class GetNotificationByIdHandler(INotificationRepository notificationRepo
             Id = notification.Id,
             UserId = notification.UserId,
             CreatedAt = notification.CreatedAt,
-            Channels = notification.Channels.Select<NotificationChannel, ChannelDto>(c =>
+            Channels = [.. notification.Channels.Select<NotificationChannel, ChannelDto>(c =>
             {
                 return c switch
                 {
@@ -74,7 +73,7 @@ public class GetNotificationByIdHandler(INotificationRepository notificationRepo
                     },
                     _ => throw new NotSupportedException("Unknown notification channel type")
                 };
-            }).ToList()
+            })]
         };
 
         return Result.Ok(response);

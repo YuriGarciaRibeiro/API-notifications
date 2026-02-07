@@ -4,7 +4,6 @@ using NotificationSystem.Application.DTOs.Common;
 using NotificationSystem.Application.DTOs.Roles;
 using NotificationSystem.Application.DTOs.Users;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Services;
 
@@ -52,14 +51,14 @@ public class UserManagementService(
             CreatedAt = DateTime.UtcNow
         };
 
-        if (roleIds.Any())
+        if (roleIds.Count != 0)
         {
-            user.UserRoles = roleIds.Select(roleId => new UserRole
+            user.UserRoles = [.. roleIds.Select(roleId => new UserRole
             {
                 UserId = user.Id,
                 RoleId = roleId,
                 AssignedAt = DateTime.UtcNow
-            }).ToList();
+            })];
         }
 
         await _userRepository.AddAsync(user, cancellationToken);
@@ -118,12 +117,12 @@ public class UserManagementService(
         if (request.RoleIds != null)
         {
             user.UserRoles.Clear();
-            user.UserRoles = request.RoleIds.Select(roleId => new UserRole
+            user.UserRoles = [.. request.RoleIds.Select(roleId => new UserRole
             {
                 UserId = user.Id,
                 RoleId = roleId,
                 AssignedAt = DateTime.UtcNow
-            }).ToList();
+            })];
         }
 
         user.UpdatedAt = DateTime.UtcNow;
@@ -144,8 +143,7 @@ public class UserManagementService(
 
         var user = await _userRepository.GetByIdAsync(id, cancellationToken);
 
-        if (user == null)
-            return Result.Fail(new NotFoundError("User", id));
+        if (user == null) return Result.Fail(new NotFoundError("User", id));
 
         await _userRepository.DeleteAsync(id, cancellationToken);
         return Result.Ok();
@@ -155,8 +153,7 @@ public class UserManagementService(
     {
         var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
 
-        if (user == null)
-            return Result.Fail(new NotFoundError("User", userId));
+        if (user == null) return Result.Fail(new NotFoundError("User", userId));
 
         if (!_passwordHasher.VerifyPassword(request.CurrentPassword, user.PasswordHash))
             return Result.Fail(new ValidationError("CurrentPassword", "Current password is incorrect"));
@@ -172,16 +169,15 @@ public class UserManagementService(
     {
         var user = await _userRepository.GetByIdWithRolesAsync(userId, cancellationToken);
 
-        if (user == null)
-            return Result.Fail(new NotFoundError("User", userId));
+        if (user == null) return Result.Fail(new NotFoundError("User", userId));
 
         user.UserRoles.Clear();
-        user.UserRoles = roleIds.Select(roleId => new UserRole
+        user.UserRoles = [.. roleIds.Select(roleId => new UserRole
         {
             UserId = user.Id,
             RoleId = roleId,
             AssignedAt = DateTime.UtcNow
-        }).ToList();
+        })];
 
         user.UpdatedAt = DateTime.UtcNow;
         await _userRepository.UpdateAsync(user, cancellationToken);
@@ -200,22 +196,22 @@ public class UserManagementService(
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
             LastLoginAt = user.LastLoginAt,
-            Roles = user.UserRoles.Select(ur => new RoleDto
+            Roles = [.. user.UserRoles.Select(ur => new RoleDto
             {
                 Id = ur.Role.Id,
                 Name = ur.Role.Name,
                 Description = ur.Role.Description,
                 IsSystemRole = ur.Role.IsSystemRole,
                 CreatedAt = ur.Role.CreatedAt,
-                Permissions = ur.Role.RolePermissions.Select(rp => new PermissionDto
+                Permissions = [.. ur.Role.RolePermissions.Select(rp => new PermissionDto
                 {
                     Id = rp.Permission.Id,
                     Code = rp.Permission.Code,
                     Name = rp.Permission.Name,
                     Description = rp.Permission.Description,
                     Category = rp.Permission.Category
-                }).ToList()
-            }).ToList()
+                })]
+            })]
         };
     }
 }

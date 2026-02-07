@@ -15,12 +15,12 @@ public class DeadLetterQueueService : IDeadLetterQueueService, IDisposable
     private readonly IConnection _connection;
     private readonly IChannel _channel;
 
-    private static readonly string[] KnownQueues = new[]
-    {
+    private static readonly string[] _knownQueues =
+    [
         "sms-notifications-dlq",
         "email-notifications-dlq",
         "push-notifications-dlq"
-    };
+    ];
 
     public DeadLetterQueueService(
         ILogger<DeadLetterQueueService> logger,
@@ -46,7 +46,7 @@ public class DeadLetterQueueService : IDeadLetterQueueService, IDisposable
     {
         var stats = new List<DeadLetterQueueStatsDto>();
 
-        foreach (var queueName in KnownQueues)
+        foreach (var queueName in _knownQueues)
         {
             try
             {
@@ -94,7 +94,7 @@ public class DeadLetterQueueService : IDeadLetterQueueService, IDisposable
             var actualLimit = Math.Min(limit, (int)declareResult.MessageCount);
 
             // Ler mensagens sem remover permanentemente
-            for (int i = 0; i < actualLimit; i++)
+            for (var i = 0; i < actualLimit; i++)
             {
                 var result = await _channel.BasicGetAsync(queueName, false);
 
@@ -261,20 +261,16 @@ public class DeadLetterQueueService : IDeadLetterQueueService, IDisposable
 
     private static int GetRetryCount(IDictionary<string, object>? headers)
     {
-        if (headers == null)
-            return 0;
-
-        if (headers.TryGetValue("x-retry-count", out var value))
-        {
-            return value switch
-            {
-                int intValue => intValue,
-                byte[] byteValue => BitConverter.ToInt32(byteValue, 0),
-                _ => 0
-            };
-        }
-
-        return 0;
+        return headers == null
+            ? 0
+            : headers.TryGetValue("x-retry-count", out var value)
+                ? value switch
+                {
+                    int intValue => intValue,
+                    byte[] byteValue => BitConverter.ToInt32(byteValue, 0),
+                    _ => 0
+                }
+                : 0;
     }
 
     public void Dispose()

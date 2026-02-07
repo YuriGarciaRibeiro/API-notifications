@@ -24,7 +24,7 @@ public class CreateBulkNotificationHandler(IBulkNotificationRepository repositor
             CreatedBy = _currentUserService.UserId ?? Guid.Empty,
             CreatedAt = DateTime.UtcNow,
             TotalCount = request.Items.Count,
-            Items = request.Items.Select(i => new BulkNotificationItem
+            Items = [.. request.Items.Select(i => new BulkNotificationItem
             {
                 Id = Guid.NewGuid(),
                 BulkJobId = jobId,
@@ -33,7 +33,7 @@ public class CreateBulkNotificationHandler(IBulkNotificationRepository repositor
                 Variables = i.Variables ?? new(),
                 Status = NotificationStatus.Pending,
                 CreatedAt = DateTime.UtcNow
-            }).ToList()
+            })]
         };
 
         await _repository.CreateJobAsync(job, cancellationToken);

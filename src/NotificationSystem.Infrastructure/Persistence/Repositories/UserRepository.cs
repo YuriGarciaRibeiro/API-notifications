@@ -10,7 +10,7 @@ public class UserRepository(NotificationDbContext context) : IUserRepository
 
     public async Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Users.FindAsync(new object[] { id }, cancellationToken);
+        return await _context.Users.FindAsync([id], cancellationToken);
     }
 
     public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
@@ -67,11 +67,10 @@ public class UserRepository(NotificationDbContext context) : IUserRepository
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var user = await GetByIdAsync(id, cancellationToken);
-        if (user != null)
-        {
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
+        if (user == null) return;
+
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default)

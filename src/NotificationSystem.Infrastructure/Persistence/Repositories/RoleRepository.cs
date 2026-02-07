@@ -10,7 +10,7 @@ public class RoleRepository(NotificationDbContext context) : IRoleRepository
 
     public async Task<Role?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Roles.FindAsync(new object[] { id }, cancellationToken);
+        return await _context.Roles.FindAsync([id], cancellationToken);
     }
 
     public async Task<Role?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
@@ -55,11 +55,10 @@ public class RoleRepository(NotificationDbContext context) : IRoleRepository
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var role = await GetByIdAsync(id, cancellationToken);
-        if (role != null)
-        {
-            _context.Roles.Remove(role);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
+        if (role == null) return;
+
+        _context.Roles.Remove(role);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<bool> NameExistsAsync(string name, CancellationToken cancellationToken = default)

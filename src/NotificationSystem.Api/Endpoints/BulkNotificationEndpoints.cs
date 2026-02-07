@@ -43,7 +43,7 @@ public static class BulkNotificationEndpoints
         group.MapGet("/",
             async (
                 IMediator mediator,
-                   CancellationToken cancellationToken, 
+                   CancellationToken cancellationToken,
                    [FromQuery] int page = 1,
                    [FromQuery] int pageSize = 20,
                    [FromQuery] string? status = null,

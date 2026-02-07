@@ -25,7 +25,7 @@ public class GetAllNotificationsHandler(INotificationRepository notificationRepo
             Id = n.Id,
             UserId = n.UserId,
             CreatedAt = n.CreatedAt,
-            Channels = n.Channels.Select<NotificationChannel, ChannelDto>(c =>
+            Channels = [.. n.Channels.Select<NotificationChannel, ChannelDto>(c =>
             {
                 return c switch
                 {
@@ -69,7 +69,7 @@ public class GetAllNotificationsHandler(INotificationRepository notificationRepo
                     },
                     _ => throw new NotSupportedException("Canal de notificação desconhecido")
                 };
-            }).ToList()
+            })]
         }).ToList();
 
         var response = new GetAllNotificationsResponse(

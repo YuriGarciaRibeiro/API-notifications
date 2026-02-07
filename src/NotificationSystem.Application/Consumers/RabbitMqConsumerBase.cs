@@ -1,13 +1,9 @@
 using System.Text;
 using System.Text.Json;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NotificationSystem.Apllication.Interfaces;
 using NotificationSystem.Application.Configuration;
-using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Domain.Entities;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -16,13 +12,11 @@ namespace NotificationSystem.Application.Consumers;
 public abstract class RabbitMqConsumerBase<TMessage>(
     ILogger logger,
     IOptions<RabbitMqSettings> rabbitMqOptions,
-    IServiceProvider serviceProvider,
     MessageProcessingMiddleware<TMessage> middleware) : BackgroundService
     where TMessage : class
 {
     private readonly ILogger _logger = logger;
     private readonly RabbitMqSettings _rabbitMqOptions = rabbitMqOptions.Value;
-    private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly MessageProcessingMiddleware<TMessage> _middleware = middleware;
     private IConnection? _connection;
     private IChannel? _channel;

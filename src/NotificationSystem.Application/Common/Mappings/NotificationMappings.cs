@@ -1,5 +1,4 @@
 using NotificationSystem.Application.DTOs.Notifications;
-using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Common.Mappings;
 

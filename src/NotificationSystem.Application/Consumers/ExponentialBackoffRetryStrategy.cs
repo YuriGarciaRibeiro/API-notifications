@@ -11,8 +11,7 @@ public class ExponentialBackoffRetryStrategy(
 
     public bool ShouldRetry(int attemptNumber, Exception exception)
     {
-        if (attemptNumber >= _maxRetries)
-            return false;
+        if (attemptNumber >= _maxRetries) return false;
 
         // Não tentar novamente para erros permanentes
         return IsTransientError(exception);

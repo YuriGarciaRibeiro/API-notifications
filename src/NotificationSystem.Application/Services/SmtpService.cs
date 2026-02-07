@@ -32,9 +32,7 @@ public class SmtpService(IOptions<SmtpSettings> smtpOptions) : IEmailService
 
         // Only authenticate if credentials are provided
         if (!string.IsNullOrEmpty(_smtpOptions.Username) && !string.IsNullOrEmpty(_smtpOptions.Password))
-        {
             await client.AuthenticateAsync(_smtpOptions.Username, _smtpOptions.Password);
-        }
 
         await client.SendAsync(message);
         await client.DisconnectAsync(true);

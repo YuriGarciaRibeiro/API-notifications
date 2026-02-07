@@ -2,7 +2,6 @@ using FluentResults;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.CancelBulkNotification;
 
@@ -23,9 +22,9 @@ public class CancelBulkNotificationHandler(
         if (job is null)
             return Result.Fail(new Error("NotFound").WithMetadata("message", "Bulk notification job not found"));
 
-        if (job.Status == BulkJobStatus.Completed ||
-            job.Status == BulkJobStatus.Failed ||
-            job.Status == BulkJobStatus.Cancelled)
+        if (job.Status is BulkJobStatus.Completed or
+            BulkJobStatus.Failed or
+            BulkJobStatus.Cancelled)
         {
             return Result.Fail(new Error("CannotCancelCompletedJob")
                 .WithMetadata("message", "Cannot cancel a job that has already completed, failed, or was cancelled"));

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NotificationSystem.Apllication.Exceptions;
 using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Services;
@@ -21,6 +22,14 @@ public class EmailProviderFactory(
         {
             ProviderType.Smtp => CreateSmtp(config),
             ProviderType.SendGrid => CreateSendGrid(config),
+            ProviderType.Twilio => throw new InvalidProviderTypeException(
+                ProviderType.Twilio,
+                ChannelType.Email,
+                "Twilio is an SMS provider and cannot be used with Email factory. Use SmsProviderFactory instead."),
+            ProviderType.Firebase => throw new InvalidProviderTypeException(
+                ProviderType.Firebase,
+                ChannelType.Email,
+                "Firebase is a Push notification provider and cannot be used with Email factory. Use PushProviderFactory instead."),
             _ => throw new NotSupportedException($"Email Provider '{config.Provider}' is not supported")
         };
     }

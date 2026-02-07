@@ -4,7 +4,6 @@ using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.DTOs.Auth;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.Services;
 
@@ -13,15 +12,13 @@ public class AuthenticationService(
     IRefreshTokenRepository refreshTokenRepository,
     IJwtTokenGenerator jwtTokenGenerator,
     IPasswordHasher passwordHasher,
-    IOptions<JwtSettings> jwtOptions,
-    INotificationRepository repository) : IAuthenticationService
+    IOptions<JwtSettings> jwtOptions) : IAuthenticationService
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IRefreshTokenRepository _refreshTokenRepository = refreshTokenRepository;
     private readonly IJwtTokenGenerator _jwtTokenGenerator = jwtTokenGenerator;
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
     private readonly JwtSettings _jwtOptions = jwtOptions.Value;
-    private readonly INotificationRepository _repository = repository;
 
     public async Task<Result<LoginResponse>> LoginAsync(LoginRequest request, string ipAddress, CancellationToken cancellationToken = default)
     {
@@ -166,14 +163,14 @@ public class AuthenticationService(
             CreatedAt = DateTime.UtcNow
         };
 
-        if (request.RoleIds.Any())
+        if (request.RoleIds.Count != 0)
         {
-            user.UserRoles = request.RoleIds.Select(roleId => new UserRole
+            user.UserRoles = [.. request.RoleIds.Select(roleId => new UserRole
             {
                 UserId = user.Id,
                 RoleId = roleId,
                 AssignedAt = DateTime.UtcNow
-            }).ToList();
+            })];
         }
 
         await _userRepository.AddAsync(user, cancellationToken);

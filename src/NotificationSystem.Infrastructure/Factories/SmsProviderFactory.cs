@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NotificationSystem.Apllication.Exceptions;
 using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Services;
 using NotificationSystem.Domain.Entities;
-using System.Text.Json;
 
 namespace NotificationSystem.Infrastructure.Factories;
 
@@ -21,6 +21,18 @@ public class SmsProviderFactory(
         return config.Provider switch
         {
             ProviderType.Twilio => CreateTwilio(config),
+            ProviderType.Smtp => throw new InvalidProviderTypeException(
+                ProviderType.Smtp,
+                ChannelType.Sms,
+                "SMTP is an Email provider and cannot be used with SMS factory. Use EmailProviderFactory instead."),
+            ProviderType.SendGrid => throw new InvalidProviderTypeException(
+                ProviderType.SendGrid,
+                ChannelType.Sms,
+                "SendGrid is an Email provider and cannot be used with SMS factory. Use EmailProviderFactory instead."),
+            ProviderType.Firebase => throw new InvalidProviderTypeException(
+                ProviderType.Firebase,
+                ChannelType.Sms,
+                "Firebase is a Push notification provider and cannot be used with SMS factory. Use PushProviderFactory instead."),
             _ => throw new NotSupportedException($"SMS Provider '{config.Provider}' is not supported")
         };
     }

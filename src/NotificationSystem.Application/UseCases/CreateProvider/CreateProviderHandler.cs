@@ -2,7 +2,6 @@ using System.Text.Json;
 using FluentResults;
 using MediatR;
 using NotificationSystem.Application.Interfaces;
-using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.CreateProvider;
 

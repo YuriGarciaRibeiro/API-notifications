@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
@@ -10,7 +9,7 @@ namespace NotificationSystem.Application.Services;
 public class SendGridEmailService : IEmailService
 {
     private readonly SendGridSettings _settings;
-    private readonly ISendGridClient _client;
+    private readonly SendGridClient _client;
 
     public SendGridEmailService(IOptions<SendGridSettings> settings)
     {
@@ -20,7 +19,6 @@ public class SendGridEmailService : IEmailService
 
     public async Task SendEmailAsync(string to, string subject, string body, bool isHtml = false)
     {
-        
         var from = new EmailAddress(_settings.FromEmail, _settings.FromName);
         var toAddress = new EmailAddress(to);
 
@@ -36,9 +34,8 @@ public class SendGridEmailService : IEmailService
 
         if (!response.IsSuccessStatusCode)
         {
-            var responseBody = await response.Body.ReadAsStringAsync();
+            await response.Body.ReadAsStringAsync();
             throw new Exception($"Failed to send email. Status: {response.StatusCode}");
         }
-        
     }
 }
