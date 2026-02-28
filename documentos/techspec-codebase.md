@@ -2,9 +2,9 @@
 
 ## 1. Visão Geral
 
-Sistema **centralizador de notificações self-hosted** desenvolvido em **.NET 10** com **ASP.NET Core Minimal APIs** e arquitetura **event-driven** baseada em **RabbitMQ**. A aplicação segue **Clean Architecture** e **Domain-Driven Design (DDD)**, organizando o código em 4 camadas bem definidas (Domain → Application → Infrastructure → Presentation).
+O **NotificationSystem** é uma API de notificações **self-hosted** e **production-ready**, desenvolvida em **.NET 10** com **ASP.NET Core Minimal APIs**. O sistema centraliza o envio de notificações por múltiplos canais (Email, SMS, Push) de forma assíncrona via **RabbitMQ**, com persistência em **PostgreSQL**.
 
-O sistema permite o envio de notificações por múltiplos canais simultaneamente (**Email**, **SMS**, **Push**) com rastreamento independente de status por canal. Suporta notificações individuais, em **bulk** e via **campanhas agendadas** (Hangfire). Cada canal é processado por um **Consumer/Worker** independente, escalável horizontalmente, conectado ao RabbitMQ com Dead Letter Queue (DLQ) para resiliência.
+O problema de negócio principal é permitir que qualquer empresa hospede sua própria infraestrutura de notificações, com suporte a envio multi-canal simultâneo, rastreamento independente de status por canal, processamento assíncrono escalável e auditoria completa de operações. A arquitetura segue **Clean Architecture** + **DDD** + **CQRS**, com consumers independentes por canal que podem ser escalados horizontalmente.
 
 ---
 
@@ -12,34 +12,31 @@ O sistema permite o envio de notificações por múltiplos canais simultaneament
 
 | Categoria | Tecnologia |
 |---|---|
-| **Linguagem** | C# / .NET 10 |
-| **Framework Web** | ASP.NET Core (Minimal APIs) |
-| **Build/Package** | .NET SDK / NuGet / Solution (.slnx) |
-| **Banco de Dados** | PostgreSQL (via EF Core 10 + Npgsql) |
-| **Message Broker** | RabbitMQ 7.2 (com DLX/DLQ) |
-| **Job Scheduler** | Hangfire 1.8.14 (PostgreSql Storage) |
-| **Interface API** | REST (JSON) + OpenAPI/Swagger (Swashbuckle) |
-| **Autenticação** | JWT Bearer (symmetric key) |
-| **Logging** | Serilog (Console + File sinks) |
+| **Core** | C# / .NET 10 + ASP.NET Core (Minimal APIs) |
+| **Build/Package** | dotnet CLI / NuGet |
+| **Banco de Dados** | PostgreSQL 16 (via EF Core + Npgsql) |
+| **Message Broker** | RabbitMQ 3.x (com DLX/DLQ) |
+| **Interface** | REST (OpenAPI/Swagger) |
+| **Job Scheduler** | Hangfire (PostgreSQL storage) |
+| **Containerização** | Docker + Docker Compose |
+| **Logging** | Serilog (structured logging) |
 
-### Dependências Chave (NuGet)
+### Dependências NuGet Chave
 
-| Pacote | Versão | Camada | Uso |
-|---|---|---|---|
-| **MediatR** | 14.0.0 | Application | CQRS + Mediator + Pipeline Behaviors |
-| **FluentValidation** | 12.1.1 | Application | Validação declarativa no pipeline MediatR |
-| **FluentResults** | 4.0.0 | Application | Result Pattern (sem exceções para controle de fluxo) |
-| **RabbitMQ.Client** | 7.2.0 | Application/Infra | Publisher + Consumer base genérico |
-| **Entity Framework Core** | 10.0.1 | Infrastructure | ORM + Migrations + Interceptors |
-| **Npgsql.EFCore.PostgreSQL** | 10.0.0 | Infrastructure | Provider PostgreSQL |
-| **BCrypt.Net-Next** | 4.0.3 | Infrastructure | Hashing de senhas |
-| **MailKit** | 4.14.1 | Application | Envio de Email via SMTP |
-| **SendGrid** | 9.29.3 | Application | Envio de Email via API SendGrid |
-| **Twilio** | 7.14.0 | Application | Envio de SMS |
-| **FirebaseAdmin** | 3.4.0 | Application | Push Notifications (FCM) |
-| **Hangfire** | 1.8.14 | API | Agendamento de Campanhas |
-| **Serilog.AspNetCore** | 10.0.0 | API | Logging estruturado |
-| **Swashbuckle.AspNetCore** | 10.0.1 | API | Documentação OpenAPI |
+| Pacote | Camada | Propósito |
+|---|---|---|
+| **MediatR 14.x** | Application | CQRS, Mediator pattern, Pipeline Behaviors |
+| **FluentValidation 12.x** | Application | Validação declarativa integrada ao pipeline MediatR |
+| **FluentResults 4.x** | Application | Result pattern (substitui exceptions para fluxo de erros) |
+| **RabbitMQ.Client 7.x** | Infrastructure | Cliente oficial RabbitMQ (async API) |
+| **MailKit** | Application/Services | Envio SMTP |
+| **Twilio 7.x** | Application/Services | Envio SMS |
+| **FirebaseAdmin** | Application/Services | Push Notifications (FCM) |
+| **Entity Framework Core** | Infrastructure | ORM + Migrations |
+| **Npgsql.EFCore.PostgreSQL** | Infrastructure | Provider PostgreSQL para EF Core |
+| **Hangfire + Hangfire.PostgreSql** | API | Job scheduling para bulk/campaigns |
+| **Serilog** | Cross-cutting | Logging estruturado |
+| **Microsoft.AspNetCore.OpenApi** | API | Documentação Swagger |
 
 ---
 
@@ -49,39 +46,55 @@ O sistema permite o envio de notificações por múltiplos canais simultaneament
 
 | Módulo/Diretório | Padrão Arquitetural | Notas |
 |---|---|---|
-| `src/NotificationSystem.Domain/` | **DDD - Domain Layer** | Aggregate Root (Notification), Entities, Value Objects, Domain Events, Marker Interfaces. Zero dependências externas |
-| `src/NotificationSystem.Application/` | **CQRS + Mediator + Clean Architecture** | Use Cases por pasta, MediatR Handlers, Pipeline Behaviors (Validation, DomainEvent), Result Pattern (FluentResults) |
-| `src/NotificationSystem.Infrastructure/` | **Repository + Factory + Interceptor** | EF Core Repositories, Provider Factories (Abstract Factory), AuditLog Interceptor, RabbitMQ Publisher |
-| `src/NotificationSystem.Api/` | **Minimal API + Middleware** | Endpoint Groups com MediatR, Global Exception Handler, JWT Auth, Hangfire Dashboard |
-| `src/Consumers/` | **Worker Service + Template Method** | `RabbitMqConsumerBase<TMessage>` genérico com DLX/DLQ, retry middleware, BackgroundService |
+| `src/NotificationSystem.Domain/` | DDD (Domain Layer) | Entities, Value Objects, Enums, Domain Events. Sem dependências externas. |
+| `src/NotificationSystem.Application/` | Clean Architecture + CQRS | UseCases organizados por feature (Command/Query + Handler + Response + Validator). MediatR pipeline. |
+| `src/NotificationSystem.Infrastructure/` | Infrastructure Layer | Repositories (EF Core), RabbitMQ Publisher, EF Configurations, Auth Services, Provider Factories. |
+| `src/NotificationSystem.Api/` | Presentation Layer (Minimal APIs) | Endpoints organizados por domínio, Middleware global, DI extensions. |
+| `src/Consumers/` | Worker Services (BackgroundService) | Um consumer por canal (Email, SMS, Push, Bulk). Herdam de `RabbitMqConsumerBase<T>`. |
 
-### 3.2. Engines e Abstrações Core
+### 3.2. Dependência entre Projetos
 
-#### `RabbitMqConsumerBase<TMessage>` — Template Method para Consumers
-- **Localização**: `Application/Consumers/RabbitMqConsumerBase.cs`
-- **Como funciona**: Classe base genérica (`BackgroundService`) que gerencia conexão RabbitMQ, declaração de filas com DLX/DLQ, deserialização de mensagens e ciclo de vida (start/stop). Workers concretos implementam apenas:
-  - `QueueName` — nome da fila
-  - `ProcessMessageAsync()` — lógica de envio
-  - `GetNotificationIdsAsync()` — extrai IDs para tracking
-  - `GetChannelType()` — tipo do canal (Email/SMS/Push)
-- **Middleware**: `MessageProcessingMiddleware<TMessage>` com retry (`ExponentialBackoffRetryStrategy`) e error handling automático
+```
+NotificationSystem.Api         → Application + Infrastructure
+Consumers/*                    → Application + Infrastructure
+NotificationSystem.Infrastructure → Application + Domain
+NotificationSystem.Application   → Domain
+NotificationSystem.Domain        → (sem dependências)
+```
 
-#### `ProviderFactoryBase<TService>` — Abstract Factory para Providers Dinâmicos
-- **Localização**: `Infrastructure/Factories/ProviderFactoryBase.cs`
-- **Como funciona**: Carrega configuração de provider do banco de dados (tabela `ProviderConfiguration`), deserializa JSON criptografado, e instancia o serviço correto. Factories concretas: `EmailProviderFactory`, `SmsProviderFactory`, `PushProviderFactory`
-- **Troca hot de provider**: Permite trocar provider (ex: SMTP → SendGrid) sem redeploy, apenas alterando a configuração no DB
+### 3.3. Fluxo de Dados Principal
 
-#### `ValidationBehavior<TRequest, TResponse>` — Pipeline MediatR
-- **Localização**: `Application/Common/Behaviors/ValidationBehavior.cs`
-- **Como funciona**: Intercepta todas as requests MediatR, executa os `IValidator<T>` registrados via FluentValidation, e retorna `Result` com erros caso a validação falhe (sem lançar exceções)
+```
+Client HTTP Request
+  → Minimal API Endpoint
+    → MediatR.Send(Command/Query)
+      → ValidationBehavior (FluentValidation)
+        → Handler (lógica de negócio)
+          → Repository (persistência EF Core)
+          → Domain Event (NotificationCreatedEvent)
+            → DomainEventDispatcher (MediatR pipeline)
+              → NotificationCreatedEventHandler
+                → RabbitMQ Publisher (publica nas filas por canal)
 
-#### `DomainEventDispatcherBehavior<TRequest, TResponse>` — Pipeline MediatR
-- **Localização**: `Application/Common/Behaviors/DomainEventDispatcherBehavior.cs`
-- **Como funciona**: Após execução bem-sucedida de um handler, extrai `DomainEvents` da `Notification` (via reflection) e os despacha via `IMediator.Publish()`. Usado para disparar publicação no RabbitMQ após criação de notificação
+RabbitMQ Queue
+  → Consumer (BackgroundService)
+    → MessageProcessingMiddleware (retry + error handling)
+      → Provider Factory (resolve provider ativo do banco)
+        → External Service (SMTP / Twilio / Firebase)
+          → Atualiza status do canal no banco
+```
 
-#### `ResultExtensions` — Conversão FluentResults → HTTP Response
-- **Localização**: `Api/Extensions/ResultExtensions.cs`
-- **Como funciona**: Converte `Result<T>` e `Result` em `IResult` do Minimal APIs. Mapeia `DomainError` subclasses (NotFoundError, ConflictError, ForbiddenError, UnauthorizedError, ValidationError, InternalError) para status codes HTTP + ProblemDetails (RFC 7807)
+### 3.4. Engines e Abstrações Core
+
+| Abstração | Como Funciona |
+|---|---|
+| **RabbitMqConsumerBase\<TMessage\>** | Classe abstrata genérica que configura conexão RabbitMQ, declara filas com DLX/DLQ, deserializa mensagens e delega processamento. Cada consumer herda e define `QueueName`, `ProcessMessageAsync`, `GetNotificationIdsAsync` e `GetChannelType`. |
+| **MessageProcessingMiddleware\<TMessage\>** | Middleware de processamento com retry strategy (exponential backoff). Executa a lógica, faz retry configurável, e atualiza status para `Failed` no banco via reflection se todas tentativas falharem. |
+| **ProviderFactoryBase\<TService\>** | Factory abstrata que resolve o provider ativo (SMTP, Twilio, Firebase, SendGrid) a partir de `ProviderConfiguration` no banco. Suporta múltiplos providers por canal com prioridade e flag `IsPrimary`. |
+| **ValidationBehavior\<TRequest, TResponse\>** | MediatR Pipeline Behavior que intercepta todos os requests, executa validators do FluentValidation e retorna erros via FluentResults sem lançar exceptions. |
+| **DomainEventDispatcherBehavior\<TRequest, TResponse\>** | MediatR Pipeline Behavior que após handler bem-sucedido, extrai Domain Events de `Notification` (via reflection) e publica via MediatR. |
+| **ResultExtensions** | Extension methods que convertem `FluentResults.Result<T>` para `IResult` HTTP, mapeando `DomainError` subclasses para status codes e ProblemDetails (RFC 7807). |
+| **DomainError hierarchy** | Classe base abstrata com `Code` + `StatusCode`. Subclasses: `NotFoundError`, `ValidationError`, `ConflictError`, `ForbiddenError`, `UnauthorizedError`, `InternalError`. |
 
 ---
 
@@ -91,237 +104,248 @@ O sistema permite o envio de notificações por múltiplos canais simultaneament
 
 | Elemento | Padrão | Exemplo |
 |---|---|---|
-| **Entities (Domain)** | PascalCase, sem sufixo | `Notification`, `EmailChannel`, `User` |
-| **DTOs** | Sufixo `Dto`, `Request`, `Response` | `NotificationDto`, `CreateRoleRequest`, `LoginResponse` |
-| **Commands (CQRS)** | Sufixo `Command` | `CreateNotificationCommand` |
-| **Queries (CQRS)** | Sufixo `Query` | `GetAllNotificationsQuery` |
-| **Handlers** | Sufixo `Handler` | `GetAllNotificationsHandler` |
+| **DTOs** | Sufixo `Dto` ou `Request`/`Response` | `NotificationDto`, `ChannelDto`, `ChannelRequest`, `GetAllNotificationsResponse` |
+| **Commands** | Sufixo `Command` | `CreateNotificationCommand`, `CreateBulkNotificationCommand` |
+| **Queries** | Sufixo `Query` | `GetAllNotificationsQuery`, `GetNotificationByIdQuery` |
+| **Handlers** | Sufixo `Handler` | `CreateNotificationHandler`, `GetAllNotificationsHandler` |
 | **Validators** | Sufixo `Validator` | `GetAllNotificationsValidator` |
-| **Interfaces** | Prefixo `I` | `INotificationRepository`, `IAuditable` |
-| **Implementações** | Sem sufixo `Impl` | `NotificationRepository` (implementa `INotificationRepository`) |
-| **Settings/Config** | Sufixo `Settings` | `RabbitMqSettings`, `SmtpSettings`, `JwtSettings` |
-| **Enums** | PascalCase, singular | `NotificationStatus`, `ChannelType`, `NotificationOrigin` |
-| **Errors** | Sufixo `Error` extends `DomainError` | `NotFoundError`, `ConflictError`, `ValidationError` |
-| **Testes** | (planejados) Sufixo `Tests` no projeto | `NotificationSystem.Domain.Tests` |
+| **Entities** | Nome direto (PascalCase) | `Notification`, `NotificationChannel`, `EmailChannel` |
+| **Interfaces** | Prefixo `I` | `INotificationRepository`, `IMessagePublisher`, `IAuditable` |
+| **Repositories** | Sufixo `Repository` | `NotificationRepository`, `UserRepository` |
+| **Services** | Sufixo `Service` | `AuthenticationService`, `SmtpService`, `DeadLetterQueueService` |
+| **Factories** | Sufixo `Factory` ou `ProviderFactory` | `EmailProviderFactory`, `SmsProviderFactory` |
+| **Settings/Config** | Sufixo `Settings` | `SmtpSettings`, `RabbitMqSettings`, `JwtSettings` |
+| **Enums** | Nome direto (PascalCase) | `NotificationStatus`, `ChannelType`, `ProviderType` |
+| **Endpoints** | Sufixo `Endpoints` (static class) | `NotificationEndpoints`, `AuthEndpoints` |
+| **Behaviors** | Sufixo `Behavior` | `ValidationBehavior`, `DomainEventDispatcherBehavior` |
+| **Messages (RabbitMQ)** | Sufixo `Message` (records) | `EmailChannelMessage`, `SmsChannelMessage`, `PushChannelMessage` |
+| **Permissions** | Formato `resource.action` (kebab-case) | `notification.create`, `user.assign-roles`, `dlq.reprocess` |
 
-### 4.2. Organização de Use Cases
+### 4.2. Organização de UseCases
 
-Cada Use Case é uma **pasta individual** dentro de `Application/UseCases/`:
+Cada use case segue a estrutura de pasta por feature:
+
 ```
 UseCases/
-├── CreateNotification/
-│   ├── CreateNotificationCommand.cs      # IRequest<Result<T>>
-│   ├── CreateNotificationHandler.cs      # IRequestHandler
-│   ├── CreateNotificationResponse.cs     # DTO de saída
-│   └── CreateNotificationValidator.cs    # FluentValidation
-├── GetAllNotifications/
-│   ├── GetAllNotificationsQuery.cs
-│   ├── GetAllNotificationsHandler.cs
-│   ├── GetAllNotificationsResponse.cs
-│   └── GetAllNotificationsValidator.cs
-└── ... (padrão repete para cada Use Case)
+└── CreateNotification/
+    ├── CreateNotificationCommand.cs    # record : IRequest<Result<T>>
+    ├── CreateNotificationHandler.cs    # : IRequestHandler<Command, Result<T>>
+    └── CreateNotificationValidator.cs  # : AbstractValidator<Command> (quando necessário)
 ```
 
-### 4.3. Tratamento de Erros (Dual-Layer)
+- **Commands** retornam `Result<T>` (FluentResults)
+- **Queries** retornam `Result<T>` (FluentResults)
+- Validators são opcionais e auto-registrados via assembly scanning
 
-**Camada 1 — Result Pattern (FluentResults):**
-- Handlers retornam `Result<T>` ou `Result` (nunca lançam exceções por fluxo lógico)
-- Erros tipados: `NotFoundError(404)`, `ConflictError(409)`, `ForbiddenError(403)`, `UnauthorizedError(401)`, `ValidationError(400)`, `InternalError(500)`
-- `ResultExtensions.ToIResult()` converte para HTTP response com `ProblemDetails`
+### 4.3. Tratamento de Erros
 
-**Camada 2 — Global Exception Handler (Middleware):**
-- `GlobalExceptionHandlerMiddleware` captura exceções não tratadas
-- Pattern matching: `ValidationException` → 400, `ArgumentException` → 400, `KeyNotFoundException` → 404, `UnauthorizedAccessException` → 401, `_ (default)` → 500
-- Resposta padronizada com `ProblemDetails` (RFC 7807), incluindo `traceId` e `timestamp`
-- Em `Development` expõe a mensagem da exceção; em `Production` mensagem genérica
+O sistema usa uma **abordagem dupla** para tratamento de erros:
 
-### 4.4. Padrão de Resposta de Erro da API
+**1. Result Pattern (FluentResults) - Fluxo principal:**
+- Handlers retornam `Result<T>` em vez de lançar exceptions
+- `DomainError` subclasses encapsulam código de erro + HTTP status code
+- `ResultExtensions.ToIResult()` converte para HTTP responses com `ProblemDetails`
 
+**2. Global Exception Handler - Fallback:**
+- `GlobalExceptionHandlerMiddleware` captura exceptions não tratadas
+- Mapeia tipos de exception para HTTP status codes (ValidationException → 400, KeyNotFoundException → 404, etc.)
+- Retorna `ProblemDetails` (RFC 7807) com `traceId` e `timestamp`
+
+**Padrão de resposta de erro da API (ProblemDetails):**
 ```json
 {
-  "type": "https://httpstatuses.com/400",
-  "title": "Validation Error",
-  "status": 400,
-  "detail": "One or more validation errors occurred",
-  "instance": "/api/notifications",
-  "traceId": "0HMVFE...",
-  "timestamp": "2025-12-10T10:30:00Z",
-  "errors": {
-    "PageNumber": ["Page number must be greater than 0"],
-    "PageSize": ["Page size must not exceed 100"]
-  }
+  "type": "https://api.example.com/errors/not-found",
+  "title": "Not Found",
+  "detail": "Notification with ID ... was not found",
+  "status": 404,
+  "instance": "/api/notifications/...",
+  "traceId": "...",
+  "timestamp": "2025-01-01T00:00:00Z",
+  "errors": {}
 }
 ```
+
+### 4.4. Padrões de DI e Registro
+
+- **Assembly scanning** para MediatR handlers e FluentValidation validators
+- **Extension methods** `AddApplication()`, `AddInfrastructure()`, `AddApiServices()` para registro modular
+- **IOptions\<T\>** pattern para configurações (Settings classes com `SectionName`)
+- **Scoped** para repositories e services
+- **Singleton** para `IMessagePublisher` (RabbitMQ connection)
+- **Primary constructors** (C# 12) amplamente utilizados
+
+### 4.5. Polimorfismo e Serialização
+
+- **Domain:** `NotificationChannel` (abstract) → `EmailChannel`, `SmsChannel`, `PushChannel` (herança TPH no EF Core)
+- **DTOs:** `ChannelDto` (abstract record) com `[JsonPolymorphic]` + `[JsonDerivedType]` para serialização polimórfica automática
+- **Messages:** Records imutáveis separados por canal para mensagens RabbitMQ
+
+### 4.6. Autenticação e Autorização
+
+- **JWT Bearer Authentication** com access token + refresh token
+- **Permission-based Authorization** via claims (não role-based)
+- Permissões centralizadas em `Permissions.cs` como constantes `string`
+- Cada endpoint usa `.RequireAuthorization(Permissions.XxxYyy)`
+- Entidades: `User` → `UserRole` → `Role` → `RolePermission` → `Permission`
+
+### 4.7. Auditoria
+
+- **AuditLogInterceptor** (EF Core SaveChanges interceptor) captura alterações automaticamente
+- Apenas entidades que implementam `IAuditable` (marker interface) são auditadas
+- Registra: quem, quando, o quê, valores antigos/novos, propriedades alteradas, IP, user agent, request path
+- Endpoints dedicados para consulta de audit logs com filtros
 
 ---
 
 ## 5. Integrações Externas
 
-| Sistema | Objetivo | Protocolo | Provider |
+| Sistema | Objetivo | Protocolo | Status |
 |---|---|---|---|
-| **SMTP (MailKit)** | Envio de emails via SMTP | TCP/SMTP | Qualquer servidor SMTP (Gmail, SES, etc.) |
-| **SendGrid** | Envio de emails via API | REST/HTTPS | SendGrid API |
-| **Twilio** | Envio de SMS | REST/HTTPS | Twilio API |
-| **Firebase Cloud Messaging** | Push Notifications | REST/HTTPS | Google FCM |
-| **RabbitMQ** | Message Broker (filas) | AMQP 0.9.1 | Self-hosted |
-| **PostgreSQL** | Banco de dados relacional | TCP/SQL | Self-hosted / Cloud |
-| **Hangfire** | Agendamento de Jobs | In-process (PostgreSQL storage) | — |
+| **SMTP (MailKit)** | Envio de emails | SMTP (porta 587/465) | ✅ Production-ready |
+| **SendGrid** | Envio de emails (alternativo) | REST API | ✅ Implementado |
+| **Twilio** | Envio de SMS | REST API (SDK oficial) | ✅ Production-ready |
+| **Firebase Cloud Messaging** | Push Notifications | REST API (SDK Admin) | 🔄 Código preparado |
+| **RabbitMQ** | Message broker assíncrono | AMQP 0-9-1 | ✅ Production-ready |
+| **PostgreSQL** | Persistência principal | TCP (EF Core + Npgsql) | ✅ Production-ready |
+| **Hangfire** | Job scheduling (bulk/campaigns) | PostgreSQL storage | ✅ Implementado |
+
+### Provider Factory Pattern
+
+Os consumers **não** possuem referência direta a um serviço de envio. Em vez disso, usam **Provider Factories** que resolvem dinamicamente qual provider usar baseado na tabela `ProviderConfiguration` no banco:
+
+```
+Consumer → ProviderFactory.CreateXxxProvider()
+  → Consulta ProviderConfiguration (IsActive=true, IsPrimary=true)
+    → Deserializa ConfigurationJson
+      → Instancia serviço concreto (SmtpService, SendGridService, TwilioSmsService, etc.)
+```
 
 ---
 
 ## 6. Pontos Críticos ("Gotchas")
 
-### ⚠️ Provider Factory via DB
-- Os providers de envio (SMTP, SendGrid, Twilio, Firebase) são **carregados dinamicamente do banco de dados** via `ProviderFactoryBase`. Se não houver um provider ativo configurado na tabela `ProviderConfiguration`, o consumer **ignora silenciosamente** a mensagem (apenas loga warning)
-- A configuração JSON do provider é armazenada como texto no banco, e precisa estar no formato correto para desserialização
+1. **Provider Configuration é obrigatório:** Consumers ignoram mensagens se não houver provider ativo configurado no banco. Sem seed de `ProviderConfiguration`, nenhuma notificação é enviada.
 
-### ⚠️ DLX/DLQ Dual Declaration
-- Tanto o `RabbitMQPublisher` quanto o `RabbitMqConsumerBase` declaram as filas e exchanges (DLX/DLQ). A declaração precisa ser **idempotente** e **idêntica** em ambos os lados, caso contrário o RabbitMQ rejeita com erro de precondition
+2. **Domain Events são disparados APÓS SaveChanges:** O `NotificationDbContext` despacha domain events após persistir, e o `DomainEventDispatcherBehavior` também faz dispatch via reflection. Há duplicação potencial de dispatch — verificar fluxo.
 
-### ⚠️ Domain Events via Reflection
-- `DomainEventDispatcherBehavior` usa **reflection** para extrair `Notification` de dentro de `Result<Notification>`. Isso só funciona se o handler retornar exatamente `Result<Notification>` — qualquer outro tipo de resultado (ex: Result<Guid>) não terá os domain events despachados automaticamente
+3. **RabbitMQ Publisher usa `.GetAwaiter().GetResult()`** no construtor para setup de conexão síncrona. Pode causar deadlock em cenários específicos de DI.
 
-### ⚠️ ConnectionFactory síncrono no Publisher
-- `RabbitMQPublisher` cria a conexão no construtor usando `.GetAwaiter().GetResult()` (blocking). Isso funciona para Singleton mas pode causar deadlock se o escopo for alterado
+4. **MessageProcessingMiddleware usa reflection** para chamar `UpdateNotificationChannelStatusAsync<TChannel>` genérico. Mudanças na assinatura do método quebram silenciosamente.
 
-### ⚠️ Hangfire + Autenticação
-- O dashboard Hangfire tem filtros de autenticação diferentes por ambiente: `HangfireDashboardNoAuthFilter` (dev) e `HangfireAuthorizationFilter` (produção). Em dev, o dashboard é **aberto sem autenticação**
+5. **CreateNotificationHandler usa `Dictionary<string, object>`** para dados de canal (ao invés de DTOs tipados), parsing manual de `JsonElement`. Erros de campo silenciosos (campo errado → valor vazio).
 
-### ⚠️ IAuditable é Marker Interface
-- Entidades que implementam `IAuditable` são **automaticamente rastreadas** pelo `AuditLogInterceptor` do EF Core. Adicionar `IAuditable` a uma entidade sem saber habilita auditoria automática
+6. **Stats carregam TODAS as notificações em memória** (`GetStatsAsync` faz `ToListAsync()` antes de contar). Problema de performance com volume alto.
+
+7. **Hangfire storage compartilha o PostgreSQL** da aplicação. Em alta carga de jobs, pode impactar queries da aplicação.
+
+8. **CORS está `AllowAnyOrigin`** — restringir antes de ir para produção.
+
+9. **DatabaseSeeder roda no startup** (`InitializeDatabaseAsync`). Se o banco não estiver pronto, a API não sobe.
+
+10. **Consumers são projetos separados** com seus próprios `Program.cs` e `Dockerfile`. Cada um precisa ser buildado e deployado independentemente.
 
 ---
 
 ## 7. Mapa de Navegação
 
-| O que procurar | Caminho |
+| O que procura? | Onde encontrar |
 |---|---|
 | **Regras de Negócio (Domain)** | `src/NotificationSystem.Domain/Entities/` |
 | **Domain Events** | `src/NotificationSystem.Domain/Events/` |
-| **Use Cases (Commands/Queries)** | `src/NotificationSystem.Application/UseCases/` |
-| **DTOs** | `src/NotificationSystem.Application/DTOs/` |
-| **Validadores** | `src/NotificationSystem.Application/UseCases/*/Validator.cs` e `Application/Validators/` |
-| **Pipeline Behaviors (MediatR)** | `src/NotificationSystem.Application/Common/Behaviors/` |
-| **Errors Tipados** | `src/NotificationSystem.Application/Common/Errors/` |
-| **Interfaces de Repositório** | `src/NotificationSystem.Application/Interfaces/` |
-| **Consumer Base (RabbitMQ)** | `src/NotificationSystem.Application/Consumers/` |
-| **Settings/Configuration** | `src/NotificationSystem.Application/Configuration/` |
-| **Serviços de Aplicação** | `src/NotificationSystem.Application/Services/` |
-| **Repositórios (EF Core)** | `src/NotificationSystem.Infrastructure/Persistence/Repositories/` |
-| **Entity Configurations** | `src/NotificationSystem.Infrastructure/Persistence/Configurations/` |
-| **Migrations** | `src/NotificationSystem.Infrastructure/Migrations/` |
-| **Provider Factories** | `src/NotificationSystem.Infrastructure/Factories/` |
-| **RabbitMQ Publisher** | `src/NotificationSystem.Infrastructure/Messaging/` |
-| **DbContext** | `src/NotificationSystem.Infrastructure/Persistence/NotificationDbContext.cs` |
-| **Audit Interceptor** | `src/NotificationSystem.Infrastructure/Persistence/Interceptors/` |
-| **Database Seeder** | `src/NotificationSystem.Infrastructure/Persistence/DatabaseSeeder.cs` |
-| **Endpoints (Minimal API)** | `src/NotificationSystem.Api/Endpoints/` |
-| **Middleware (Exceptions)** | `src/NotificationSystem.Api/Middlewares/` |
-| **Extensions** | `src/NotificationSystem.Api/Extensions/` |
+| **Use Cases (Commands/Queries)** | `src/NotificationSystem.Application/UseCases/{FeatureName}/` |
+| **DTOs** | `src/NotificationSystem.Application/DTOs/{Domínio}/` |
+| **Interfaces/Contratos** | `src/NotificationSystem.Application/Interfaces/` |
+| **Validators** | Dentro de cada UseCase ou `src/NotificationSystem.Application/Validators/` |
+| **MediatR Behaviors (Pipeline)** | `src/NotificationSystem.Application/Common/Behaviors/` |
+| **Error Types** | `src/NotificationSystem.Application/Common/Errors/` |
+| **Mappings (Entity → DTO)** | `src/NotificationSystem.Application/Common/Mappings/` |
+| **Messages (RabbitMQ contracts)** | `src/NotificationSystem.Application/Messages/` |
+| **Consumer Base + Middleware** | `src/NotificationSystem.Application/Consumers/` |
+| **Permissions** | `src/NotificationSystem.Application/Authorization/Permissions.cs` |
+| **Settings/Configuration classes** | `src/NotificationSystem.Application/Configuration/` |
+| **Application Services** | `src/NotificationSystem.Application/Services/` |
+| **Endpoints (API)** | `src/NotificationSystem.Api/Endpoints/` |
+| **Middleware (Exception Handler)** | `src/NotificationSystem.Api/Middlewares/` |
 | **DI Registration (API)** | `src/NotificationSystem.Api/DependencyInjection.cs` |
-| **Program.cs (Entrypoint)** | `src/NotificationSystem.Api/Program.cs` |
-| **Workers (Email, SMS, Push, Bulk)** | `src/Consumers/NotificationSystem.Consumer.*/` |
-| **Docker** | `docker-compose.yml`, `docker-compose.production.yml`, `src/*/Dockerfile` |
-| **Scripts de Migrations** | `scripts/database/` |
-| **Documentação** | `docs/` |
+| **DI Registration (Application)** | `src/NotificationSystem.Application/DependencyInjection.cs` |
+| **DI Registration (Infrastructure)** | `src/NotificationSystem.Infrastructure/DependencyInjection.cs` |
+| **Result → HTTP Extensions** | `src/NotificationSystem.Api/Extensions/ResultExtensions.cs` |
+| **Entry Point** | `src/NotificationSystem.Api/Program.cs` |
+| **Repositories** | `src/NotificationSystem.Infrastructure/Persistence/Repositories/` |
+| **EF Core Configurations** | `src/NotificationSystem.Infrastructure/Persistence/Configurations/` |
+| **DbContext** | `src/NotificationSystem.Infrastructure/Persistence/NotificationDbContext.cs` |
+| **Migrations** | `src/NotificationSystem.Infrastructure/Migrations/` |
+| **RabbitMQ Publisher** | `src/NotificationSystem.Infrastructure/Messaging/RabbitMQPublisher.cs` |
+| **Provider Factories** | `src/NotificationSystem.Infrastructure/Factories/` |
+| **Auth Services (JWT, Password)** | `src/NotificationSystem.Infrastructure/Services/` |
+| **Database Seeder** | `src/NotificationSystem.Infrastructure/Persistence/DatabaseSeeder.cs` |
+| **Consumers (Workers)** | `src/Consumers/NotificationSystem.Consumer.{Canal}/` |
+| **Docker (Dev)** | `docker-compose.yml` |
+| **Docker (Prod)** | `docker-compose.production.yml` |
+| **Scripts de Migration** | `scripts/database/` |
+| **Configuração de ambiente** | `appsettings.json`, `.env.example`, `.env.production.example` |
 
 ---
 
-## 8. Endpoints da API
-
-| Grupo | Endpoints | Autenticação |
-|---|---|---|
-| **Notifications** | `GET /api/notifications`, `GET /api/notifications/{id}`, `GET /api/notifications/stats`, `POST /api/notifications` | JWT (Permission-based) |
-| **Bulk Notifications** | Endpoints de envio em lote | JWT |
-| **Auth** | `POST /api/auth/login`, `POST /api/auth/register`, `POST /api/auth/refresh` | Público/JWT |
-| **Users** | CRUD de usuários + atribuição de roles | JWT (Admin) |
-| **Roles** | CRUD de roles e permissões | JWT (Admin) |
-| **Dead Letter Queue** | Visualização e reprocessamento de mensagens DLQ | JWT |
-| **Providers** | Configuração dinâmica de providers (SMTP, SendGrid, Twilio, FCM) | JWT |
-| **Audit Logs** | Consulta de logs de auditoria | JWT |
-| **Hangfire** | Dashboard em `/hangfire` | Dev: sem auth / Prod: com auth |
-
----
-
-## 9. Fluxo de Dados Principal
+## 8. Estrutura de Projetos da Solution
 
 ```
-Client → Minimal API Endpoint → MediatR Pipeline:
-    ├── [1] ValidationBehavior (FluentValidation)
-    ├── [2] Handler (CreateNotification)
-    │     ├── Salva Notification + Channels no PostgreSQL (EF Core)
-    │     └── Retorna Result<Notification> com DomainEvents
-    └── [3] DomainEventDispatcherBehavior
-          └── Publica NotificationCreatedEvent via MediatR
-                └── EventHandler publica mensagens no RabbitMQ (por canal)
-                      ├── Queue: email-notifications
-                      ├── Queue: sms-notifications
-                      └── Queue: push-notifications
-
-Workers (BackgroundService) → RabbitMQ Consumer:
-    ├── Deserializa mensagem (EmailChannelMessage, etc.)
-    ├── MessageProcessingMiddleware (retry com backoff exponencial)
-    ├── ProviderFactory → cria provider dinâmico do DB
-    ├── Envia via provider (SMTP/SendGrid/Twilio/FCM)
-    ├── Atualiza status do canal no PostgreSQL (Sent/Failed)
-    └── ACK (sucesso) ou NACK → DLQ (falha permanente)
-```
-
----
-
-## 10. Infraestrutura e Deploy
-
-| Componente | Dev (docker-compose.yml) | Prod (docker-compose.production.yml) |
-|---|---|---|
-| **API** | dotnet run (local) | Container Docker |
-| **Consumer Email** | dotnet run (local) | Container Docker (escalável) |
-| **Consumer SMS** | dotnet run (local) | Container Docker (escalável) |
-| **Consumer Push** | dotnet run (local) | Container Docker (escalável) |
-| **Consumer Bulk** | dotnet run (local) | Container Docker (escalável) |
-| **PostgreSQL** | Container Docker local | Externo (RDS, Azure DB, etc.) |
-| **RabbitMQ** | Container Docker local | Externo (CloudAMQP, AWS MQ, etc.) |
-| **Hangfire** | In-process (PostgreSQL) | In-process (PostgreSQL) |
-
----
-
-## 11. Modelo de Domínio (Entidades)
-
-```
-Notification (Aggregate Root)
-├── Id: Guid
-├── UserId: Guid
-├── CreatedAt: DateTime (UTC)
-├── Origin: NotificationOrigin [User | Api | System | Scheduled]
-├── Type: NotificationType [Unique | Bulk | Campaign]
-├── Channels: List<NotificationChannel>  ←── TPH (Table Per Hierarchy)
-│   ├── EmailChannel { To, Subject, Body, IsBodyHtml }
-│   ├── SmsChannel { To, Message, SenderId }
-│   └── PushChannel { To, Content, Data, Android, Apns, Webpush, Platform, IsRead, ... }
-└── DomainEvents: IReadOnlyCollection<IDomainEvent>
-
-User
-├── Roles: List<UserRole> → Role → List<RolePermission> → Permission
-
-BulkNotificationJob → List<BulkNotificationItem>
-
-ProviderConfiguration { ChannelType, ProviderType, ConfigurationJson (encrypted), IsActive }
-
-AuditLog { EntityName, EntityId, Action, Changes, Timestamp, UserId }
+NotificationSystem.slnx
+├── src/
+│   ├── NotificationSystem.Domain/           # Camada de Domínio (0 dependências)
+│   │   ├── Entities/                        # Notification, NotificationChannel (TPH), User, Role, AuditLog, etc.
+│   │   ├── Events/                          # IDomainEvent, NotificationCreatedEvent
+│   │   └── Interfaces/                      # IAuditable (marker)
+│   │
+│   ├── NotificationSystem.Application/      # Camada de Aplicação (depende: Domain)
+│   │   ├── UseCases/                        # 36 use cases (CQRS pattern)
+│   │   ├── DTOs/                            # Agrupados por domínio (Notifications, Auth, Users, Roles, etc.)
+│   │   ├── Interfaces/                      # 25 contratos (Repositories, Services, Factories)
+│   │   ├── Common/                          # Behaviors, Errors, Mappings, Exceptions
+│   │   ├── Consumers/                       # RabbitMqConsumerBase<T>, MessageProcessingMiddleware<T>
+│   │   ├── Services/                        # Auth, DLQ, Email, SMS, Push, Campaign
+│   │   ├── Messages/                        # Contratos de mensagens RabbitMQ
+│   │   ├── Configuration/                   # Settings classes (SMTP, RabbitMQ, JWT, etc.)
+│   │   ├── Authorization/                   # Permissions constants
+│   │   ├── EventHandlers/                   # NotificationCreatedEventHandler
+│   │   └── Validators/                      # Validators avulsos
+│   │
+│   ├── NotificationSystem.Infrastructure/   # Camada de Infraestrutura (depende: Application, Domain)
+│   │   ├── Persistence/                     # DbContext, Repositories (8), Configurations (13), Seeder, Interceptors
+│   │   ├── Messaging/                       # RabbitMQPublisher
+│   │   ├── Factories/                       # ProviderFactoryBase, Email/Sms/PushProviderFactory
+│   │   └── Services/                        # JWT, Password, Encryption, CurrentUser
+│   │
+│   ├── NotificationSystem.Api/              # Presentation Layer - API (depende: Application, Infrastructure)
+│   │   ├── Endpoints/                       # 8 grupos de endpoints (Minimal APIs)
+│   │   ├── Middlewares/                     # GlobalExceptionHandlerMiddleware
+│   │   ├── Extensions/                      # ResultExtensions, ProblemDetails, Swagger, Permissions
+│   │   ├── Infrastructure/                  # Hangfire filters
+│   │   ├── Authorization/                   # Permission policy extensions
+│   │   └── Program.cs                       # Entry point
+│   │
+│   └── Consumers/                           # Presentation Layer - Workers
+│       ├── NotificationSystem.Consumer.Email/
+│       ├── NotificationSystem.Consumer.Sms/
+│       ├── NotificationSystem.Consumer.Push/
+│       └── NotificationSystem.Consumer.Bulk/
 ```
 
 ---
 
-## 12. Segurança
+## 9. Endpoints da API
 
-| Mecanismo | Status | Detalhes |
-|---|---|---|
-| **JWT Authentication** | ✅ Implementado | Symmetric key, Token + RefreshToken, Claims-based |
-| **Permission-based Authorization** | ✅ Implementado | Policies dinâmicas por permissão, `RequirePermissionAttribute` |
-| **RBAC (Roles + Permissions)** | ✅ Implementado | User → Roles → Permissions |
-| **Password Hashing** | ✅ Implementado | BCrypt |
-| **Data Protection** | ✅ Implementado | ASP.NET Data Protection API (criptografia de configs) |
-| **ProblemDetails (RFC 7807)** | ✅ Implementado | Respostas de erro padronizadas |
-| **Global Exception Handler** | ✅ Implementado | Sem leak de stack traces em produção |
-| **CORS** | ✅ Implementado | AllowAny (dev) — requer configuração para produção |
-| **API Key Authentication** | 🔄 Planejado | — |
-| **Rate Limiting** | 🔄 Planejado | — |
+| Grupo | Método | Rota | Permissão |
+|---|---|---|---|
+| **Notifications** | GET | `/api/notifications` | `notification.view` |
+| | GET | `/api/notifications/{id}` | `notification.view` |
+| | GET | `/api/notifications/stats` | `notification.stats` |
+| | POST | `/api/notifications` | `notification.create` |
+| **Bulk Notifications** | GET/POST/DELETE | `/api/bulk-notifications/*` | `bulk-notification.*` |
+| **Auth** | POST | `/api/auth/login`, `/register`, `/refresh`, `/revoke` | Público (login/register) |
+| **Users** | CRUD | `/api/users/*` | `user.*` |
+| **Roles** | CRUD | `/api/roles/*` | `role.*` |
+| **Providers** | CRUD | `/api/providers/*` | `provider.*` |
+| **Dead Letter Queue** | GET/POST/DELETE | `/api/dlq/*` | `dlq.*` |
+| **Audit Logs** | GET | `/api/audit-logs/*` | `audit.*` |
+| **Hangfire Dashboard** | - | `/hangfire` | Dev: sem auth / Prod: com auth |
