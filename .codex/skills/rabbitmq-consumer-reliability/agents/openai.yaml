@@ -1,0 +1,4 @@
+interface:
+  display_name: "RabbitMQ Consumer Reliability"
+  short_description: "Padronizar consumers com retry e DLQ"
+  default_prompt: "Use esta skill para criar ou ajustar consumers RabbitMQ resilientes com retry, DLQ e atualização de status."

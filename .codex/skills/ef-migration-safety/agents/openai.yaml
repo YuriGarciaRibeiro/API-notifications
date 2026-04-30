@@ -1,0 +1,4 @@
+interface:
+  display_name: "EF Migration Safety"
+  short_description: "Executar migrations com segurança"
+  default_prompt: "Use esta skill para criar, revisar e aplicar migrations EF Core com fluxo seguro para dev e produção."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "API Contract Doc Sync"
+  short_description: "Sincronizar contrato e documentação de endpoints"
+  default_prompt: "Use esta skill para manter payloads, endpoints e documentação alinhados após alterações de API."

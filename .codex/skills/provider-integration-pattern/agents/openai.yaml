@@ -1,0 +1,4 @@
+interface:
+  display_name: "Provider Integration Pattern"
+  short_description: "Integrar novos provedores de envio"
+  default_prompt: "Use esta skill para integrar novos providers de Email, SMS ou Push seguindo os padrões do projeto."

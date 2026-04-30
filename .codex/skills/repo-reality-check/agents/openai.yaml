@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Reality Check"
+  short_description: "Detectar drift entre documentação e código"
+  default_prompt: "Use esta skill para verificar se README e docs refletem a estrutura e comportamento reais do repositório."

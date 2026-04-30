@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feature Slice Notification"
+  short_description: "Criar feature end-to-end na API de notificações"
+  default_prompt: "Use esta skill para implementar uma feature ponta a ponta com UseCase, validação, endpoint e documentação."
