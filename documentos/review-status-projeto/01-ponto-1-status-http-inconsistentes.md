@@ -129,3 +129,30 @@ Mesmo com Fase A/B, vale robustecer:
 - Exceptions de fluxo esperado substituidas por erros de dominio.
 - Swagger e runtime coerentes.
 
+---
+
+## Status de execucao (2026-05-01)
+
+Implementacao concluida para as fases A, B e C deste ponto:
+
+- `GetNotificationByIdHandler` agora retorna `NotFoundError` (sem `Error` generico).
+- `GetBulkNotificationItemsHandler` diferencia `job` inexistente (404) de lista vazia (200 com array vazio).
+- `CancelBulkNotificationHandler` padronizado com `NotFoundError` e `ConflictError`.
+- `ProviderConfigurationRepository` nao usa mais `throw` para "nao encontrado" em `SetAsPrimaryAsync`.
+- `ToggleActiveStatusAsync` e `DeleteAsync` validam `affectedRows == 0` e retornam erro de dominio.
+- `DeleteProvider` e `ToggleProviderActive` passaram a usar `Result`, permitindo retorno `404` real no endpoint.
+- `ProviderEndpoints` (`toggle-active` e `delete`) agora usam `result.ToIResult()`.
+- `ResultExtensions` foi robustecido para ler `StatusCode` em metadata de `Error` generico.
+
+Validacao executada:
+
+- `dotnet build NotificationSystem.slnx` com sucesso (0 erros, 0 avisos).
+- Smoke manual executado em `2026-05-01` com autenticação admin:
+  - `GET /api/notifications/{id-inexistente}` => `404`
+  - `GET /api/notifications/bulk/{jobId-inexistente}` => `404`
+  - `DELETE /api/admin/providers/{id-inexistente}` => `404`
+  - `POST /api/admin/providers/{id-inexistente}/set-primary` => `404`
+
+Conclusao operacional:
+
+- Checklist de smoke do ponto 1 concluido com sucesso.

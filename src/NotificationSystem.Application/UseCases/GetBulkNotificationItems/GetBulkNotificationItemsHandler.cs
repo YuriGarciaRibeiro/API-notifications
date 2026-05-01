@@ -14,14 +14,14 @@ public class GetBulkNotificationItemsHandler(IBulkNotificationRepository reposit
         GetBulkNotificationItemsQuery request,
         CancellationToken cancellationToken)
     {
+        var job = await _repository.GetWithItemsAsync(request.JobId, cancellationToken);
+        if (job is null)
+            return Result.Fail(new NotFoundError("Bulk notification job", request.JobId));
+
         var items = await _repository.GetItemsByJobIdAsync(
             request.JobId,
             request.Status,
             cancellationToken);
-
-        if (!items.Any())
-            //TODO mudar essa porra
-            return Result.Fail(new NotFoundError("Notfound", request.JobId));
 
         var responses = items.Select(x => new BulkNotificationItemResponse(
             x.Id,

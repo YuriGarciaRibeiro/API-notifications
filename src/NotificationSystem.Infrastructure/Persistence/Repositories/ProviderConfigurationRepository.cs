@@ -1,4 +1,6 @@
+using FluentResults;
 using Microsoft.EntityFrameworkCore;
+using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Domain.Entities;
 
@@ -58,9 +60,13 @@ public class ProviderConfigurationRepository(NotificationDbContext context, IEnc
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task SetAsPrimaryAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
+    public async Task<Result> SetAsPrimaryAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
     {
-        var providerToSetPrimary = await _context.ProviderConfigurations.FindAsync(new object?[] { providerConfigurationId }, cancellationToken: cancellationToken) ?? throw new InvalidOperationException("Provider configuration not found.");
+        var providerToSetPrimary = await _context.ProviderConfigurations
+            .FindAsync(new object?[] { providerConfigurationId }, cancellationToken: cancellationToken);
+
+        if (providerToSetPrimary is null)
+            return Result.Fail(new NotFoundError("Provider configuration", providerConfigurationId));
 
         // Remove isPrimary de todos os provedores do mesmo canal
         var currentPrimaryProviders = await _context.ProviderConfigurations
@@ -80,21 +86,31 @@ public class ProviderConfigurationRepository(NotificationDbContext context, IEnc
         providerToSetPrimary.IsActive = true;
 
         await _context.SaveChangesAsync(cancellationToken);
+        return Result.Ok();
     }
 
-    public Task ToggleActiveStatusAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
+    public async Task<Result> ToggleActiveStatusAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
     {
-        //todo fazer cerificaçao de zero linhas alteradas
-        return _context.ProviderConfigurations
+        var affectedRows = await _context.ProviderConfigurations
             .Where(pc => pc.Id == providerConfigurationId)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(pc => pc.IsActive, pc => !pc.IsActive), cancellationToken);
+
+        if (affectedRows == 0)
+            return Result.Fail(new NotFoundError("Provider configuration", providerConfigurationId));
+
+        return Result.Ok();
     }
 
-    public Task DeleteAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
+    public async Task<Result> DeleteAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
     {
-        return _context.ProviderConfigurations
+        var affectedRows = await _context.ProviderConfigurations
             .Where(pc => pc.Id == providerConfigurationId)
             .ExecuteDeleteAsync(cancellationToken);
+
+        if (affectedRows == 0)
+            return Result.Fail(new NotFoundError("Provider configuration", providerConfigurationId));
+
+        return Result.Ok();
     }
 }

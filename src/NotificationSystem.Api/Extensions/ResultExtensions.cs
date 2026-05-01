@@ -48,7 +48,9 @@ public static class ResultExtensions
 
         // Extract domain error if present
         var domainError = errors.OfType<DomainError>().FirstOrDefault();
-        var statusCode = domainError?.StatusCode ?? 400;
+        var statusCode = domainError?.StatusCode
+            ?? TryGetMetadataStatusCode(errors)
+            ?? StatusCodes.Status400BadRequest;
         var errorCode = domainError?.Code ?? "ERROR";
 
         // Group validation errors by field
@@ -81,6 +83,30 @@ public static class ResultExtensions
         }
 
         return Results.Json(problem, statusCode: statusCode);
+    }
+
+    private static int? TryGetMetadataStatusCode(IReadOnlyList<IError> errors)
+    {
+        foreach (var error in errors)
+        {
+            if (!error.Metadata.TryGetValue("StatusCode", out var statusObj) || statusObj is null)
+                continue;
+
+            if (statusObj is int statusCode)
+                return statusCode;
+
+            if (statusObj is long longStatus && longStatus is >= 100 and <= 599)
+                return (int)longStatus;
+
+            if (statusObj is string statusText &&
+                int.TryParse(statusText, out var parsedStatus) &&
+                parsedStatus is >= 100 and <= 599)
+            {
+                return parsedStatus;
+            }
+        }
+
+        return null;
     }
 
     private static string GetErrorType(string errorCode) => errorCode switch

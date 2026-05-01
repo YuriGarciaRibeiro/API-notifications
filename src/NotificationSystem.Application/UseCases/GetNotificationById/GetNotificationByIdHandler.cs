@@ -1,5 +1,6 @@
 using FluentResults;
 using MediatR;
+using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.DTOs.Notifications;
 using NotificationSystem.Application.Interfaces;
 
@@ -18,9 +19,7 @@ public class GetNotificationByIdHandler(INotificationRepository notificationRepo
 
         if (notification is null)
         {
-            var error = new Error($"Notification with id '{request.Id}' was not found.")
-                .WithMetadata("StatusCode", 404);
-            return Result.Fail(error);
+            return Result.Fail(new NotFoundError("Notification", request.Id));
         }
 
         var response = new GetNotificationByIdResponse

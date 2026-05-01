@@ -21,14 +21,14 @@ public class CancelBulkNotificationHandler(
         var job = await _repository.GetWithItemsAsync(request.JobId, cancellationToken);
 
         if (job is null)
-            return Result.Fail(new NotFoundError("NotFound", request.JobId));
+            return Result.Fail(new NotFoundError("Bulk notification job", request.JobId));
 
         if (job.Status is BulkJobStatus.Completed or
             BulkJobStatus.Failed or
             BulkJobStatus.Cancelled)
         {
-            //TODO conferir se ta certo
-            return Result.Fail(new ConflictError(nameof(job), "Cannot cancel a job that has already completed, failed, or was cancelled"));
+            return Result.Fail(new ConflictError("Bulk notification job",
+                "Cannot cancel a job that has already completed, failed, or was cancelled"));
         }
 
         await _repository.UpdateJobStatusAsync(request.JobId, BulkJobStatus.Cancelled, cancellationToken);

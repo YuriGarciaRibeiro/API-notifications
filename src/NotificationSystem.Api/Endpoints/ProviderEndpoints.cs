@@ -111,8 +111,8 @@ public static class ProviderEndpoints
             async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
             {
                 var command = new ToggleProviderActiveCommand(id);
-                await mediator.Send(command, cancellationToken);
-                return Results.NoContent();
+                var result = await mediator.Send(command, cancellationToken);
+                return result.ToIResult();
             })
             .WithName("ToggleProviderActiveStatus")
             .WithSummary("Ativa ou desativa um provedor")
@@ -127,8 +127,8 @@ public static class ProviderEndpoints
             async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
             {
                 var command = new DeleteProviderCommand(id);
-                await mediator.Send(command, cancellationToken);
-                return Results.NoContent();
+                var result = await mediator.Send(command, cancellationToken);
+                return result.ToIResult();
             })
             .WithName("DeleteProvider")
             .WithSummary("Remove um provedor")
