@@ -84,6 +84,7 @@ public class ProviderConfigurationRepository(NotificationDbContext context, IEnc
 
     public Task ToggleActiveStatusAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
     {
+        //todo fazer cerificaçao de zero linhas alteradas
         return _context.ProviderConfigurations
             .Where(pc => pc.Id == providerConfigurationId)
             .ExecuteUpdateAsync(setters => setters

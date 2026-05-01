@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using NotificationSystem.Application.Common.Mappings;
 using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.DTOs.DeadLetter;
 using NotificationSystem.Application.Interfaces;
@@ -14,13 +15,6 @@ public class DeadLetterQueueService : IDeadLetterQueueService, IDisposable
     private readonly RabbitMqSettings _options;
     private readonly IConnection _connection;
     private readonly IChannel _channel;
-
-    private static readonly string[] _knownQueues =
-    [
-        "sms-notifications-dlq",
-        "email-notifications-dlq",
-        "push-notifications-dlq"
-    ];
 
     public DeadLetterQueueService(
         ILogger<DeadLetterQueueService> logger,
@@ -46,7 +40,7 @@ public class DeadLetterQueueService : IDeadLetterQueueService, IDisposable
     {
         var stats = new List<DeadLetterQueueStatsDto>();
 
-        foreach (var queueName in _knownQueues)
+        foreach (var queueName in DeadLetterQueueMapping.ValidQueues)
         {
             try
             {

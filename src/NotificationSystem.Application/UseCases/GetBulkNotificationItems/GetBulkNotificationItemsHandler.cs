@@ -1,5 +1,6 @@
 using FluentResults;
 using MediatR;
+using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetBulkNotificationItems;
@@ -19,7 +20,8 @@ public class GetBulkNotificationItemsHandler(IBulkNotificationRepository reposit
             cancellationToken);
 
         if (!items.Any())
-            return Result.Fail(new Error("NotFound").WithMetadata("message", "No items found for this bulk job"));
+            //TODO mudar essa porra
+            return Result.Fail(new NotFoundError("Notfound", request.JobId));
 
         var responses = items.Select(x => new BulkNotificationItemResponse(
             x.Id,

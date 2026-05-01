@@ -1,5 +1,6 @@
 using FluentResults;
 using MediatR;
+using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetBulkNotificationProgress;
@@ -16,7 +17,7 @@ public class GetBulkNotificationProgressHandler(IBulkNotificationRepository repo
         var job = await _repository.GetWithItemsAsync(request.JobId, cancellationToken);
 
         if (job is null)
-            return Result.Fail(new Error("NotFound").WithMetadata("message", "Bulk notification job not found"));
+            return Result.Fail(new NotFoundError("Bulk notification job not found", request.JobId));
 
         var percentComplete = job.TotalCount > 0
             ? (job.ProcessedCount / (double)job.TotalCount * 100)

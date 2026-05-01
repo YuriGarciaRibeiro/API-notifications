@@ -1,19 +1,18 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NotificationSystem.Application.Authorization;
 using NotificationSystem.Application.DTOs.DeadLetter;
-using NotificationSystem.Application.Interfaces;
+using NotificationSystem.Api.Extensions;
+using NotificationSystem.Application.UseCases.GetDLQMessages;
+using NotificationSystem.Application.UseCases.GetDLQStats;
+using NotificationSystem.Application.UseCases.PurgeDLQ;
+using NotificationSystem.Application.UseCases.ReprocessAllDLQMessages;
+using NotificationSystem.Application.UseCases.ReprocessDLQMessage;
 
 namespace NotificationSystem.Api.Endpoints;
 
 public static class DeadLetterQueueEndpoints
 {
-    private static readonly Dictionary<string, string> QueueMapping = new()
-    {
-        { "sms-notifications-dlq", "sms-notifications" },
-        { "email-notifications-dlq", "email-notifications" },
-        { "push-notifications-dlq", "push-notifications" }
-    };
-
     public static IEndpointRouteBuilder MapDeadLetterQueueEndpoints(this IEndpointRouteBuilder endpoints)
     {
         var group = endpoints.MapGroup("/api/dlq")
@@ -21,10 +20,10 @@ public static class DeadLetterQueueEndpoints
             .RequireAuthorization();
 
         group.MapGet("/stats",
-            async (IDeadLetterQueueService dlqService) =>
+            async (IMediator mediator, CancellationToken cancellationToken) =>
             {
-                var stats = await dlqService.GetAllDeadLetterQueueStatsAsync();
-                return Results.Ok(stats);
+                var result = await mediator.Send(new GetDLQStatsQuery(), cancellationToken);
+                return result.ToIResult();
             })
             .WithName("GetDLQStats")
             .WithSummary("Obtém estatísticas de todas as Dead Letter Queues")
@@ -37,20 +36,12 @@ public static class DeadLetterQueueEndpoints
         group.MapGet("/{queueName}/messages",
             async (
                 string queueName,
-                IDeadLetterQueueService dlqService,
+                IMediator mediator,
+                CancellationToken cancellationToken,
                 [FromQuery] int limit = 100) =>
             {
-                if (!QueueMapping.ContainsKey(queueName))
-                {
-                    return Results.BadRequest(new
-                    {
-                        error = "Invalid queue name",
-                        validQueues = QueueMapping.Keys
-                    });
-                }
-
-                var messages = await dlqService.GetDeadLetterMessagesAsync(queueName, limit);
-                return Results.Ok(messages);
+                var result = await mediator.Send(new GetDLQMessagesQuery(queueName, limit), cancellationToken);
+                return result.ToIResult();
             })
             .WithName("GetDLQMessages")
             .WithSummary("Lista as mensagens de uma Dead Letter Queue específica")
@@ -65,26 +56,12 @@ public static class DeadLetterQueueEndpoints
             async (
                 string queueName,
                 ulong deliveryTag,
-                IDeadLetterQueueService dlqService) =>
+                IMediator mediator,
+                CancellationToken cancellationToken) =>
             {
-                if (!QueueMapping.TryGetValue(queueName, out var originalQueue))
-                {
-                    return Results.BadRequest(new
-                    {
-                        error = "Invalid queue name",
-                        validQueues = QueueMapping.Keys
-                    });
-                }
-
-                await dlqService.ReprocessMessageAsync(queueName, originalQueue, deliveryTag);
-
-                return Results.Ok(new
-                {
-                    message = "Message reprocessed successfully",
-                    dlqName = queueName,
-                    originalQueue,
-                    deliveryTag
-                });
+                var command = new ReprocessDLQMessageCommand(queueName, deliveryTag);
+                var result = await mediator.Send(command, cancellationToken);
+                return result.ToIResult();
             })
             .WithName("ReprocessDLQMessage")
             .WithSummary("Reprocessa uma mensagem específica da DLQ")
@@ -98,25 +75,12 @@ public static class DeadLetterQueueEndpoints
         group.MapPost("/{queueName}/reprocess-all",
             async (
                 string queueName,
-                IDeadLetterQueueService dlqService) =>
+                IMediator mediator,
+                CancellationToken cancellationToken) =>
             {
-                if (!QueueMapping.TryGetValue(queueName, out var originalQueue))
-                {
-                    return Results.BadRequest(new
-                    {
-                        error = "Invalid queue name",
-                        validQueues = QueueMapping.Keys
-                    });
-                }
-
-                await dlqService.ReprocessAllMessagesAsync(queueName, originalQueue);
-
-                return Results.Ok(new
-                {
-                    message = "All messages reprocessed successfully",
-                    dlqName = queueName,
-                    originalQueue
-                });
+                var command = new ReprocessAllDLQMessagesCommand(queueName);
+                var result = await mediator.Send(command, cancellationToken);
+                return result.ToIResult();
             })
             .WithName("ReprocessAllDLQMessages")
             .WithSummary("Reprocessa todas as mensagens de uma DLQ")
@@ -130,24 +94,12 @@ public static class DeadLetterQueueEndpoints
         group.MapDelete("/{queueName}/purge",
             async (
                 string queueName,
-                IDeadLetterQueueService dlqService) =>
+                IMediator mediator,
+                CancellationToken cancellationToken) =>
             {
-                if (!QueueMapping.ContainsKey(queueName))
-                {
-                    return Results.BadRequest(new
-                    {
-                        error = "Invalid queue name",
-                        validQueues = QueueMapping.Keys
-                    });
-                }
-
-                await dlqService.PurgeDeadLetterQueueAsync(queueName);
-
-                return Results.Ok(new
-                {
-                    message = "Queue purged successfully",
-                    queueName
-                });
+                var command = new PurgeDLQCommand(queueName);
+                var result = await mediator.Send(command, cancellationToken);
+                return result.ToIResult();
             })
             .WithName("PurgeDLQ")
             .WithSummary("Remove todas as mensagens de uma DLQ")

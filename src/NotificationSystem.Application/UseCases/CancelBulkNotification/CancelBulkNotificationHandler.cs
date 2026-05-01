@@ -1,6 +1,7 @@
 using FluentResults;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.CancelBulkNotification;
@@ -20,14 +21,14 @@ public class CancelBulkNotificationHandler(
         var job = await _repository.GetWithItemsAsync(request.JobId, cancellationToken);
 
         if (job is null)
-            return Result.Fail(new Error("NotFound").WithMetadata("message", "Bulk notification job not found"));
+            return Result.Fail(new NotFoundError("NotFound", request.JobId));
 
         if (job.Status is BulkJobStatus.Completed or
             BulkJobStatus.Failed or
             BulkJobStatus.Cancelled)
         {
-            return Result.Fail(new Error("CannotCancelCompletedJob")
-                .WithMetadata("message", "Cannot cancel a job that has already completed, failed, or was cancelled"));
+            //TODO conferir se ta certo
+            return Result.Fail(new ConflictError(nameof(job), "Cannot cancel a job that has already completed, failed, or was cancelled"));
         }
 
         await _repository.UpdateJobStatusAsync(request.JobId, BulkJobStatus.Cancelled, cancellationToken);

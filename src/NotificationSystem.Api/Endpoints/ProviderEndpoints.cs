@@ -2,8 +2,9 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NotificationSystem.Application.Authorization;
 using NotificationSystem.Api.Extensions;
+using NotificationSystem.Api.Endpoints.Requests;
 using NotificationSystem.Application.UseCases.CreateProvider;
-using NotificationSystem.Application.UseCases.CreateProviderFromFile;
+using NotificationSystem.Application.UseCases.CreateProviderFromUpload;
 using NotificationSystem.Application.UseCases.DeleteProvider;
 using NotificationSystem.Application.UseCases.GetAllProviders;
 using NotificationSystem.Application.UseCases.SetProviderAsPrimary;
@@ -57,53 +58,17 @@ public static class ProviderEndpoints
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/upload",
-            async (HttpRequest request, IMediator mediator, CancellationToken cancellationToken) =>
+            async (UploadProviderFormRequest request, IMediator mediator, CancellationToken cancellationToken) =>
             {
-                // Verifica se tem arquivo
-                if (!request.HasFormContentType || request.Form.Files.Count == 0)
-                {
-                    return Results.BadRequest(new { error = "File is required" });
-                }
-
-                var file = request.Form.Files["file"];
-                if (file == null || file.Length == 0)
-                {
-                    return Results.BadRequest(new { error = "File is required and cannot be empty" });
-                }
-
-                // Extrai os parâmetros do form
-                var channelTypeStr = request.Form["channelType"].ToString();
-                var providerStr = request.Form["provider"].ToString();
-                var projectId = request.Form["projectId"].ToString();
-                var isActiveStr = request.Form["isActive"].ToString();
-                var isPrimaryStr = request.Form["isPrimary"].ToString();
-
-                // Valida e converte os parâmetros
-                if (!Enum.TryParse<ChannelType>(channelTypeStr, out var channelType))
-                {
-                    return Results.BadRequest(new { error = "Invalid channelType" });
-                }
-
-                if (!Enum.TryParse<ProviderType>(providerStr, out var provider))
-                {
-                    return Results.BadRequest(new { error = "Invalid provider" });
-                }
-
-                var isActive = string.IsNullOrEmpty(isActiveStr) || bool.Parse(isActiveStr);
-                var isPrimary = !string.IsNullOrEmpty(isPrimaryStr) && bool.Parse(isPrimaryStr);
-
-                // Abre o stream do arquivo
-                var stream = file.OpenReadStream();
-
-                var command = new CreateProviderFromFileCommand(
-                    channelType,
-                    provider,
-                    stream,
-                    file.FileName,
-                    file.Length,
-                    string.IsNullOrEmpty(projectId) ? null : projectId,
-                    isActive,
-                    isPrimary
+                var command = new CreateProviderFromUploadCommand(
+                    request.ChannelType,
+                    request.Provider,
+                    request.File?.OpenReadStream(),
+                    request.File?.FileName,
+                    request.File?.Length ?? 0,
+                    request.ProjectId,
+                    request.IsActive,
+                    request.IsPrimary
                 );
 
                 var result = await mediator.Send(command, cancellationToken);
