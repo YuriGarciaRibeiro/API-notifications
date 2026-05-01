@@ -23,3 +23,13 @@
 - sem strings de permissao hardcoded nos endpoints;
 - build limpo ou com warnings intencionais documentados.
 
+## Status em 2026-05-01
+
+- concluido.
+
+## Evidencias da correcao aplicada
+
+1. Endpoints de `Users` e `Roles` padronizados para `Permissions.*` (sem `RequireAuthorization("...")` hardcoded).
+2. `UsePostgreSqlStorage` migrado para overload atual recomendado com `Action<PostgreSqlBootstrapperOptions>`.
+3. Parametro nao usado removido de `RabbitMqConsumerBase` e construtores dos workers ajustados.
+4. Build validado com `dotnet build NotificationSystem.slnx -v minimal`: `0 Warning(s)` e `0 Error(s)`.

@@ -22,7 +22,7 @@ public class Worker : RabbitMqConsumerBase<PushChannelMessage>
         IOptions<RabbitMqSettings> rabbitMqOptions,
         IServiceProvider serviceProvider,
         MessageProcessingMiddleware<PushChannelMessage> middleware)
-        : base(logger, rabbitMqOptions, serviceProvider, middleware)
+        : base(logger, rabbitMqOptions, middleware)
     {
         _pushProviderFactory = pushProviderFactory;
         _logger = logger;

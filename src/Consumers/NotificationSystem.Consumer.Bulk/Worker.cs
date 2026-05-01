@@ -23,7 +23,7 @@ public class Worker : RabbitMqConsumerBase<BulkNotificationJobMessage>
         IOptions<RabbitMqSettings> rabbitMqOptions,
         IServiceProvider serviceProvider,
         MessageProcessingMiddleware<BulkNotificationJobMessage> middleware)
-        : base(logger, rabbitMqOptions, serviceProvider, middleware)
+        : base(logger, rabbitMqOptions, middleware)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;

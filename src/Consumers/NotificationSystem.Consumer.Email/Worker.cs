@@ -20,7 +20,7 @@ public class Worker : RabbitMqConsumerBase<EmailChannelMessage>
         IOptions<RabbitMqSettings> rabbitMqOptions,
         IServiceProvider serviceProvider,
         MessageProcessingMiddleware<EmailChannelMessage> middleware)
-        : base(logger, rabbitMqOptions, serviceProvider, middleware)
+        : base(logger, rabbitMqOptions, middleware)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;

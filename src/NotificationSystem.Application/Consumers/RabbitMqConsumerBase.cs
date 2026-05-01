@@ -12,7 +12,6 @@ namespace NotificationSystem.Application.Consumers;
 public abstract class RabbitMqConsumerBase<TMessage>(
     ILogger logger,
     IOptions<RabbitMqSettings> rabbitMqOptions,
-    IServiceProvider serviceProvider,
     MessageProcessingMiddleware<TMessage> middleware) : BackgroundService
     where TMessage : class
 {
