@@ -7,8 +7,11 @@ using NotificationSystem.Application.UseCases.CreateProvider;
 using NotificationSystem.Application.UseCases.CreateProviderFromUpload;
 using NotificationSystem.Application.UseCases.DeleteProvider;
 using NotificationSystem.Application.UseCases.GetAllProviders;
+using NotificationSystem.Application.UseCases.GetProviderConfiguration;
 using NotificationSystem.Application.UseCases.SetProviderAsPrimary;
+using NotificationSystem.Application.UseCases.TestProviderConnection;
 using NotificationSystem.Application.UseCases.ToggleProviderActive;
+using NotificationSystem.Application.UseCases.UpdateProviderConfiguration;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Api.Endpoints;
@@ -34,6 +37,22 @@ public static class ProviderEndpoints
             .RequireAuthorization(Permissions.ProviderView)
             .Produces<List<ProviderConfigurationResponse>>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+        group.MapGet("/{id:guid}/configuration",
+            async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
+            {
+                var query = new GetProviderConfigurationQuery(id);
+                var result = await mediator.Send(query, cancellationToken);
+                return result.ToIResult();
+            })
+            .WithName("GetProviderConfiguration")
+            .WithSummary("Obtém configuração segura de um provedor")
+            .WithDescription("Retorna configuração não sensível de um provedor com flags indicando se segredos estão configurados.")
+            .RequireAuthorization(Permissions.ProviderView)
+            .Produces<ProviderConfigurationDetailsResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/",
@@ -89,6 +108,43 @@ public static class ProviderEndpoints
             .Produces<Guid>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+        group.MapPut("/{id:guid}",
+            async (
+                Guid id,
+                [FromBody] UpdateProviderConfigurationRequest request,
+                IMediator mediator,
+                CancellationToken cancellationToken) =>
+            {
+                var command = new UpdateProviderConfigurationCommand(id, request.Configuration);
+                var result = await mediator.Send(command, cancellationToken);
+                return result.ToIResult();
+            })
+            .WithName("UpdateProviderConfiguration")
+            .WithSummary("Atualiza a configuração de um provedor")
+            .WithDescription("Atualiza parcialmente a configuração de um provedor sem expor segredos em responses.")
+            .RequireAuthorization(Permissions.ProviderUpdate)
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+        group.MapPost("/{id:guid}/test-connection",
+            async (Guid id, IMediator mediator, CancellationToken cancellationToken) =>
+            {
+                var query = new TestProviderConnectionQuery(id);
+                var result = await mediator.Send(query, cancellationToken);
+                return result.ToIResult();
+            })
+            .WithName("TestProviderConnection")
+            .WithSummary("Valida conexão de um provedor sem envio real")
+            .WithDescription("Executa smoke test de conectividade/credenciais por tipo de provider sem disparar notificação real.")
+            .RequireAuthorization(Permissions.ProviderUpdate)
+            .Produces<TestProviderConnectionResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
         group.MapPost("/{id:guid}/set-primary",

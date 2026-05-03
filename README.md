@@ -147,19 +147,17 @@ API-notifications/
 │   └── Consumers/                           # 🌐 Workers (Presentation)
 │       ├── NotificationSystem.Consumer.Email/
 │       ├── NotificationSystem.Consumer.Sms/
-│       └── NotificationSystem.Consumer.Push/
+│       ├── NotificationSystem.Consumer.Push/
+│       └── NotificationSystem.Consumer.Bulk/
 │
-├── docs/                                    # 📖 Documentação
-│   ├── CHANNEL_SYSTEM.md                   # Documentação do sistema de canais
-│   ├── DEPLOYMENT.md                        # Guia completo de deploy
-│   └── QUICKSTART.md                        # Início rápido para empresas
+├── documentos/                              # 📖 Documentação técnica e revisões
+│   ├── techspec-codebase.md
+│   └── review-status-projeto/
 │
-├── tests/                                   # 🧪 Testes
-│   ├── NotificationSystem.Domain.Tests/
-│   ├── NotificationSystem.Application.Tests/
-│   └── NotificationSystem.Api.Tests/
+├── scripts/                                 # 🛠️ Scripts utilitários (build/migrations)
+│   └── database/
 │
-├── NotificationSystem.sln
+├── NotificationSystem.slnx
 └── README.md
 ```
 
@@ -180,9 +178,13 @@ API-notifications/
 
 Este sistema é distribuído como **imagens Docker** prontas para uso. Cada empresa hospeda sua própria instância com infraestrutura independente.
 
-**📘 Guias completos:**
-- [Quick Start Guide](docs/QUICKSTART.md) - Início rápido em 5 minutos
-- [Deployment Guide](docs/DEPLOYMENT.md) - Guia completo de produção
+**📘 Documentação disponível no repositório:**
+- [Tech Spec da codebase](documentos/techspec-codebase.md) - visão técnica consolidada
+- [Scripts de suporte](scripts/README.md) - comandos auxiliares de build e banco
+
+**🗺️ Planejado (ainda não versionado neste repositório):**
+- Quick Start Guide
+- Deployment Guide
 
 ### Infraestrutura Necessária
 
@@ -214,7 +216,7 @@ docker-compose -f docker-compose.production.yml up -d
 
 ### Pré-requisitos
 
-- **.NET SDK 8.0+** ([Download](https://dotnet.microsoft.com/download))
+- **.NET SDK 10.0+** ([Download](https://dotnet.microsoft.com/download))
 - **Docker** e **Docker Compose** (para RabbitMQ e PostgreSQL)
 - **Visual Studio 2022**, **VS Code** ou **Rider**
 
@@ -228,7 +230,7 @@ cd API-notifications
 
 2. **Restaurar dependências**
 ```bash
-dotnet restore
+dotnet restore NotificationSystem.slnx
 ```
 
 3. **Configure as variáveis de ambiente**
@@ -386,7 +388,7 @@ Uma notificação pode ter **múltiplos canais** simultaneamente:
 
 **Status Independente:** Se Email enviar com sucesso mas SMS falhar, cada canal terá seu próprio status.
 
-> 📘 Para mais detalhes sobre o sistema de canais, veja [docs/CHANNEL_SYSTEM.md](docs/CHANNEL_SYSTEM.md)
+> 📘 A documentação dedicada de canais (`CHANNEL_SYSTEM.md`) está planejada e ainda não foi versionada no repositório.
 
 ## 🔧 Configuração
 
@@ -618,9 +620,10 @@ dotnet user-secrets set "Services:Sms:Twilio:AuthToken" "your-token"
 
 #### Documentação
 - [x] README completo
-- [x] Documentação do sistema de canais (CHANNEL_SYSTEM.md)
-- [x] Guia de deployment (DEPLOYMENT.md)
-- [x] Quick start guide (QUICKSTART.md)
+- [x] Tech spec da codebase (`documentos/techspec-codebase.md`)
+- [ ] Documentação do sistema de canais (CHANNEL_SYSTEM.md)
+- [ ] Guia de deployment (DEPLOYMENT.md)
+- [ ] Quick start guide (QUICKSTART.md)
 
 ### 🔄 Planejado / Melhorias Futuras
 
@@ -705,6 +708,32 @@ response.notifications.forEach(notification => {
   }
 });
 ```
+
+### Configuração segura de providers (Settings/Admin)
+
+Para edição segura de credenciais no frontend/admin:
+
+- `GET /api/admin/providers/{id}/configuration`
+  - Retorna apenas campos não sensíveis.
+  - Segredos são representados por flags (`passwordConfigured`, `authTokenConfigured`, `apiKeyConfigured`, `credentialsJsonConfigured`).
+- `PUT /api/admin/providers/{id}`
+  - Atualiza configuração parcialmente.
+  - Campos sensíveis omitidos ou vazios preservam o valor já salvo.
+- `POST /api/admin/providers/upload`
+  - Upload multipart para credenciais em arquivo (ex.: Firebase JSON).
+- `POST /api/admin/providers/{id}/test-connection`
+  - Executa validação de conectividade/credencial sem envio real (SMTP/Twilio/Firebase/SendGrid).
+  - Requer `provider.update`.
+
+### Realtime de progresso bulk (SignalR)
+
+- Hub: `/hubs/bulk-progress`
+- Autenticação: JWT (mesmo token da API, via `access_token` no handshake do SignalR).
+- Permissão: `bulk-notification.view`.
+- Fluxo:
+  - Cliente chama `Subscribe(jobId)` no hub.
+  - API publica eventos `BulkProgressUpdated` por grupo `jobId`.
+  - Payload inclui status, percent, total, processados, sucesso/falha e timestamps.
 
 ## 🤝 Contribuindo
 

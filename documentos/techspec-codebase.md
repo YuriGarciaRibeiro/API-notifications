@@ -341,11 +341,12 @@ NotificationSystem.slnx
 | | GET | `/api/notifications/{id}` | `notification.view` |
 | | GET | `/api/notifications/stats` | `notification.stats` |
 | | POST | `/api/notifications` | `notification.create` |
-| **Bulk Notifications** | GET/POST/DELETE | `/api/bulk-notifications/*` | `bulk-notification.*` |
+| **Bulk Notifications** | GET/POST/DELETE | `/api/notifications/bulk/*` | `bulk-notification.*` |
+| **Bulk Realtime (SignalR)** | WS | `/hubs/bulk-progress` | `bulk-notification.view` |
 | **Auth** | POST | `/api/auth/login`, `/register`, `/refresh`, `/revoke` | Público (login/register) |
 | **Users** | CRUD | `/api/users/*` | `user.*` |
 | **Roles** | CRUD | `/api/roles/*` | `role.*` |
-| **Providers** | CRUD | `/api/providers/*` | `provider.*` |
+| **Providers** | CRUD + configuração segura + test connection | `/api/admin/providers/*`, `GET /api/admin/providers/{id}/configuration`, `PUT /api/admin/providers/{id}`, `POST /api/admin/providers/{id}/test-connection` | `provider.*` |
 | **Dead Letter Queue** | GET/POST/DELETE | `/api/dlq/*` | `dlq.*` |
 | **Audit Logs** | GET | `/api/audit-logs/*` | `audit.*` |
 | **Hangfire Dashboard** | - | `/hangfire` | Dev: sem auth / Prod: com auth |

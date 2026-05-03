@@ -8,6 +8,13 @@ public class BulkNotificationRepository(NotificationDbContext context) : IBulkNo
 {
     private readonly NotificationDbContext _context = context;
 
+    public async Task<BulkNotificationJob?> GetByIdAsync(Guid jobId, CancellationToken cancellationToken = default)
+    {
+        return await _context.BulkNotificationJobs
+            .AsNoTracking()
+            .FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);
+    }
+
     public async Task AddErrorMessageAsync(Guid jobId, string erroMessage, CancellationToken cancellationToken = default)
     {
         var job = await _context.BulkNotificationJobs.FirstOrDefaultAsync(j => j.Id == jobId, cancellationToken);

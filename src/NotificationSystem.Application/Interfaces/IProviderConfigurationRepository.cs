@@ -4,6 +4,7 @@ namespace NotificationSystem.Application.Interfaces;
 public interface IProviderConfigurationRepository
 {
     public Task<ProviderConfiguration?> GetActiveProviderAsync(ChannelType channelType, CancellationToken cancellationToken);
+    public Task<ProviderConfiguration?> GetByIdAsync(Guid providerConfigurationId, CancellationToken cancellationToken);
     public Task<List<ProviderConfiguration>> GetAllProvidersAsync(CancellationToken cancellationToken);
     public Task<bool> HasAnyProviderForChannelAsync(ChannelType channelType, CancellationToken cancellationToken);
     public Task CreateAsync(ProviderConfiguration providerConfiguration, CancellationToken cancellationToken);

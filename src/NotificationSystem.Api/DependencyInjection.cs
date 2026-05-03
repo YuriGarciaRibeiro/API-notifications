@@ -5,9 +5,11 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using NotificationSystem.Api.Endpoints;
 using NotificationSystem.Api.Extensions;
+using NotificationSystem.Api.Hubs;
 using NotificationSystem.Api.Infrastructure.Hangfire;
 using NotificationSystem.Api.Middlewares;
 using NotificationSystem.Application;
+using NotificationSystem.Application.Authorization;
 using NotificationSystem.Application.Configuration;
 using NotificationSystem.Application.Interfaces;
 using NotificationSystem.Application.Services;
@@ -44,6 +46,7 @@ public static class DependencyInjection
         services.AddCustomProblemDetails();
         services.AddHttpContextAccessor();
         services.AddSwaggerConfiguration();
+        services.AddSignalR();
 
         // Hangfire Configuration
         var connectionString = configuration.GetConnectionString("DefaultConnection");
@@ -77,6 +80,8 @@ public static class DependencyInjection
         services.Configure<RabbitMqSettings>(configuration.GetSection(RabbitMqSettings.SectionName));
         services.AddSingleton<IDeadLetterQueueService, DeadLetterQueueService>();
         services.AddHostedService<DeadLetterQueueMonitorService>();
+        services.AddSingleton<IBulkProgressSubscriptionStore, BulkProgressSubscriptionStore>();
+        services.AddHostedService<BulkProgressBroadcasterService>();
 
         return services;
     }
@@ -109,6 +114,23 @@ public static class DependencyInjection
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey)),
                     ClockSkew = TimeSpan.Zero
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            path.StartsWithSegments("/hubs/bulk-progress"))
+                        {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
@@ -200,5 +222,7 @@ public static class DependencyInjection
         app.MapDeadLetterQueueEndpoints();
         app.MapProviderEndpoints();
         app.MapAuditLogEndpoints();
+        app.MapHub<BulkProgressHub>("/hubs/bulk-progress")
+            .RequireAuthorization(Permissions.BulkNotificationView);
     }
 }

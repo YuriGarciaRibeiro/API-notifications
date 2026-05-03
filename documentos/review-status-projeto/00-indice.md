@@ -10,6 +10,7 @@ Este pacote documenta os 5 pontos do review tecnico do repositorio, com foco esp
 4. `02-ponto-2-drift-readme-vs-repositorio.md`
 5. `04-ponto-4-quebra-padrao-cqrs-em-endpoints.md`
 6. `05-ponto-5-convencoes-e-debitos-tecnicos.md`
+7. `06-analise-diferencas-backend-vs-frontend.md`
 
 ## Objetivo
 
@@ -18,4 +19,3 @@ Te dar material offline para:
 - saber impacto real;
 - aplicar correcao com ordem segura;
 - validar rapidamente antes de commitar.
-

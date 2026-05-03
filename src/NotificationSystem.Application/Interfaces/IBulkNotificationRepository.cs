@@ -2,6 +2,7 @@ namespace NotificationSystem.Application.Interfaces;
 
 public interface IBulkNotificationRepository
 {
+    public Task<BulkNotificationJob?> GetByIdAsync(Guid jobId, CancellationToken cancellationToken = default);
     public Task<IEnumerable<BulkNotificationItem>> GetItemsByJobIdAsync(Guid jobId, NotificationStatus? status = null, CancellationToken cancellationToken = default);
     public Task<BulkNotificationJob?> GetWithItemsAsync(Guid jobId, CancellationToken cancellationToken = default);
     public Task<int> GetProcessedCountAsync(Guid jobId, CancellationToken cancellationToken= default);

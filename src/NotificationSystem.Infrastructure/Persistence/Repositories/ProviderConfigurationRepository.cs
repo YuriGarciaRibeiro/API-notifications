@@ -34,6 +34,18 @@ public class ProviderConfigurationRepository(NotificationDbContext context, IEnc
         return providers;
     }
 
+    public async Task<ProviderConfiguration?> GetByIdAsync(Guid providerConfigurationId, CancellationToken cancellationToken)
+    {
+        var provider = await _context.ProviderConfigurations
+            .FirstOrDefaultAsync(pc => pc.Id == providerConfigurationId, cancellationToken);
+
+        if (provider is null)
+            return null;
+
+        provider.ConfigurationJson = _encryptionService.Decrypt(provider.ConfigurationJson);
+        return provider;
+    }
+
     public async Task<bool> HasAnyProviderForChannelAsync(ChannelType channelType, CancellationToken cancellationToken)
     {
         return await _context.ProviderConfigurations
