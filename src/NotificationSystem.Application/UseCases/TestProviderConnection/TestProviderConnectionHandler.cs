@@ -1,4 +1,9 @@
 using System.Text.Json.Nodes;
+using System.Globalization;
+using Amazon;
+using Amazon.Runtime;
+using Amazon.SimpleEmail;
+using Amazon.SimpleEmail.Model;
 using FluentResults;
 using MailKit.Net.Smtp;
 using MailKit.Security;
@@ -45,6 +50,7 @@ public class TestProviderConnectionHandler(
                 ProviderType.Twilio => Result.Ok(await TestTwilioAsync(provider.Provider, config, cancellationToken)),
                 ProviderType.Firebase => Result.Ok(await TestFirebaseAsync(provider.Provider, config, cancellationToken)),
                 ProviderType.SendGrid => Result.Ok(await TestSendGridAsync(provider.Provider, config, cancellationToken)),
+                ProviderType.AwsSes => Result.Ok(await TestAwsSesAsync(provider.Provider, config, cancellationToken)),
                 _ => Result.Ok(BuildResponse(false, provider.Provider, "Provider not supported", new Dictionary<string, string>()))
             };
         }
@@ -228,6 +234,64 @@ public class TestProviderConnectionHandler(
         }
     }
 
+    private async Task<TestProviderConnectionResponse> TestAwsSesAsync(
+        ProviderType provider,
+        JsonObject config,
+        CancellationToken cancellationToken)
+    {
+        var region = GetRequiredString(config, "region");
+        var accessKeyId = GetString(config, "accessKeyId");
+        var secretAccessKey = GetString(config, "secretAccessKey");
+        var sessionToken = GetString(config, "sessionToken");
+
+        if (string.IsNullOrWhiteSpace(region))
+        {
+            return BuildResponse(false, provider, "AWS SES region is required", new Dictionary<string, string>());
+        }
+
+        var hasAccessKey = !string.IsNullOrWhiteSpace(accessKeyId);
+        var hasSecret = !string.IsNullOrWhiteSpace(secretAccessKey);
+        if (hasAccessKey != hasSecret)
+        {
+            return BuildResponse(
+                false,
+                provider,
+                "AWS SES credentials are invalid",
+                new Dictionary<string, string>
+                {
+                    ["error"] = "accessKeyId and secretAccessKey must be provided together"
+                });
+        }
+
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(TestTimeout);
+
+        try
+        {
+            using var client = CreateAwsSesClient(region, accessKeyId, secretAccessKey, sessionToken);
+            var response = await client.GetSendQuotaAsync(new GetSendQuotaRequest(), timeoutCts.Token);
+
+            return BuildResponse(
+                true,
+                provider,
+                "AWS SES credentials validated",
+                new Dictionary<string, string>
+                {
+                    ["region"] = region,
+                    ["max24HourSend"] = Convert.ToString(response.Max24HourSend, CultureInfo.InvariantCulture) ?? "unknown",
+                    ["maxSendRate"] = Convert.ToString(response.MaxSendRate, CultureInfo.InvariantCulture) ?? "unknown"
+                });
+        }
+        catch (Exception ex)
+        {
+            return BuildResponse(false, provider, "AWS SES connection failed", new Dictionary<string, string>
+            {
+                ["region"] = region,
+                ["error"] = SanitizeMessage(ex.Message)
+            });
+        }
+    }
+
     private static TestProviderConnectionResponse BuildResponse(
         bool success,
         ProviderType provider,
@@ -283,5 +347,27 @@ public class TestProviderConnectionHandler(
         }
 
         return message.Length > 240 ? message[..240] : message;
+    }
+
+    private static IAmazonSimpleEmailService CreateAwsSesClient(
+        string region,
+        string? accessKeyId,
+        string? secretAccessKey,
+        string? sessionToken)
+    {
+        var regionEndpoint = RegionEndpoint.GetBySystemName(region);
+        var hasAccessKey = !string.IsNullOrWhiteSpace(accessKeyId);
+        var hasSecret = !string.IsNullOrWhiteSpace(secretAccessKey);
+
+        if (hasAccessKey && hasSecret)
+        {
+            AWSCredentials credentials = string.IsNullOrWhiteSpace(sessionToken)
+                ? new BasicAWSCredentials(accessKeyId!, secretAccessKey!)
+                : new SessionAWSCredentials(accessKeyId!, secretAccessKey!, sessionToken!);
+
+            return new AmazonSimpleEmailServiceClient(credentials, regionEndpoint);
+        }
+
+        return new AmazonSimpleEmailServiceClient(regionEndpoint);
     }
 }

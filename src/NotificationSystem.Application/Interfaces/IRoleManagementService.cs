@@ -1,6 +1,6 @@
 using FluentResults;
-using NotificationSystem.Application.DTOs.Common;
-using NotificationSystem.Application.DTOs.Roles;
+using NotificationSystem.Application.Contracts.Common;
+using NotificationSystem.Application.Contracts.Roles;
 
 namespace NotificationSystem.Application.Interfaces;
 

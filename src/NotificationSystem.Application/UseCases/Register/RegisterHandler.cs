@@ -1,15 +1,15 @@
 using FluentResults;
 using MediatR;
-using NotificationSystem.Application.DTOs.Auth;
+using NotificationSystem.Application.Contracts.Auth;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.Register;
 
-public class RegisterHandler(IAuthenticationService authenticationService) : IRequestHandler<RegisterCommand, Result<LoginResponse>>
+public class RegisterHandler(IAuthenticationService authenticationService) : IRequestHandler<RegisterCommand, Result<RegisterCommandResponse>>
 {
     private readonly IAuthenticationService _authenticationService = authenticationService;
 
-    public async Task<Result<LoginResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async Task<Result<RegisterCommandResponse>> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         var registerRequest = new RegisterUserRequest
         {
@@ -19,6 +19,11 @@ public class RegisterHandler(IAuthenticationService authenticationService) : IRe
             RoleIds = request.RoleIds
         };
 
-        return await _authenticationService.RegisterAsync(registerRequest, cancellationToken);
+        var result = await _authenticationService.RegisterAsync(registerRequest, cancellationToken);
+
+        if (result.IsFailed)
+            return Result.Fail<RegisterCommandResponse>(result.Errors);
+
+        return Result.Ok(RegisterCommandResponse.FromDto(result.Value));
     }
 }

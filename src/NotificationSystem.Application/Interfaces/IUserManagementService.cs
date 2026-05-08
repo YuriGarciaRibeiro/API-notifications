@@ -1,5 +1,5 @@
 using FluentResults;
-using NotificationSystem.Application.DTOs.Users;
+using NotificationSystem.Application.Contracts.Users;
 
 namespace NotificationSystem.Application.Interfaces;
 

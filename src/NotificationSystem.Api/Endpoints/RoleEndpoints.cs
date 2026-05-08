@@ -2,8 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NotificationSystem.Application.Authorization;
 using NotificationSystem.Api.Extensions;
-using NotificationSystem.Application.DTOs.Common;
-using NotificationSystem.Application.DTOs.Roles;
+using NotificationSystem.Application.Contracts.Roles;
 using NotificationSystem.Application.UseCases.CreateRole;
 using NotificationSystem.Application.UseCases.DeleteRole;
 using NotificationSystem.Application.UseCases.GetAllPermissions;
@@ -25,7 +24,7 @@ public static class RoleEndpoints
             .WithSummary("Lista todas as roles")
             .WithDescription(RoleEndpointsDocumentation.GetAllRolesDescription)
             .RequireAuthorization(Permissions.RoleView)
-            .Produces<IEnumerable<RoleDetailDto>>(StatusCodes.Status200OK, "application/json")
+            .Produces<GetAllRolesResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
@@ -34,7 +33,7 @@ public static class RoleEndpoints
             .WithSummary("Obtém uma role pelo ID")
             .WithDescription(RoleEndpointsDocumentation.GetRoleByIdDescription)
             .RequireAuthorization(Permissions.RoleView)
-            .Produces<RoleDetailDto>(StatusCodes.Status200OK, "application/json")
+            .Produces<GetRoleByIdResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
@@ -44,7 +43,7 @@ public static class RoleEndpoints
             .WithSummary("Lista todas as permissões")
             .WithDescription(RoleEndpointsDocumentation.GetAllPermissionsDescription)
             .RequireAuthorization(Permissions.PermissionView)
-            .Produces<IEnumerable<PermissionDto>>(StatusCodes.Status200OK, "application/json")
+            .Produces<GetAllPermissionsResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
@@ -53,7 +52,7 @@ public static class RoleEndpoints
             .WithSummary("Cria uma nova role")
             .WithDescription(RoleEndpointsDocumentation.CreateRoleDescription)
             .RequireAuthorization(Permissions.RoleCreate)
-            .Produces<RoleDetailDto>(StatusCodes.Status201Created, "application/json")
+            .Produces<CreateRoleResponse>(StatusCodes.Status201Created, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
@@ -63,7 +62,7 @@ public static class RoleEndpoints
             .WithSummary("Atualiza uma role")
             .WithDescription(RoleEndpointsDocumentation.UpdateRoleDescription)
             .RequireAuthorization(Permissions.RoleUpdate)
-            .Produces<RoleDetailDto>(StatusCodes.Status200OK, "application/json")
+            .Produces<UpdateRoleResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)

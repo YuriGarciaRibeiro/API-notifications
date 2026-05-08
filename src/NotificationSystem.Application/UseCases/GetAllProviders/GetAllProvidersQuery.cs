@@ -6,4 +6,4 @@ namespace NotificationSystem.Application.UseCases.GetAllProviders;
 
 public record GetAllProvidersQuery(
     ChannelType? ChannelType = null
-) : IRequest<Result<List<ProviderConfigurationResponse>>>;
+) : IRequest<Result<GetAllProvidersResponse>>;

@@ -6,20 +6,20 @@ using NotificationSystem.Domain.Entities;
 namespace NotificationSystem.Application.UseCases.CreateProviderFromUpload;
 
 public class CreateProviderFromUploadHandler(IMediator mediator)
-    : IRequestHandler<CreateProviderFromUploadCommand, Result<Guid>>
+    : IRequestHandler<CreateProviderFromUploadCommand, Result<CreateProviderFromUploadResponse>>
 {
     private readonly IMediator _mediator = mediator;
 
-    public Task<Result<Guid>> Handle(CreateProviderFromUploadCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CreateProviderFromUploadResponse>> Handle(CreateProviderFromUploadCommand request, CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<ChannelType>(request.ChannelType, true, out var channelType))
         {
-            return Task.FromResult(Result.Fail<Guid>("Invalid channelType"));
+            return Result.Fail<CreateProviderFromUploadResponse>("Invalid channelType");
         }
 
         if (!Enum.TryParse<ProviderType>(request.Provider, true, out var provider))
         {
-            return Task.FromResult(Result.Fail<Guid>("Invalid provider"));
+            return Result.Fail<CreateProviderFromUploadResponse>("Invalid provider");
         }
 
         var isActive = !bool.TryParse(request.IsActive, out var parsedIsActive) || parsedIsActive;
@@ -35,6 +35,11 @@ public class CreateProviderFromUploadHandler(IMediator mediator)
             isActive,
             isPrimary);
 
-        return _mediator.Send(fileCommand, cancellationToken);
+        var result = await _mediator.Send(fileCommand, cancellationToken);
+
+        if (result.IsFailed)
+            return Result.Fail<CreateProviderFromUploadResponse>(result.Errors);
+
+        return Result.Ok(new CreateProviderFromUploadResponse(result.Value.ProviderId));
     }
 }

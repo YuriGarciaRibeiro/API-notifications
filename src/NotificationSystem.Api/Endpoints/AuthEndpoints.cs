@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NotificationSystem.Api.Extensions;
-using NotificationSystem.Application.DTOs.Auth;
+using NotificationSystem.Application.Contracts.Auth;
 using NotificationSystem.Application.UseCases.Login;
 using NotificationSystem.Application.UseCases.RefreshToken;
 using NotificationSystem.Application.UseCases.Register;
@@ -19,7 +19,7 @@ public static class AuthEndpoints
             .WithName("Login")
             .WithSummary("Autentica um usuário no sistema")
             .WithDescription(AuthEndpointsDocumentation.LoginDescription)
-            .Produces<LoginResponse>(StatusCodes.Status200OK, "application/json")
+            .Produces<LoginCommandResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
@@ -27,7 +27,7 @@ public static class AuthEndpoints
             .WithName("Register")
             .WithSummary("Registra um novo usuário")
             .WithDescription(AuthEndpointsDocumentation.RegisterDescription)
-            .Produces<LoginResponse>(StatusCodes.Status201Created, "application/json")
+            .Produces<RegisterCommandResponse>(StatusCodes.Status201Created, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
@@ -35,7 +35,7 @@ public static class AuthEndpoints
             .WithName("RefreshToken")
             .WithSummary("Renova o access token")
             .WithDescription(AuthEndpointsDocumentation.RefreshTokenDescription)
-            .Produces<LoginResponse>(StatusCodes.Status200OK, "application/json")
+            .Produces<RefreshTokenCommandResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 

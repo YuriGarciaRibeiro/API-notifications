@@ -1,4 +1,4 @@
-using NotificationSystem.Application.DTOs.Notifications;
+using NotificationSystem.Application.Contracts.Notifications;
 
 namespace NotificationSystem.Application.Common.Mappings;
 

@@ -36,6 +36,10 @@ public class PushProviderFactory(
                 ProviderType.Twilio,
                 ChannelType.Push,
                 "Twilio is an SMS provider and cannot be used with Push factory. Use SmsProviderFactory instead."),
+            ProviderType.AwsSes => throw new InvalidProviderTypeException(
+                ProviderType.AwsSes,
+                ChannelType.Push,
+                "AWS SES is an Email provider and cannot be used with Push factory. Use EmailProviderFactory instead."),
             _ => throw new NotSupportedException($"Push Provider '{config.Provider}' is not supported")
         };
     }

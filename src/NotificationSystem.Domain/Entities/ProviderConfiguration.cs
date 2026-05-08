@@ -18,5 +18,6 @@ public enum ProviderType
     Smtp = 1,
     Twilio = 2,
     Firebase = 3,
-    SendGrid = 4
+    SendGrid = 4,
+    AwsSes = 5
 }

@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Application.Common.Mappings;
 using NotificationSystem.Application.Configuration;
-using NotificationSystem.Application.DTOs.DeadLetter;
+using NotificationSystem.Application.Contracts.DeadLetter;
 using NotificationSystem.Application.Interfaces;
 using RabbitMQ.Client;
 

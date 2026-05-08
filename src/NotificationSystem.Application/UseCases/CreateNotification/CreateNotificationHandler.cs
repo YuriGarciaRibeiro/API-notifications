@@ -4,11 +4,11 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.CreateNotification;
 
-public class CreateNotificationHandler(INotificationRepository repository) : IRequestHandler<CreateNotificationCommand, Result<Guid>>
+public class CreateNotificationHandler(INotificationRepository repository) : IRequestHandler<CreateNotificationCommand, Result<CreateNotificationResponse>>
 {
     private readonly INotificationRepository _repository = repository;
 
-    public async Task<Result<Guid>> Handle(CreateNotificationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CreateNotificationResponse>> Handle(CreateNotificationCommand request, CancellationToken cancellationToken)
     {
         var notification = new Notification
         {
@@ -40,7 +40,7 @@ public class CreateNotificationHandler(INotificationRepository repository) : IRe
 
         await _repository.UpdateAsync(notification);
 
-        return Result.Ok(notification.Id);
+        return Result.Ok(new CreateNotificationResponse(notification.Id));
     }
 
     private static EmailChannel CreateEmailChannel(Guid notificationId, Dictionary<string, object> data)

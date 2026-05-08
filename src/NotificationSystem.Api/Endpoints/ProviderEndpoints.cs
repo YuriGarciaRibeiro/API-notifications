@@ -7,6 +7,7 @@ using NotificationSystem.Application.UseCases.CreateProvider;
 using NotificationSystem.Application.UseCases.CreateProviderFromUpload;
 using NotificationSystem.Application.UseCases.DeleteProvider;
 using NotificationSystem.Application.UseCases.GetAllProviders;
+using NotificationSystem.Application.UseCases.GetProviderMetadata;
 using NotificationSystem.Application.UseCases.GetProviderConfiguration;
 using NotificationSystem.Application.UseCases.SetProviderAsPrimary;
 using NotificationSystem.Application.UseCases.TestProviderConnection;
@@ -35,7 +36,22 @@ public static class ProviderEndpoints
             .WithSummary("Lista todos os provedores configurados")
             .WithDescription("Retorna a lista de provedores de notificação configurados, opcionalmente filtrados por tipo de canal.")
             .RequireAuthorization(Permissions.ProviderView)
-            .Produces<List<ProviderConfigurationResponse>>(StatusCodes.Status200OK)
+            .Produces<GetAllProvidersResponse>(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status500InternalServerError);
+
+        group.MapGet("/metadata",
+            async (IMediator mediator, CancellationToken cancellationToken) =>
+            {
+                var query = new GetProviderMetadataQuery();
+                var result = await mediator.Send(query, cancellationToken);
+                return result.ToIResult();
+            })
+            .WithName("GetProviderMetadata")
+            .WithSummary("Retorna metadata de formulário para providers")
+            .WithDescription("Retorna catálogo estático de canais, provedores e campos para montagem dinâmica do formulário no frontend.")
+            .RequireAuthorization(Permissions.ProviderView)
+            .Produces<ProviderMetadataResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
@@ -62,7 +78,7 @@ public static class ProviderEndpoints
 
                 if (result.IsSuccess)
                 {
-                    return Results.Created($"/api/admin/providers/{result.Value}", new { id = result.Value });
+                    return Results.Created($"/api/admin/providers/{result.Value.ProviderId}", result.Value);
                 }
 
                 return result.ToIResult();
@@ -71,7 +87,7 @@ public static class ProviderEndpoints
             .WithSummary("Cadastra um novo provedor")
             .WithDescription("Cria uma nova configuração de provedor de notificação (Twilio, SMTP, Firebase, etc).")
             .RequireAuthorization(Permissions.ProviderCreate)
-            .Produces<Guid>(StatusCodes.Status201Created)
+            .Produces<CreateProviderResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
@@ -94,7 +110,7 @@ public static class ProviderEndpoints
 
                 if (result.IsSuccess)
                 {
-                    return Results.Created($"/api/admin/providers/{result.Value}", new { id = result.Value });
+                    return Results.Created($"/api/admin/providers/{result.Value.ProviderId}", result.Value);
                 }
 
                 return result.ToIResult();
@@ -105,7 +121,7 @@ public static class ProviderEndpoints
             .RequireAuthorization(Permissions.ProviderUpload)
             .DisableAntiforgery()
             .Accepts<IFormFile>("multipart/form-data")
-            .Produces<Guid>(StatusCodes.Status201Created)
+            .Produces<CreateProviderFromUploadResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

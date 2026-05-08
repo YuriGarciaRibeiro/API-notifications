@@ -1,15 +1,15 @@
 using FluentResults;
 using MediatR;
-using NotificationSystem.Application.DTOs.Roles;
+using NotificationSystem.Application.Contracts.Roles;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.CreateRole;
 
-public class CreateRoleHandler(IRoleManagementService roleManagementService) : IRequestHandler<CreateRoleCommand, Result<RoleDetailDto>>
+public class CreateRoleHandler(IRoleManagementService roleManagementService) : IRequestHandler<CreateRoleCommand, Result<CreateRoleResponse>>
 {
     private readonly IRoleManagementService _roleManagementService = roleManagementService;
 
-    public async Task<Result<RoleDetailDto>> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CreateRoleResponse>> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
     {
         var createRequest = new CreateRoleRequest
         {
@@ -18,6 +18,11 @@ public class CreateRoleHandler(IRoleManagementService roleManagementService) : I
             PermissionIds = request.PermissionIds
         };
 
-        return await _roleManagementService.CreateAsync(createRequest, cancellationToken);
+        var result = await _roleManagementService.CreateAsync(createRequest, cancellationToken);
+
+        if (result.IsFailed)
+            return Result.Fail<CreateRoleResponse>(result.Errors);
+
+        return Result.Ok(new CreateRoleResponse(result.Value));
     }
 }

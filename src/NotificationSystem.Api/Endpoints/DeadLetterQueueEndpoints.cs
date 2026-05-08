@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NotificationSystem.Application.Authorization;
-using NotificationSystem.Application.DTOs.DeadLetter;
 using NotificationSystem.Api.Extensions;
 using NotificationSystem.Application.UseCases.GetDLQMessages;
 using NotificationSystem.Application.UseCases.GetDLQStats;
@@ -29,7 +28,7 @@ public static class DeadLetterQueueEndpoints
             .WithSummary("Obtém estatísticas de todas as Dead Letter Queues")
             .WithDescription(DeadLetterQueueEndpointsDocumentation.GetStatsDescription)
             .RequireAuthorization(Permissions.DlqView)
-            .Produces<IEnumerable<DeadLetterQueueStatsDto>>(StatusCodes.Status200OK)
+            .Produces<GetDLQStatsResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
@@ -47,7 +46,7 @@ public static class DeadLetterQueueEndpoints
             .WithSummary("Lista as mensagens de uma Dead Letter Queue específica")
             .WithDescription(DeadLetterQueueEndpointsDocumentation.GetMessagesDescription)
             .RequireAuthorization(Permissions.DlqView)
-            .Produces<IEnumerable<DeadLetterMessageDto>>(StatusCodes.Status200OK)
+            .Produces<GetDLQMessagesResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

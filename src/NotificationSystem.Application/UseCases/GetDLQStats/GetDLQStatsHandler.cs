@@ -1,20 +1,19 @@
 using FluentResults;
 using MediatR;
-using NotificationSystem.Application.DTOs.DeadLetter;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetDLQStats;
 
 public class GetDLQStatsHandler(IDeadLetterQueueService deadLetterQueueService)
-    : IRequestHandler<GetDLQStatsQuery, Result<IEnumerable<DeadLetterQueueStatsDto>>>
+    : IRequestHandler<GetDLQStatsQuery, Result<GetDLQStatsResponse>>
 {
     private readonly IDeadLetterQueueService _deadLetterQueueService = deadLetterQueueService;
 
-    public async Task<Result<IEnumerable<DeadLetterQueueStatsDto>>> Handle(
+    public async Task<Result<GetDLQStatsResponse>> Handle(
         GetDLQStatsQuery request,
         CancellationToken cancellationToken)
     {
         var stats = await _deadLetterQueueService.GetAllDeadLetterQueueStatsAsync();
-        return Result.Ok(stats);
+        return Result.Ok(new GetDLQStatsResponse(stats));
     }
 }

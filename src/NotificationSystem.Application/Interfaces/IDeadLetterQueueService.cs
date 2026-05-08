@@ -1,4 +1,4 @@
-using NotificationSystem.Application.DTOs.DeadLetter;
+using NotificationSystem.Application.Contracts.DeadLetter;
 
 namespace NotificationSystem.Application.Interfaces;
 

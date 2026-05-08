@@ -1,4 +1,4 @@
-using NotificationSystem.Application.DTOs.AuditLogs;
+using NotificationSystem.Application.Contracts.AuditLogs;
 
 namespace NotificationSystem.Application.UseCases.GetAuditLogById;
 

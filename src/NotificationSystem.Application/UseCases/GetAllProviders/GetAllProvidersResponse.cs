@@ -10,3 +10,5 @@ public record ProviderConfigurationResponse(
     bool IsPrimary,
     int Priority
 );
+
+public record GetAllProvidersResponse(List<ProviderConfigurationResponse> Providers);

@@ -12,4 +12,4 @@ public record CreateProviderFromUploadCommand(
     string? ProjectId = null,
     string? IsActive = null,
     string? IsPrimary = null
-) : IRequest<Result<Guid>>;
+) : IRequest<Result<CreateProviderFromUploadResponse>>;

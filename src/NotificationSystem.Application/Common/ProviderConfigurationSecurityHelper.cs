@@ -92,6 +92,7 @@ public static class ProviderConfigurationSecurityHelper
         ProviderType.Twilio => ["authToken"],
         ProviderType.SendGrid => ["apiKey"],
         ProviderType.Firebase => ["credentialsJson"],
+        ProviderType.AwsSes => ["accessKeyId", "secretAccessKey", "sessionToken"],
         _ => []
     };
 

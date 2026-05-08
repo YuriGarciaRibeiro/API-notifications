@@ -26,7 +26,7 @@ public static class BulkNotificationEndpoints
                    CancellationToken cancellationToken) =>
             {
                 var result = await mediator.Send(command, cancellationToken);
-                return result.ToIResult();
+                return result.ToIResult(StatusCodes.Status201Created);
             })
             .WithName("CreateBulkNotification")
             .WithSummary("Cria um job de notificações em massa")
@@ -34,7 +34,7 @@ public static class BulkNotificationEndpoints
                            "Suporta até 1.000.000 de items por job. " +
                            "O processamento é assíncrono via RabbitMQ.")
             .RequireAuthorization(Permissions.BulkNotificationCreate)
-            .Produces<Guid>(StatusCodes.Status201Created)
+            .Produces<CreateBulkNotificationResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

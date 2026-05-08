@@ -1,7 +1,7 @@
 using FluentResults;
 using NotificationSystem.Application.Common.Errors;
-using NotificationSystem.Application.DTOs.Common;
-using NotificationSystem.Application.DTOs.Roles;
+using NotificationSystem.Application.Contracts.Common;
+using NotificationSystem.Application.Contracts.Roles;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.Services;

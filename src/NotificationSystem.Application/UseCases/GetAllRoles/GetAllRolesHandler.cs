@@ -1,16 +1,17 @@
 using FluentResults;
 using MediatR;
-using NotificationSystem.Application.DTOs.Roles;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetAllRoles;
 
-public class GetAllRolesHandler(IRoleManagementService roleManagementService) : IRequestHandler<GetAllRolesQuery, Result<IEnumerable<RoleDetailDto>>>
+public class GetAllRolesHandler(IRoleManagementService roleManagementService) : IRequestHandler<GetAllRolesQuery, Result<GetAllRolesResponse>>
 {
     private readonly IRoleManagementService _roleManagementService = roleManagementService;
 
-    public async Task<Result<IEnumerable<RoleDetailDto>>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
+    public async Task<Result<GetAllRolesResponse>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
     {
-        return await _roleManagementService.GetAllAsync(cancellationToken);
+        var result = await _roleManagementService.GetAllAsync(cancellationToken);
+
+        return result.IsFailed ? Result.Fail<GetAllRolesResponse>(result.Errors) : Result.Ok(new GetAllRolesResponse(result.Value));
     }
 }

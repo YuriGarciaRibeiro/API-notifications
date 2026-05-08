@@ -10,4 +10,4 @@ public record CreateProviderCommand(
     object Configuration,
     bool IsActive = true,
     bool IsPrimary = false
-) : IRequest<Result<Guid>>;
+) : IRequest<Result<CreateProviderResponse>>;

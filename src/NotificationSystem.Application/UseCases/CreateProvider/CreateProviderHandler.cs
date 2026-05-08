@@ -5,11 +5,11 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.CreateProvider;
 
-public class CreateProviderHandler(IProviderConfigurationRepository repository) : IRequestHandler<CreateProviderCommand, Result<Guid>>
+public class CreateProviderHandler(IProviderConfigurationRepository repository) : IRequestHandler<CreateProviderCommand, Result<CreateProviderResponse>>
 {
     private readonly IProviderConfigurationRepository _repository = repository;
 
-    public async Task<Result<Guid>> Handle(CreateProviderCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CreateProviderResponse>> Handle(CreateProviderCommand request, CancellationToken cancellationToken)
     {
         // Serializa a configuração para JSON
         var configJson = JsonSerializer.Serialize(request.Configuration);
@@ -30,6 +30,6 @@ public class CreateProviderHandler(IProviderConfigurationRepository repository) 
 
         await _repository.CreateAsync(providerConfig, cancellationToken);
 
-        return Result.Ok(providerConfig.Id);
+        return Result.Ok(new CreateProviderResponse(providerConfig.Id));
     }
 }

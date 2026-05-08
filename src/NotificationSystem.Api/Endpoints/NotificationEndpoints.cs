@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NotificationSystem.Application.Authorization;
 using NotificationSystem.Api.Extensions;
-using NotificationSystem.Application.DTOs.Common;
+using NotificationSystem.Application.Contracts.Common;
 using NotificationSystem.Application.UseCases.CreateNotification;
 using NotificationSystem.Application.UseCases.GetAllNotifications;
 using NotificationSystem.Application.UseCases.GetNotificationById;
@@ -69,13 +69,13 @@ public static class NotificationEndpoints
             async ([FromBody] CreateNotificationCommand command, IMediator mediator, CancellationToken cancellationToken) =>
             {
                 var result = await mediator.Send(command, cancellationToken);
-                return result.ToIResult();
+                return result.ToIResult(StatusCodes.Status201Created);
             })
             .WithName("CreateNotification")
             .WithSummary("Cria uma nova notificação multi-canal")
             .WithDescription(NotificationEndpointsDocumentation.CreateNotificationDescription)
             .RequireAuthorization(Permissions.NotificationCreate)
-            .Produces<Guid>(StatusCodes.Status201Created)
+            .Produces<CreateNotificationResponse>(StatusCodes.Status201Created)
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);

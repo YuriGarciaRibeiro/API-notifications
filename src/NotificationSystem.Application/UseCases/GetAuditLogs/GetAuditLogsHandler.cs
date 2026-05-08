@@ -1,6 +1,6 @@
 using FluentResults;
 using MediatR;
-using NotificationSystem.Application.DTOs.AuditLogs;
+using NotificationSystem.Application.Contracts.AuditLogs;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetAuditLogs;

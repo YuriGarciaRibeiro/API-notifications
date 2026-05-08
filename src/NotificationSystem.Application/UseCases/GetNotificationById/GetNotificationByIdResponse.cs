@@ -1,4 +1,4 @@
-using NotificationSystem.Application.DTOs.Notifications;
+using NotificationSystem.Application.Contracts.Notifications;
 using NotificationSystem.Domain.Entities;
 
 namespace NotificationSystem.Application.UseCases.GetNotificationById;

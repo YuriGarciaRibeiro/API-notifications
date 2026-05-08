@@ -9,12 +9,12 @@ namespace NotificationSystem.Application.UseCases.CreateProviderFromFile;
 
 public class CreateProviderFromFileHandler(
     IProviderConfigurationRepository repository,
-    ILogger<CreateProviderFromFileHandler> logger) : IRequestHandler<CreateProviderFromFileCommand, Result<Guid>>
+    ILogger<CreateProviderFromFileHandler> logger) : IRequestHandler<CreateProviderFromFileCommand, Result<CreateProviderFromFileResponse>>
 {
     private readonly IProviderConfigurationRepository _repository = repository;
     private readonly ILogger<CreateProviderFromFileHandler> _logger = logger;
 
-    public async Task<Result<Guid>> Handle(CreateProviderFromFileCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CreateProviderFromFileResponse>> Handle(CreateProviderFromFileCommand request, CancellationToken cancellationToken)
     {
         try
         {
@@ -40,11 +40,12 @@ public class CreateProviderFromFileHandler(
                 ProviderType.Smtp => Result.Fail($"File upload not supported for provider type: {request.Provider}"),
                 ProviderType.Twilio => Result.Fail($"File upload not supported for provider type: {request.Provider}"),
                 ProviderType.SendGrid => Result.Fail($"File upload not supported for provider type: {request.Provider}"),
+                ProviderType.AwsSes => Result.Fail($"File upload not supported for provider type: {request.Provider}"),
                 _ => Result.Fail($"File upload not supported for provider type: {request.Provider}")
             };
 
             if (validationResult.IsFailed)
-                return validationResult;
+                return Result.Fail<CreateProviderFromFileResponse>(validationResult.Errors);
 
             // Cria a configuração baseada no provedor
             var configuration = request.Provider switch
@@ -53,6 +54,7 @@ public class CreateProviderFromFileHandler(
                 ProviderType.Smtp => throw new NotSupportedException($"Provider {request.Provider} is not supported"),
                 ProviderType.Twilio => throw new NotSupportedException($"Provider {request.Provider} is not supported"),
                 ProviderType.SendGrid => throw new NotSupportedException($"Provider {request.Provider} is not supported"),
+                ProviderType.AwsSes => throw new NotSupportedException($"Provider {request.Provider} is not supported"),
                 _ => throw new NotSupportedException($"Provider {request.Provider} is not supported")
             };
 
@@ -78,7 +80,7 @@ public class CreateProviderFromFileHandler(
                 "Provider created from file upload. Provider: {Provider}, Channel: {Channel}, Id: {Id}",
                 request.Provider, request.ChannelType, providerConfig.Id);
 
-            return Result.Ok(providerConfig.Id);
+            return Result.Ok(new CreateProviderFromFileResponse(providerConfig.Id));
         }
         catch (Exception ex)
         {

@@ -33,6 +33,10 @@ public class SmsProviderFactory(
                 ProviderType.Firebase,
                 ChannelType.Sms,
                 "Firebase is a Push notification provider and cannot be used with SMS factory. Use PushProviderFactory instead."),
+            ProviderType.AwsSes => throw new InvalidProviderTypeException(
+                ProviderType.AwsSes,
+                ChannelType.Sms,
+                "AWS SES is an Email provider and cannot be used with SMS factory. Use EmailProviderFactory instead."),
             _ => throw new NotSupportedException($"SMS Provider '{config.Provider}' is not supported")
         };
     }

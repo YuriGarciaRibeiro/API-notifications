@@ -1,0 +1,3 @@
+namespace NotificationSystem.Application.UseCases.CreateProviderFromUpload;
+
+public record CreateProviderFromUploadResponse(Guid ProviderId);

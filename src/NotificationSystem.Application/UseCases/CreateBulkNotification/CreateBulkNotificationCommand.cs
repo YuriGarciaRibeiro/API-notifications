@@ -10,7 +10,7 @@ public record CreateBulkNotificationCommand(
     DateTime? ScheduledFor = null,
     string? RecurringCron = null,
     string? TimeZone = null
-) : IRequest<Result<Guid>>;
+) : IRequest<Result<CreateBulkNotificationResponse>>;
 
 public record CreateBulkNotificationItemRequest(
     string Recipient,

@@ -13,7 +13,7 @@ public class CreateBulkNotificationHandler(
     IMessagePublisher messagePublisher,
     ICampaignSchedulerService campaignScheduler,
     ILogger<CreateBulkNotificationHandler> logger,
-    ICurrentUserService currentUserService) : IRequestHandler<CreateBulkNotificationCommand, Result<Guid>>
+    ICurrentUserService currentUserService) : IRequestHandler<CreateBulkNotificationCommand, Result<CreateBulkNotificationResponse>>
 {
     private readonly IBulkNotificationRepository _repository = repository;
     private readonly IMessagePublisher _messagePublisher = messagePublisher;
@@ -21,7 +21,7 @@ public class CreateBulkNotificationHandler(
     private readonly ILogger<CreateBulkNotificationHandler> _logger = logger;
     private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public async Task<Result<Guid>> Handle(CreateBulkNotificationCommand request, CancellationToken cancellationToken)
+    public async Task<Result<CreateBulkNotificationResponse>> Handle(CreateBulkNotificationCommand request, CancellationToken cancellationToken)
     {
         var jobId = Guid.NewGuid();
         var job = new BulkNotificationJob
@@ -94,6 +94,6 @@ public class CreateBulkNotificationHandler(
             _logger.LogInformation("Bulk notification job {JobId} published for immediate processing.", jobId);
         }
 
-        return Result.Ok(jobId);
+        return Result.Ok(new CreateBulkNotificationResponse(jobId));
     }
 }

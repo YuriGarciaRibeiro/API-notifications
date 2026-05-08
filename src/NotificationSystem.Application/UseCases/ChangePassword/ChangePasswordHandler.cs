@@ -1,6 +1,6 @@
 using FluentResults;
 using MediatR;
-using NotificationSystem.Application.DTOs.Users;
+using NotificationSystem.Application.Contracts.Users;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.ChangePassword;

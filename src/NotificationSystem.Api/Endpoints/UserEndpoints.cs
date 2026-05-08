@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using NotificationSystem.Application.Authorization;
 using NotificationSystem.Api.Extensions;
-using NotificationSystem.Application.DTOs.Users;
+using NotificationSystem.Application.Contracts.Users;
 using NotificationSystem.Application.UseCases.AssignRoles;
 using NotificationSystem.Application.UseCases.ChangePassword;
 using NotificationSystem.Application.UseCases.CreateUser;
@@ -25,7 +25,7 @@ public static class UserEndpoints
             .WithSummary("Lista todos os usuários")
             .WithDescription(UserEndpointsDocumentation.GetAllUsersDescription)
             .RequireAuthorization(Permissions.UserView)
-            .Produces<IEnumerable<UserDto>>(StatusCodes.Status200OK, "application/json")
+            .Produces<GetAllUsersResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
 
@@ -34,7 +34,7 @@ public static class UserEndpoints
             .WithSummary("Obtém um usuário pelo ID")
             .WithDescription(UserEndpointsDocumentation.GetUserByIdDescription)
             .RequireAuthorization(Permissions.UserView)
-            .Produces<UserDto>(StatusCodes.Status200OK, "application/json")
+            .Produces<GetUserByIdResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
@@ -44,7 +44,7 @@ public static class UserEndpoints
             .WithSummary("Cria um novo usuário")
             .WithDescription(UserEndpointsDocumentation.CreateUserDescription)
             .RequireAuthorization(Permissions.UserCreate)
-            .Produces<UserDto>(StatusCodes.Status201Created, "application/json")
+            .Produces<CreateUserResponse>(StatusCodes.Status201Created, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status500InternalServerError);
@@ -54,7 +54,7 @@ public static class UserEndpoints
             .WithSummary("Atualiza um usuário")
             .WithDescription(UserEndpointsDocumentation.UpdateUserDescription)
             .RequireAuthorization(Permissions.UserUpdate)
-            .Produces<UserDto>(StatusCodes.Status200OK, "application/json")
+            .Produces<UpdateUserResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)

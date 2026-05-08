@@ -2,7 +2,7 @@ using FluentResults;
 using Microsoft.Extensions.Options;
 using NotificationSystem.Application.Common.Errors;
 using NotificationSystem.Application.Configuration;
-using NotificationSystem.Application.DTOs.Auth;
+using NotificationSystem.Application.Contracts.Auth;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.Services;

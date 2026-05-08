@@ -22,6 +22,7 @@ public class EmailProviderFactory(
         {
             ProviderType.Smtp => CreateSmtp(config),
             ProviderType.SendGrid => CreateSendGrid(config),
+            ProviderType.AwsSes => CreateAwsSes(config),
             ProviderType.Twilio => throw new InvalidProviderTypeException(
                 ProviderType.Twilio,
                 ChannelType.Email,
@@ -65,5 +66,13 @@ public class EmailProviderFactory(
         return new SendGridEmailService(
             Options.Create(settings)
         );
+    }
+
+    private IEmailService CreateAwsSes(ProviderConfiguration config)
+    {
+        var settings = DeserializeConfig<AwsSesSettings>(config.ConfigurationJson)
+            ?? throw new InvalidOperationException("Invalid AWS SES configuration");
+
+        return new AwsSesEmailService(Options.Create(settings));
     }
 }

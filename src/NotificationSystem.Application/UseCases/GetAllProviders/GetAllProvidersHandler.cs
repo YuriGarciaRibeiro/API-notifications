@@ -4,11 +4,11 @@ using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetAllProviders;
 
-public class GetAllProvidersHandler(IProviderConfigurationRepository repository) : IRequestHandler<GetAllProvidersQuery, Result<List<ProviderConfigurationResponse>>>
+public class GetAllProvidersHandler(IProviderConfigurationRepository repository) : IRequestHandler<GetAllProvidersQuery, Result<GetAllProvidersResponse>>
 {
     private readonly IProviderConfigurationRepository _repository = repository;
 
-    public async Task<Result<List<ProviderConfigurationResponse>>> Handle(
+    public async Task<Result<GetAllProvidersResponse>> Handle(
         GetAllProvidersQuery request,
         CancellationToken cancellationToken)
     {
@@ -20,7 +20,7 @@ public class GetAllProvidersHandler(IProviderConfigurationRepository repository)
             providers = providers.Where(p => p.ChannelType == request.ChannelType.Value).ToList();
         }
 
-        var response = providers.Select(p => new ProviderConfigurationResponse(
+        var responseItems = providers.Select(p => new ProviderConfigurationResponse(
             p.Id,
             p.ChannelType,
             p.Provider,
@@ -29,6 +29,6 @@ public class GetAllProvidersHandler(IProviderConfigurationRepository repository)
             p.Priority
         )).ToList();
 
-        return Result.Ok(response);
+        return Result.Ok(new GetAllProvidersResponse(responseItems));
     }
 }

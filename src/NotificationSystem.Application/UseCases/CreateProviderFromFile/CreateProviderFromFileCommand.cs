@@ -16,4 +16,4 @@ public record CreateProviderFromFileCommand(
     string? ProjectId = null,
     bool IsActive = true,
     bool IsPrimary = false
-) : IRequest<Result<Guid>>;
+) : IRequest<Result<CreateProviderFromFileResponse>>;

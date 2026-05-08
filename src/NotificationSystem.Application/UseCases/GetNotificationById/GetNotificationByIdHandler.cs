@@ -1,7 +1,7 @@
 using FluentResults;
 using MediatR;
 using NotificationSystem.Application.Common.Errors;
-using NotificationSystem.Application.DTOs.Notifications;
+using NotificationSystem.Application.Contracts.Notifications;
 using NotificationSystem.Application.Interfaces;
 
 namespace NotificationSystem.Application.UseCases.GetNotificationById;
